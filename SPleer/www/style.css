@@ -1,0 +1,102 @@
+﻿:root {
+	--bg-primary: #1c222a;
+    --text-primary: #E0E0E0;
+    --text-secondary: #B0B8C1;
+    --text-accent: #64B5F6;
+	--line: #333;
+}
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+	color: var(--text-primary);
+}
+
+body {
+	background-color: var(--bg-primary);
+}
+
+button {
+	background-color: transparent;
+}
+
+.wrapper {
+	display: flex;	
+}
+
+.list {
+	display: flex;	
+	width: 40%;
+	height: 100vh;
+}
+
+.songs {
+	margin: 5px 0 5px 5px;
+}
+
+.song-item {
+	margin-bottom: 3px;
+}
+
+.vertical-line {
+	border-left: 2px solid var(--line);
+	height: 100%;
+	margin: 0 10px;
+	margin-left: auto;
+}
+
+.player {
+	display: flex;
+	height: 100vh;
+	width: 60%;
+	flex-direction: column;
+	align-items: center;
+	text-align: center;
+}
+
+.btn {
+	position: absolute;
+	bottom: 10px;
+	left: 10px;
+}
+
+.image img {
+	display: block;
+	object-fit: cover;
+	width: 30vh;
+	height: auto;
+	margin: 10vh auto 20px auto;
+	border-radius: 50%;
+}
+
+.details {
+	display: flex;
+	height: 100vh;
+	margin-top: 10vh;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.progress {
+	display: flex;
+	flex-direction: row;
+	gap: 10px;
+}
+
+.volume {
+	margin-bottom: 15px;
+	margin-top: auto;
+	margin-right: 15px;
+	margin-left: auto;
+}
+
+.hidden {
+	display: none !important;
+}
+
+
+.song-item:hover, .back:hover, .play:hover, .pause:hover, .next:hover, .btnRefresh:hover, .vol:hover {
+	cursor: pointer;
+}
+

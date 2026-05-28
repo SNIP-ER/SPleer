@@ -1,0 +1,50 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <title>SPleer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class='wrapper'>
+        <div class='list'>
+            <div class='btn'><button class='btnRefresh' onclick='refreshTracks()'>🗘</button></div>
+            <div class='songs'></div>
+            <div class='vertical-line'></div>
+        </div>
+
+        <div class='player'>
+            <div class='image'><img src="https://placehold.co/300x300/3a3f47/E0E0E0?text=Music" alt="Обложка" /></div>
+
+            <div class='details'>
+                <div class='name'>Название</div>
+
+                <div class='buttons'>
+                    <button class='back' onclick='previousTrack()'>⏮</button>
+                    <button class='play' onclick='playOrResume()'>▶</button>
+                    <button class='pause' onclick='pause()'>⏸</button>
+                    <button class='next' onclick='nextTrack()'>⏭</button>
+                    <button id='modeToggle' onclick='toggleMode()'>🔁</button>
+                </div>
+
+                <div class='progress'>
+                    <div class='timeElapsed'>00:00</div>
+                    <input class='line' type="range" id="timeSlider" min="0" max="100" value="0" oninput="">
+                    <div class='time'>00:00</div>
+                </div>
+
+                <div class='artist'>Автор</div>
+            </div>
+
+            <div class='volume'>
+                <input class='vol' type="range" id="volumeSlider" min="0" max="100" value="40" oninput="changeVolume(this.value)">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
