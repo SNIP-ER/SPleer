@@ -20,6 +20,57 @@ namespace SPleer
         }
 
         /// <summary>
+        /// Перетаскивание окна.
+        /// </summary>
+        public void StartDrag()
+        {
+            var form = Application.OpenForms[0];
+
+            ReleaseCapture();
+            SendMessage(form.Handle, 0xA1, 0x2, 0);
+        }
+
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+        /// <summary>
+        /// Свернуть окно.
+        /// </summary>
+        public void MinimizeWindow()
+        {
+            if (Application.OpenForms.Count > 0)
+            {
+                Application.OpenForms[0].WindowState = FormWindowState.Minimized;
+            }
+        }
+
+        /// <summary>
+        /// Развернуть окно.
+        /// </summary>
+        public void MaximizeRestoreWindow()
+        {
+            if (Application.OpenForms.Count > 0)
+            {
+                var form = Application.OpenForms[0];
+                form.WindowState = form.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+            }
+        }
+
+        /// <summary>
+        /// Закрыть окно.
+        /// </summary>
+        public void CloseWindow()
+        {
+            if (Application.OpenForms.Count > 0)
+            {
+                Application.OpenForms[0].Close();
+            }
+        }
+
+        /// <summary>
         /// Составление списка треков.
         /// </summary>
         /// <returns>Возвращает список треков в виде JSON-строки.</returns>

@@ -1,102 +1,800 @@
 ﻿:root {
-	--bg-primary: #1c222a;
-    --text-primary: #E0E0E0;
-    --text-secondary: #B0B8C1;
-    --text-accent: #64B5F6;
-	--line: #333;
+	--bg-app: #051424;
+	--bg-sidebar: rgba(18, 33, 49, 0.8);
+	--bg-player: rgba(1, 15, 31, 0.9);
+	--bg-content: rgba(5, 20, 36, 0.4);
+	--bg-table: rgba(13, 28, 45, 0.4);
+	--bg-search: rgba(39, 54, 71, 0.5);
+	--bg-row-hover: rgba(255, 255, 255, 0.02);
+	
+	--text-primary: #D4E4FA;
+	--text-secondary: #424656;
+	--text-table: #CFC2D6;
+	--text-white: #FFFFFF;
+	--text-muted: rgba(255, 255, 255, 0.5);
+
+	--accent: #004CCA;
+	--accent-light: #0062FF;
+
+	--border-default: rgba(255, 255, 255, 0.1);
+	--border-light: rgba(255, 255, 255, 0.2);
+	--border-dark: rgba(77, 67, 84, 0.1);
+	--border-table: rgba(77, 67, 84, 0.2);
+
+	--shadow-heavy: rgba(0, 0, 0, 0.4);
+	--shadow-medium: rgba(0, 0, 0, 0.25);
+	--shadow-light: rgba(0, 0, 0, 0.1);
+	--shadow-glow: rgba(0, 76, 202, 0.3);
+	--shadow-glow-sm: rgba(0, 76, 202, 0.1);
+	--shadow-card: rgba(0, 0, 0, 0.05);
+
+	--grad-blue: rgba(0, 98, 255, 0.2);
+	--grad-dark: rgba(5, 20, 36, 1);
+	--grad-green: rgba(74, 225, 118, 0.1);
+	--grad-light: rgba(221, 227, 236, 0.1);
+
+	--glow-blue: rgba(0, 98, 255, 0.15);
 }
+
+
+@font-face {
+    font-family: 'Hanken Grotesk';
+    src: url('fonts/HankenGrotesk-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hanken Grotesk';
+    src: url('fonts/HankenGrotesk-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hanken Grotesk';
+    src: url('fonts/HankenGrotesk-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+}
+
+@font-face {
+	font-family: 'Geist';
+	src: url('fonts/Geist-Medium.ttf') format('truetype');
+	font-weight: 500;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Geist';
+	src: url('fonts/Geist-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Geist';
+	src: url('fonts/Geist-Bold.ttf') format('truetype');
+	font-weight: 700;
+	font-style: normal;
+}
+
+@font-face {
+	font-family: 'Inter';
+	src: url('fonts/Inter-Regular.ttf') format('truetype');
+	font-weight: 400;
+	font-style: normal;
+}
+
 
 * {
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
-	color: var(--text-primary);
+	user-select: none;
 }
 
 body {
-	background-color: var(--bg-primary);
-}
-
-button {
-	background-color: transparent;
-}
-
-.wrapper {
-	display: flex;	
-}
-
-.list {
-	display: flex;	
-	width: 40%;
-	height: 100vh;
-}
-
-.songs {
-	margin: 5px 0 5px 5px;
-}
-
-.song-item {
-	margin-bottom: 3px;
-}
-
-.vertical-line {
-	border-left: 2px solid var(--line);
-	height: 100%;
-	margin: 0 10px;
-	margin-left: auto;
-}
-
-.player {
 	display: flex;
-	height: 100vh;
-	width: 60%;
-	flex-direction: column;
-	align-items: center;
-	text-align: center;
+	overflow: hidden;
+	background-color: var(--bg-app);
 }
 
-.btn {
-	position: absolute;
-	bottom: 10px;
-	left: 10px;
+img {
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
 }
 
-.image img {
-	display: block;
-	object-fit: cover;
-	width: 30vh;
-	height: auto;
-	margin: 10vh auto 20px auto;
-	border-radius: 50%;
+input, textarea {
+    user-select: text;
 }
 
-.details {
+
+/* УТИЛИТЫ (UTILITY) */
+.u-hidden {
+    display: none !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.icon-white {
+    fill: var(--text-white);
+}
+
+.time-label {
+    width: 40px;
+    flex-shrink: 0;
+    text-align: center;
+    font-family: 'Geist', sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.28px;
+    line-height: 16px;
+    color: var(--text-secondary);
+}
+
+.text-secondary {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 20px;
+    color: var(--text-secondary);
+    cursor: default;
+}
+
+.placeholder {
+    height: 100vh;
+    background-color: var(--bg-content);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.6px;
+    color: var(--accent-light);
+}
+
+
+/* БОКОВАЯ ПАНЕЛЬ (SIDEBAR) */
+#sidebar {
+    top: 0;
+    left: 0;
+    width: 256px;
+    height: 100vh;
+    flex-shrink: 0;
+    padding: 8px;
+    gap: 8px;
+    background-color: var(--bg-sidebar);
+    border-right: 1px solid var(--border-dark);
+    backdrop-filter: blur(24px);
+}
+
+.menu-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 40px;
+    height: auto;
+    gap: 16px;
+    padding-left: 20px;
+    color: var(--text-secondary);
+    transition: color 0.1s;
+}
+
+.menu-item:hover {
+    color: var(--text-muted);
+}
+
+.menu-item:hover .nav-icon {
+    background-color: var(--text-muted);
+}
+
+.menu-item.control_blue {
+    color: var(--accent);
+}
+
+.menu-item.control_blue .nav-icon {
+    background-color: var(--accent);
+}
+
+.menu-item.control_blue:hover {
+    color: var(--accent-light);
+    transition: color 0.1s;
+}
+
+.menu-item.control_blue:hover .nav-icon {
+    background-color: var(--accent-light);
+    transition: background-color 0.1s;
+}
+
+.menu-item.control_blue::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    background-color: var(--accent);
+}
+
+.menu-item.control_blue:hover::before {
+    background-color: var(--accent-light);
+    transition: background-color 0.1s;
+}
+
+.nav-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    background-color: var(--text-secondary);
+    -webkit-mask-size: contain;
+    transition: background-color 0.1s;
+}
+
+.nav-icon--library {
+    -webkit-mask-image: url('Image/library.svg');
+}
+
+.nav-icon--playlist {
+    -webkit-mask-image: url('Image/playlist.svg');
+}
+
+
+/* ОСНОВНАЯ ОБЛАСТЬ (MAIN) */
+#main {
+    position: relative;
+    top: 0;
+    left: 0;
+    flex: 1;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--bg-content);
+}
+
+
+/* ВЕРХНЯЯ ПАНЕЛЬ (TOP-BAR) */
+#top-bar {
+    display: flex;
+    align-items: center;
+    height: 48px;
+    padding: 0 24px;
+    background-color: var(--bg-content);
+    backdrop-filter: blur(12px);
+}
+
+#search {
+    display: flex;
+    width: 364px;
+    height: 30px;
+    gap: 40px;
+    padding: 4px 24px;
+    text-align: left;
+    background-color: var(--bg-search);
+    border-left: 1px solid var(--border-table);
+    border-radius: 9999px;
+}
+
+#top-bar__actions {
+    display: flex;
+    right: 0;
+    left: auto;
+    gap: 40px;
+    margin: 16px 24px 16px auto;
+    text-align: left;
+}
+
+#top-bar__buttons {
+    display: flex;
+    gap: 8px;
+    padding-left: 8px;
+}
+
+.window-btn {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    -webkit-mask-size: 12px;
+    -webkit-mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: var(--text-secondary) !important;
+    transform-origin: center;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.window-btn:hover {
+    background-color: var(--text-white) !important;
+    transform: scale(1.1);
+}
+
+.window-btn--minimize {
+    -webkit-mask-image: url('Image/minimize.svg');
+}
+
+.window-btn--maximize {
+    -webkit-mask-image: url('Image/maximize.svg');
+}
+
+.window-btn--close {
+    -webkit-mask-image: url('Image/close.svg');
+}
+
+.window-btn--restore {
+    -webkit-mask-image: url('Image/maximize-reverse.svg');
+}
+
+
+/* БИБЛИОТЕКА (LIBRARY) */
+#library {
+    height: 100%;
+    padding: 24px;
+    background-color: var(--bg-content);
+}
+
+#library__table {
+    background-color: var(--bg-table);
+    border: 1px solid var(--border-dark);
+    border-radius: 16px;
+    box-shadow: 0 1px 2px 0 var(--shadow-card);
+    backdrop-filter: blur(24px);
+}
+
+#library__header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    height: 53.5px;
+    border-bottom: 1px solid var(--border-dark);
+}
+
+#library__header-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    height: 52.5px;
+}
+
+#library__col--time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 97.56px;
+    height: 52.5px;
+}
+
+.library__col--number {
+    position: relative;
+    width: 58.97px;
+}
+
+.library__col--title {
+    width: 263.95px;
+}
+
+.library__col--artist {
+    width: 181.36px;
+}
+
+.library__col--album {
+    width: 204.28px;
+}
+
+.library__text {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    height: 52.5px;
+    color: var(--text-table);
+}
+
+.library__text--header {
+    padding: 18px 24px 18.5px 24px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 0.6px;
+}
+
+.library__text--cell {
+    padding: 18px 24px 18.5px 26px;
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0px;
+}
+
+.library__text--time {
+    padding: 18px 24px 18.5px 26px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0px;
+}
+
+
+/* СТРОКИ ТРЕКОВ (LIST TRACKS) */
+.library__row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: 52.5px;
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.library__row:hover {
+    background-color: var(--bg-row-hover);
+}
+
+.library__cover {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+    object-fit: cover;
+    vertical-align: middle;
+    border-radius: 4px;
+    box-shadow: 0 4px 6px -1px var(--shadow-light), 0 2px 4px -2px var(--shadow-light);
+}
+
+.library__number {
+    transition: opacity 0.15s;
+}
+
+.library__play-icon {
+    position: absolute;
+    top: 50%;
+    left: 30%;
+    transform: translate(-50%, -30%);
+    width: 11px;
+    height: 12px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.library__row:hover .library__number {
+    opacity: 0;
+}
+
+.library__row:hover .library__play-icon {
+    opacity: 1;
+}
+
+.library__number--active {
+    color: var(--accent-light);
+}
+
+
+/* ПОЛНОЭКРАННЫЙ РЕЖИМ ТРЕКА (NOW PLAYING) */
+#now-playing {
+    position: absolute;
+    bottom: -100%;
+    left: 0;
+    right: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    height: calc(100vh - 96px - 48px);
+    background: linear-gradient(to bottom right, var(--grad-blue), var(--grad-dark) 50%, var(--grad-green), var(--grad-light));
+    transition: bottom 0.2s ease;
+}
+
+#now-playing.visible {
+    bottom: 96px;
+}
+
+#now-playing::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -1;
+    background: linear-gradient(to bottom right, 
+        var(--grad-blue) 0%, 
+        var(--grad-dark) 50%, 
+        var(--grad-light) 100%);
+}
+
+#now-playing__cover {
+    position: relative;
+    width: 350px;
+    height: 350px;
+    margin-left: 65px;
+    overflow: hidden;
+    background-color: var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 25px 50px -12px var(--shadow-medium), 0 0 64px var(--glow-blue);
+}
+
+#now-playing__cover-img {
+    display: block;
+    width: 350px;
+    height: 350px;
+}
+
+#now-playing__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 426px;
+    height: 352.8px;
+    margin-top: 27px;
+    margin-left: 105px;
+    padding-left: 24px;
+}
+
+#now-playing__title {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 600;
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -0.32px;
+    color: var(--accent-light);
+}
+
+
+/* НИЖНИЙ ПЛЕЕР (PLAYER) */
+#player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    height: 96px;
+    background-color: var(--bg-player);
+    border: 1px solid var(--border-dark);
+    box-shadow: 0 -10px 12px var(--shadow-heavy);
+    backdrop-filter: blur(40px);
+}
+
+#player__track {
+    position: relative;
+    display: flex;
+    width: 280px;
+    flex-shrink: 0;
+    gap: 16px;
+    margin: 19.5px 24px;
+    background: transparent;
+    border-radius: 50%;
+}
+
+#player__track::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 30%;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--shadow-glow-sm) 0%, transparent 100%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(20px);
+}
+
+#player__cover {
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+#player__cover-img {
+    display: block;
+    width: 56px;
+    height: 56px;
+    transition: filter 0.2s, border-radius 0.15s ease-in-out;
+}
+
+#player__cover:hover #player__cover-img {
+    overflow: hidden;
+    object-fit: cover;
+    border-radius: 25%;
+    filter: brightness(0.6);
+    cursor: pointer;
+}
+
+#player__cover::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--text-white);
+    border-bottom: 2px solid var(--text-white);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+}
+
+#player__cover:hover::after {
+    transform: translate(-50%, -50%) rotate(-135deg);
+    opacity: 1;
+}
+
+#player__cover.open:hover::after {
+    transform: translate(-50%, -50%) rotate(45deg);
+    opacity: 1;
+}
+
+#player__info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 400;
+}
+
+#player__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 24px;
+    color: var(--text-primary);
+    cursor: default;
+}
+
+
+/* КНОПКИ ПЛЕЕРА (CONTROLS) */
+#player__controls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin: 11.5px auto;
+}
+
+#player__buttons {
+    display: flex;
+    align-items: center;
+	justify-content: center;
+    gap: 32px;
+	padding-bottom: 8px;
+}
+
+#btn-play {
+    width: 48px;
+    height: 48px;
+    background-color: var(--accent);
+    border-radius: 12px;
+}
+
+#btn-play:hover {
+    scale: 95%;
+}
+
+#btn-pause {
+    width: 40px;
+    height: 40px;
+    background-color: var(--accent-light);
+    border-radius: 9999px;
+}
+
+#btn-pause:hover {
+    scale: 105%;
+}
+
+.player-btn {
 	display: flex;
-	height: 100vh;
-	margin-top: 10vh;
-	flex-direction: column;
-	gap: 10px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    box-shadow: 0 10px 15px -3px var(--shadow-glow), 0 4px 6px -4px var(--shadow-glow);
+    transition: scale 0.2s;
 }
 
-.progress {
-	display: flex;
-	flex-direction: row;
-	gap: 10px;
+.icon-btn {
+    opacity: 70%;
+    transition: opacity 0.2s;
 }
 
-.volume {
-	margin-bottom: 15px;
-	margin-top: auto;
-	margin-right: 15px;
-	margin-left: auto;
+.icon-btn:hover {
+    opacity: 100%;
 }
 
-.hidden {
-	display: none !important;
+.icon-btn.active img {
+    filter: brightness(0) saturate(100%) invert(93%) sepia(18%) saturate(455%) hue-rotate(179deg) brightness(102%) contrast(101%);
 }
 
 
-.song-item:hover, .back:hover, .play:hover, .pause:hover, .next:hover, .btnRefresh:hover, .vol:hover {
-	cursor: pointer;
+/* ПРОГРЕСС-БАР (PROGRESS BAR) */
+#player__progress {
+    display: flex;
+    justify-content: center;
+    height: 16px;
+    gap: 12px;
+    padding: 5px 0;
 }
 
+#player__progress-bar {
+    display: flex;
+    align-items: center;
+}
+
+#time-progress {
+    --volume: 0%;
+    width: 432px;
+    height: 6px;
+    background: linear-gradient(to right, var(--accent), var(--accent-light) var(--volume), var(--border-default) var(--volume));
+    border-radius: 12px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+}
+
+#time-progress::-webkit-slider-thumb {
+    width: 6px;
+    height: 6px;
+    background: transparent;
+    border-radius: 50%;
+    appearance: none;
+    transition: width 0.1s ease, height 0.1s ease, background 0.1s ease;
+}
+
+#time-progress:hover::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    background: var(--text-white);
+}
+
+
+/* ГРОМКОСТЬ (VOLUME) */
+#player__volume {
+    display: flex;
+    align-items: center;
+    margin: auto 24px auto auto;
+}
+
+#player__volume-icon {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+#player__volume-wrapper {
+    padding-left: 8px;
+}
+
+#player__volume-slider {
+    --volume: 40%;
+    display: flex;
+    align-items: center;
+    width: 102px;
+    height: 4px;
+    background: linear-gradient(to right, var(--text-primary) var(--volume), var(--border-default) var(--volume));
+    border-radius: 12px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+}
+
+#player__volume-slider::-webkit-slider-thumb {
+    width: 4px;
+    height: 4px;
+    background: transparent;
+    border-radius: 50%;
+    appearance: none;
+}

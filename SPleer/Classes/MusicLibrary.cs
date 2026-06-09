@@ -38,9 +38,11 @@ public class MusicLibrary
             var tagFile = TagLib.File.Create(file);
             string tagTitle = tagFile.Tag.Title;
             string tagArtist = tagFile.Tag.FirstPerformer;
+            string tagAlbum = tagFile.Tag.Album;
 
             string title;
             string artist;
+            string album;
             string coverPath = null;
 
             if (!string.IsNullOrEmpty(tagTitle))
@@ -59,6 +61,15 @@ public class MusicLibrary
             else
             {
                 artist = "Неизвестный исполнитель";
+            }
+
+            if (!string.IsNullOrEmpty(tagAlbum))
+            {
+                album = tagAlbum;
+            }
+            else
+            {
+                album = "";
             }
 
             // Извлечение обложки
@@ -90,7 +101,7 @@ public class MusicLibrary
                 coverPath = "Covers/" + safeFileName + extension;
             }
 
-            _tracks.Add(new Track(file, coverPath, title, artist, tagFile.Properties.Duration));
+            _tracks.Add(new Track(file, coverPath, title, artist, album, tagFile.Properties.Duration));
 
             tagFile.Dispose();
         }

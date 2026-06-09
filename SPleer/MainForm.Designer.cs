@@ -40,7 +40,7 @@
             webView21.Dock = DockStyle.Fill;
             webView21.Location = new Point(0, 0);
             webView21.Name = "webView21";
-            webView21.Size = new Size(920, 504);
+            webView21.Size = new Size(1280, 720);
             webView21.TabIndex = 0;
             webView21.ZoomFactor = 1D;
             // 
@@ -48,8 +48,9 @@
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(920, 504);
+            ClientSize = new Size(1280, 720);
             Controls.Add(webView21);
+            FormBorderStyle = FormBorderStyle.None;
             Name = "MainForm";
             Text = "SPleer";
             ((System.ComponentModel.ISupportInitialize)webView21).EndInit();
