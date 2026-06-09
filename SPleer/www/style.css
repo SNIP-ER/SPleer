@@ -340,17 +340,28 @@ input, textarea {
 
 /* БИБЛИОТЕКА (LIBRARY) */
 #library {
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 96px - 48px - 14px);
     padding: 24px;
     background-color: var(--bg-content);
 }
 
 #library__table {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
     background-color: var(--bg-table);
     border: 1px solid var(--border-dark);
     border-radius: 16px;
     box-shadow: 0 1px 2px 0 var(--shadow-card);
     backdrop-filter: blur(24px);
+}
+
+#library__body {
+    flex: 1;
+    overflow-y: auto;
 }
 
 #library__header {
@@ -377,6 +388,23 @@ input, textarea {
     justify-content: center;
     width: 97.56px;
     height: 52.5px;
+}
+
+#library__body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#library__body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#library__body::-webkit-scrollbar-thumb {
+    background: var(--text-secondary);
+    border-radius: 3px;
+}
+
+#library__body::-webkit-scrollbar-button {
+    display: none;
 }
 
 .library__col--number {
