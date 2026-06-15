@@ -6,6 +6,7 @@
 	--bg-table: rgba(13, 28, 45, 0.4);
 	--bg-search: rgba(39, 54, 71, 0.5);
 	--bg-row-hover: rgba(255, 255, 255, 0.02);
+    --bg-nowplaying: rgba(5, 20, 36, 0.85);
 	
 	--text-primary: #D4E4FA;
 	--text-secondary: #424656;
@@ -544,6 +545,22 @@ input, textarea {
         var(--grad-light) 100%);
 }
 
+#now-playing::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: -2;
+    background-color: var(--bg-nowplaying);
+}
+
+#now-playing > * {
+    position: relative;
+    z-index: 1;
+}
+
 #now-playing__cover {
     position: relative;
     width: 350px;
@@ -594,7 +611,7 @@ input, textarea {
     background-color: var(--bg-player);
     border: 1px solid var(--border-dark);
     box-shadow: 0 -10px 12px var(--shadow-heavy);
-    backdrop-filter: blur(40px);
+    backdrop-filter: blur(20px);
 }
 
 #player__track {

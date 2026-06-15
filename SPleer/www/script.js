@@ -352,8 +352,6 @@ function toggleControl(value) {
         cover.classList.remove('open');
         toggleTab(1);
     } else if (value === 2) {
-        lib.classList.remove('control_blue');
-        pl.classList.remove('control_blue');
         toggleTab(2);
     }
 }
@@ -379,8 +377,6 @@ function toggleTab(value) {
         nowPlaying.classList.remove('visible');
         cover.classList.remove('open');
     } else if (value === 2) {
-        library.classList.add('u-hidden');
-        playlists.classList.add('u-hidden');
         nowPlaying.classList.toggle('visible');
         cover.classList.toggle('open');
     }
@@ -401,6 +397,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     await window.chrome.webview.hostObjects.musicLibrary.SetVolume(0.4);
     await loadTracks();
     showPlayButton();
+    toggleControl(0);
 
     const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
     const tracks = JSON.parse(json);
