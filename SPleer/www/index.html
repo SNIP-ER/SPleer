@@ -95,7 +95,8 @@
         </div>
 
         <div id='player__volume'>
-            <div id='player__volume-icon'><img src="Image/volume.svg"/></div>
+            <div class='volume-icon icon-btn cursor-pointer' id='player__volume-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volume.svg"/></div>
+            <div class='volume-icon icon-btn cursor-pointer u-hidden' id='player__volumeNot-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volumeNot.svg"/></div>
             <div id='player__volume-wrapper'><input id='player__volume-slider' type="range" min="0" max="100" value="40" oninput="changeVolume(this.value)"></div>
         </div>
     </div>

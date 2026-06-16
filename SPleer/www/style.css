@@ -813,12 +813,6 @@ input, textarea {
     margin: auto 24px auto auto;
 }
 
-#player__volume-icon {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-}
-
 #player__volume-wrapper {
     padding-left: 8px;
 }
@@ -842,4 +836,15 @@ input, textarea {
     background: transparent;
     border-radius: 50%;
     appearance: none;
+}
+
+.volume-icon {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: scale 0.2s;
+}
+
+.volume-icon:hover {
+    scale: 105%;
 }

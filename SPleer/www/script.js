@@ -1,6 +1,7 @@
 ﻿let updateInterval;
 let lastTrackIndex = -1;
 let isMaximized = false;
+let savedVolume = 40;
 
 /**
  * Загружает список треков из C# и отрисовывает их в библиотеке.
@@ -382,6 +383,30 @@ function toggleTab(value) {
     }
 }
 
+/**
+ * Кнопка выключить и включить звук.
+ */
+function toggleVolume() {
+    const volume = document.getElementById('player__volume-icon');
+    const volumeNot = document.getElementById('player__volumeNot-icon');
+    const slider = document.getElementById('player__volume-slider');
+    const currentVolume = parseFloat(slider.value);
+
+    if (currentVolume > 0) {
+        volume.classList.add('u-hidden');
+        volumeNot.classList.remove('u-hidden');
+        savedVolume = currentVolume;
+        slider.value = 0;
+    }
+    else {
+        volume.classList.remove('u-hidden');
+        volumeNot.classList.add('u-hidden');
+        slider.value = savedVolume;;
+    }
+
+    changeVolume(slider.value);
+}
+
 // Обработчик перемотки трека
 document.getElementById('time-progress').addEventListener('input', async (e) => {
     const seconds = parseFloat(e.target.value);
@@ -435,5 +460,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     const volumeSlider = document.getElementById('player__volume-slider');
-    volumeSlider.style.setProperty('--volume', '40%');
+    savedVolume = parseFloat(volumeSlider.value);
+    window.chrome.webview.hostObjects.musicLibrary.SetVolume(savedVolume / 100);
 });
