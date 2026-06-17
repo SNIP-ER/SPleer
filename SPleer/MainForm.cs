@@ -9,6 +9,7 @@ namespace SPleer
         public MainForm()
         {
             InitializeComponent();
+            this.Icon = new Icon("www/Image/logo.ico");
             this.Load += FormMain_Load;
         }
 
