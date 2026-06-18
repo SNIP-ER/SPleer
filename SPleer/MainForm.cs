@@ -13,6 +13,11 @@ namespace SPleer
             this.Load += FormMain_Load;
         }
 
+        /// <summary>
+        /// Инициализация WebView2 и загрузка интерфейса приложения.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void FormMain_Load(object sender, EventArgs e)
         {
             // Ожидание инициализации ядра WebView2
@@ -41,6 +46,22 @@ namespace SPleer
 
             // Загрузка HTML, используя виртуальный хост
             webView21.CoreWebView2.Navigate("https://splayer.web/index.html");
+        }
+
+        /// <summary>
+        /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+
+                cp.Style |= 0x00020000; // WS_MINIMIZEBOX — разрешить сворачивание
+                cp.Style |= 0x00010000; // WS_MAXIMIZEBOX — разрешить разворачивание
+
+                return cp;
+            }
         }
     }
 }

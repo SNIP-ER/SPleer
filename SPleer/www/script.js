@@ -2,6 +2,7 @@
 let lastTrackIndex = -1;
 let isMaximized = false;
 let savedVolume = 40;
+let lastClickTime = 0;
 
 /**
  * Загружает список треков из C# и отрисовывает их в библиотеке.
@@ -426,6 +427,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
     const tracks = JSON.parse(json);
+    const topBar = document.getElementById('top-bar');
 
     if (tracks.length > 0) {
         await updateUIByIndex(0);
@@ -435,12 +437,28 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     let isDragging = false;
-    document.getElementById('top-bar').addEventListener('mousedown', (e) => {
+    topBar.addEventListener('mousedown', (e) => {
+        const now = Date.now();
+
+        // Проверка на двойной клик
+        if (now - lastClickTime < 400) {
+            window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
+            lastClickTime = 0;
+            isDragging = false;
+            return;
+        }
+
+        lastClickTime = now;
         if (e.target.tagName !== 'BUTTON') {
             isDragging = true;
             window.chrome.webview.hostObjects.musicLibrary.StartDrag();
         }
-    });
+});
+
+document.addEventListener('mouseup', () => { isDragging = false; });
+    /*topBar.addEventListener('dblclick', () => {
+        window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
+    });*/
     document.addEventListener('mouseup', () => { isDragging = false; });
 
     document.getElementById('minimize-btn').addEventListener('click', () => {
