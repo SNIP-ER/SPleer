@@ -9,14 +9,21 @@
 
 <body>
     <div id='sidebar'>
-        <div class='menu-item cursor-pointer' id='nav_library' role="button" tabindex="0" onclick="toggleControl(0)">
-            <div class='nav-icon nav-icon--library'></div>
-            <div class='nav-title'>Library</div>
+        <div id='margin'>
+            <div id='margin_title'>SPleer</div>
+            <div id='margin_version'>1.0 Beta</div>
         </div>
 
-        <div class='menu-item cursor-pointer' id='nav_playlists' role="button" tabindex="0" onclick="toggleControl(1)">
-            <div class='nav-icon nav-icon--playlist'></div>
-            <div class='nav-title'>Playlists</div>
+        <div id='nav'>
+            <div class='menu-item cursor-pointer' id='nav_library' role="button" tabindex="0" onclick="toggleControl(0)">
+                <div class='nav-icon nav-icon--library'></div>
+                <div class='nav-title'>Library</div>
+            </div>
+
+            <div class='menu-item cursor-pointer' id='nav_playlists' role="button" tabindex="0" onclick="toggleControl(1)">
+                <div class='nav-icon nav-icon--playlist'></div>
+                <div class='nav-title'>Playlists</div>
+            </div>
         </div>
     </div>
 
@@ -26,7 +33,7 @@
 
             <div id='top-bar__actions'>
                 <div id='top-bar__notifications'></div>
-                <div id='top-bar__settings'></div>
+                <div class='icon-btn cursor-pointer' id='top-bar__settings'><img src="Image/settings.svg"></div>
 
                 <div id='top-bar__buttons'>
                     <button class='window-btn window-btn--minimize' id="minimize-btn"></button>

@@ -172,6 +172,33 @@ input, textarea {
     backdrop-filter: blur(24px);
 }
 
+#margin {
+    width: 255px;
+    height: 88px;
+    margin-top: 8px;
+}
+
+#margin_title {
+    margin: 0 24px 0 24px;
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.6px;
+    color: var(--accent);
+}
+
+#margin_version {
+    margin: 0 24px 24px 24px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0px;
+    color: var(--text-secondary);
+    opacity: 70%;
+}
+
 .menu-item {
     position: relative;
     display: flex;
@@ -296,7 +323,7 @@ input, textarea {
 #top-bar__buttons {
     display: flex;
     gap: 8px;
-    padding-left: 8px;
+    padding-left: 16px;
 }
 
 .window-btn {
