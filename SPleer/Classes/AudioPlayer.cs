@@ -1,5 +1,4 @@
 ﻿using NAudio.Wave;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace SPleer
 {
@@ -15,6 +14,7 @@ namespace SPleer
         private int _currentTrackIndex = -1;    // Индекс текущего трека
         private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
         private Stack<int> _history = new Stack<int>(); // История треков
+        private bool _isRepeatOne = false;  // Флаг для кнопки repeat
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
@@ -24,10 +24,12 @@ namespace SPleer
 
         /// <summary>
         /// Начало воспроизведения.
+        /// </summary>
+        /// <remarks>
         /// Суть:
         /// Находится самый громкий пик в файле, и громкость подгоняется так,
         /// чтобы этот пик был на уровне 80% от технического максимума формата файла.
-        /// </summary>
+        /// </remarks>
         public void PlayWithNormalization(string filePath)
         {
             // Освобождение текущих ресурсов
@@ -207,6 +209,18 @@ namespace SPleer
 
             if (tracks.Count == 0) return;
 
+            // Повтор трека
+            if (_isRepeatOne && _currentTrackIndex >= 0)
+            {
+                PlayByIndex(_currentTrackIndex);
+                return;
+            }
+
+            if (_currentTrackIndex >= 0)
+            {
+                _history.Push(_currentTrackIndex);
+            }
+
             int nextIndex;
             if (_currentMode == PlaybackMode.Shuffle)
             {
@@ -260,7 +274,8 @@ namespace SPleer
                     prevIndex = _currentTrackIndex - 1;
                 }
 
-                PlayByIndex(prevIndex);
+                _currentTrackIndex = prevIndex;
+                PlayWithNormalization(tracks[prevIndex].FilePath);
             }
         }
 
@@ -300,6 +315,23 @@ namespace SPleer
         public int GetCurrentTrackIndex()
         {
             return _currentTrackIndex;
+        }
+
+        /// <summary>
+        /// Переключает режим повтора одного трека.
+        /// </summary>
+        public void ToggleRepeatOne()
+        {
+            _isRepeatOne = !_isRepeatOne;
+        }
+
+        /// <summary>
+        /// Возвращает, включён ли режим повтора одного трека.
+        /// </summary>
+        /// <returns>true, если повтор одного трека активен.</returns>
+        public bool IsRepeatOn()
+        {
+            return _isRepeatOne;
         }
     }
 }

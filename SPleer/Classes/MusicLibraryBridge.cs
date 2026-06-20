@@ -19,6 +19,16 @@ namespace SPleer
             _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
         }
 
+
+        // --- УПРАВЛЕНИЕ ОКНОМ ---
+
+        [DllImport("user32.dll")]
+        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
+        [DllImport("user32.dll")]
+        private static extern bool ReleaseCapture();
+
+
         /// <summary>
         /// Перетаскивание окна.
         /// </summary>
@@ -29,12 +39,6 @@ namespace SPleer
             ReleaseCapture();
             SendMessage(form.Handle, 0xA1, 0x2, 0);
         }
-
-        [DllImport("user32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-        [DllImport("user32.dll")]
-        private static extern bool ReleaseCapture();
 
         /// <summary>
         /// Свернуть окно.
@@ -70,6 +74,9 @@ namespace SPleer
             }
         }
 
+
+        // --- БИБЛИОТЕКА ---
+
         /// <summary>
         /// Составление списка треков.
         /// </summary>
@@ -87,6 +94,9 @@ namespace SPleer
         {
             _library.Refresh();
         }
+
+
+        // --- ВОСПРОИЗВЕДЕНИЕ ---
 
         /// <summary>
         /// Начать воспроизвдение трека.
@@ -123,54 +133,6 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Устанавить громкость.
-        /// </summary>
-        /// <param name="volume">Число от 0.0 до 1.0 .</param>
-        public void SetVolume(float volume)
-        {
-            _audioPlayer.SetVolume(volume);
-        }
-
-        /// <summary>
-        /// Узнать уровень громкости.
-        /// </summary>
-        /// <returns>Число от 0.0 до 1.0 .</returns>
-        public float GetVolume()
-        {
-            return _audioPlayer.Volume;
-        }
-
-        /// <summary>
-        /// Определить текущую позицию воспроизведения.
-        /// </summary>
-        /// <returns>Текущая позиция воспроизведения в секундах.</returns>
-        public double GetCurrentPosition()
-        {
-            return _audioPlayer.CurrentPosition;
-        }
-
-        /// <summary>
-        /// Узнать продолжительность трека для ползунка.
-        /// </summary>
-        /// <returns>Полная длительность трека в секундах.</returns>
-        public double GetTotalDuration()
-        {
-            return _audioPlayer.TotalDuration;
-        }
-
-        /// <summary>
-        /// Перемотка трека на указанную позицию.
-        /// </summary>
-        /// <param name="seconds">Секунда на которую нужно перемотать.</param>
-        public void SeekTo(double seconds)
-        {
-            if (_audioPlayer.AudioFile != null)
-            {
-                _audioPlayer.AudioFile.CurrentTime = TimeSpan.FromSeconds(seconds);
-            }
-        }
-
-        /// <summary>
         /// Воспроизвести трек по индексу.
         /// </summary>
         /// <param name="index">Индекс трека, целое число.</param>
@@ -203,6 +165,63 @@ namespace SPleer
             _audioPlayer.PlayFirstIfNotPlaying();
         }
 
+
+        // --- ГРОМКОСТЬ ---
+
+        /// <summary>
+        /// Устанавить громкость.
+        /// </summary>
+        /// <param name="volume">Число от 0.0 до 1.0 .</param>
+        public void SetVolume(float volume)
+        {
+            _audioPlayer.SetVolume(volume);
+        }
+
+        /// <summary>
+        /// Узнать уровень громкости.
+        /// </summary>
+        /// <returns>Число от 0.0 до 1.0 .</returns>
+        public float GetVolume()
+        {
+            return _audioPlayer.Volume;
+        }
+
+
+        // --- ПРОГРЕСС И ПЕРЕМОТКА ---
+
+        /// <summary>
+        /// Определить текущую позицию воспроизведения.
+        /// </summary>
+        /// <returns>Текущая позиция воспроизведения в секундах.</returns>
+        public double GetCurrentPosition()
+        {
+            return _audioPlayer.CurrentPosition;
+        }
+
+        /// <summary>
+        /// Узнать продолжительность трека для ползунка.
+        /// </summary>
+        /// <returns>Полная длительность трека в секундах.</returns>
+        public double GetTotalDuration()
+        {
+            return _audioPlayer.TotalDuration;
+        }
+
+        /// <summary>
+        /// Перемотка трека на указанную позицию.
+        /// </summary>
+        /// <param name="seconds">Секунда на которую нужно перемотать.</param>
+        public void SeekTo(double seconds)
+        {
+            if (_audioPlayer.AudioFile != null)
+            {
+                _audioPlayer.AudioFile.CurrentTime = TimeSpan.FromSeconds(seconds);
+            }
+        }
+
+
+        // --- РЕЖИМЫ --- 
+
         /// <summary>
         /// Установить режимю.
         /// </summary>
@@ -228,6 +247,14 @@ namespace SPleer
         public int GetCurrentTrackIndex()
         {
             return _audioPlayer.GetCurrentTrackIndex();
+        }
+
+        /// <summary>
+        /// Переключает режим повтора одного трека через аудиоплеер.
+        /// </summary>
+        public void ToggleRepeatOne()
+        {
+            _audioPlayer.ToggleRepeatOne();
         }
     }
 }

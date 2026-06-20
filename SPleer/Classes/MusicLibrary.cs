@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using TagLib;
-using TagLib.Id3v2;
+﻿using TagLib;
 
 public class MusicLibrary
 {
@@ -69,7 +67,7 @@ public class MusicLibrary
             }
             else
             {
-                album = "";
+                album = string.Empty;
             }
 
             // Извлечение обложки
@@ -77,7 +75,7 @@ public class MusicLibrary
             {
                 var picture = tagFile.Tag.Pictures[0];
 
-                // Создаybt папкb Covers, если её нет
+                // Создаybt папки Covers, если её нет
                 string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
                 if (!Directory.Exists(coversFolder))
                     Directory.CreateDirectory(coversFolder);

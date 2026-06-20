@@ -335,6 +335,22 @@ function toggleMode() {
 }
 
 /**
+ * Включает и выключает зацикливание трека.
+ */
+function toggleRepeat() {
+    const btn = document.getElementById('btn-repeat');
+    const isActive = btn.classList.contains('active');
+
+    if (isActive) {
+        btn.classList.remove('active');
+    } else {
+        btn.classList.add('active');
+    }
+
+    window.chrome.webview.hostObjects.musicLibrary.ToggleRepeatOne();
+}
+
+/**
  * Обрабатывает нажатие на пункты бокового меню (Library / Playlists / Now Playing).
  * @param {number} value - 0 = Library, 1 = Playlists, 2 = Now Playing.
  */

@@ -4,6 +4,22 @@ namespace SPleer
 {
     public partial class MainForm : Form
     {
+        /// <summary>
+        /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
+        /// </summary>
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                var cp = base.CreateParams;
+
+                cp.Style |= 0x00020000; // WS_MINIMIZEBOX — разрешить сворачивание
+                cp.Style |= 0x00010000; // WS_MAXIMIZEBOX — разрешить разворачивание
+
+                return cp;
+            }
+        }
+
         public static Microsoft.Web.WebView2.WinForms.WebView2? WebView;
 
         public MainForm()
@@ -46,22 +62,6 @@ namespace SPleer
 
             // Загрузка HTML, используя виртуальный хост
             webView21.CoreWebView2.Navigate("https://splayer.web/index.html");
-        }
-
-        /// <summary>
-        /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
-        /// </summary>
-        protected override CreateParams CreateParams
-        {
-            get
-            {
-                var cp = base.CreateParams;
-
-                cp.Style |= 0x00020000; // WS_MINIMIZEBOX — разрешить сворачивание
-                cp.Style |= 0x00010000; // WS_MAXIMIZEBOX — разрешить разворачивание
-
-                return cp;
-            }
         }
     }
 }
