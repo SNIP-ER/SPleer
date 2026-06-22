@@ -1,9 +1,22 @@
 using Microsoft.Web.WebView2.Core;
+using System.Runtime.InteropServices;
 
 namespace SPleer
 {
     public partial class MainForm : Form
     {
+        [DllImport("user32.dll")]
+        private static extern bool SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        [DllImport("user32.dll")]
+        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        [DllImport("user32.dll")]
+        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        private const int GWL_STYLE = -16;
+        private const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
+
+        public static Microsoft.Web.WebView2.WinForms.WebView2? WebView;
+
         /// <summary>
         /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
         /// </summary>
@@ -20,14 +33,61 @@ namespace SPleer
             }
         }
 
-        public static Microsoft.Web.WebView2.WinForms.WebView2? WebView;
-
         public MainForm()
         {
             InitializeComponent();
+
             this.Icon = new Icon("www/Image/logo.ico");
             this.Load += FormMain_Load;
         }
+
+        /// <summary>
+        /// Плавное сворачивание окна.
+        /// </summary>
+        public void AnimateMinimize()
+        {
+            var style = GetWindowLong(this.Handle, GWL_STYLE);
+            SetWindowLong(this.Handle, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+            SendMessage(this.Handle, 0x0112, 0xF020, 0);
+            SetWindowLong(this.Handle, GWL_STYLE, style);
+        }
+
+        /// <summary>
+        /// Плавное разворачивание окна.
+        /// </summary>
+        public void AnimateRestore()
+        {
+            var style = GetWindowLong(this.Handle, GWL_STYLE);
+            SetWindowLong(this.Handle, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+            this.WindowState = FormWindowState.Normal;
+            var timer = new System.Threading.Timer(_ =>
+            {
+                this.Invoke(new Action(() =>
+                {
+                    var s2 = GetWindowLong(this.Handle, GWL_STYLE);
+                    SetWindowLong(this.Handle, GWL_STYLE, s2 & ~WS_OVERLAPPEDWINDOW);
+                }));
+            }, null, 1, Timeout.Infinite);
+        }
+
+        /// <summary>
+        /// Перехватывает сообщения Windows для добавления анимации при разворачивании окна из панели задач.
+        /// </summary>
+        /// <param name="m">Сообщение Windows.</param>
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_SYSCOMMAND = 0x0112;
+            const int SC_RESTORE = 0xF120;
+
+            if (m.Msg == WM_SYSCOMMAND && m.WParam.ToInt64() == SC_RESTORE)
+            {
+                AnimateRestore();
+                return;
+            }
+
+            base.WndProc(ref m);
+        }
+
 
         /// <summary>
         /// Инициализация WebView2 и загрузка интерфейса приложения.

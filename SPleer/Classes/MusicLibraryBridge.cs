@@ -47,7 +47,8 @@ namespace SPleer
         {
             if (Application.OpenForms.Count > 0)
             {
-                Application.OpenForms[0].WindowState = FormWindowState.Minimized;
+                var form = Application.OpenForms[0] as MainForm;
+                form?.AnimateMinimize();
             }
         }
 
@@ -58,8 +59,17 @@ namespace SPleer
         {
             if (Application.OpenForms.Count > 0)
             {
-                var form = Application.OpenForms[0];
-                form.WindowState = form.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
+                var form = Application.OpenForms[0] as MainForm;
+                if (form != null && form.WindowState == FormWindowState.Minimized)
+                {
+                    form.AnimateRestore();
+                }
+                else
+                {
+                    form.WindowState = form.WindowState == FormWindowState.Maximized
+                        ? FormWindowState.Normal
+                        : FormWindowState.Maximized;
+                }
             }
         }
 
