@@ -83,8 +83,16 @@ namespace SPleer
         /// <returns>Возвращает список треков в виде JSON-строки.</returns>
         public string GetTracksJson()
         {
-            var tracks = _library.GetAllTracks();
-            return System.Text.Json.JsonSerializer.Serialize(tracks);
+            try
+            {
+                var tracks = _library.GetAllTracks();
+                return System.Text.Json.JsonSerializer.Serialize(tracks);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка GetTracksJson: {ex.Message}");
+                return "[]";
+            }
         }
 
         /// <summary>
@@ -92,7 +100,14 @@ namespace SPleer
         /// </summary>
         public void RefreshLibrary()
         {
-            _library.Refresh();
+            try
+            {
+                _library.Refresh();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка RefreshLibrary: {ex.Message}");
+            }
         }
 
 
@@ -104,7 +119,14 @@ namespace SPleer
         /// <param name="filePath">Путь к файлу.</param>
         public void PlayTrack(string filePath)
         {
-            _audioPlayer.PlayWithNormalization(filePath);
+            try
+            {
+                _audioPlayer.PlayWithNormalization(filePath);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PlayTrack: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -112,7 +134,14 @@ namespace SPleer
         /// </summary>
         public void PauseTrack()
         {
-            _audioPlayer.Pause();
+            try
+            {
+                _audioPlayer.Pause();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PauseTrack: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -120,7 +149,14 @@ namespace SPleer
         /// </summary>
         public void ResumeTrack()
         {
-            _audioPlayer.Resume();
+            try
+            {
+                _audioPlayer.Resume();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка ResumeTrack: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -138,7 +174,14 @@ namespace SPleer
         /// <param name="index">Индекс трека, целое число.</param>
         public void PlayByIndex(int index)
         {
-            _audioPlayer.PlayByIndex(index);
+            try
+            {
+                _audioPlayer.PlayByIndex(index);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PlayByIndex: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -146,7 +189,14 @@ namespace SPleer
         /// </summary>
         public void PlayNext()
         {
-            _audioPlayer.PlayNext();
+            try
+            {
+                _audioPlayer.PlayNext();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PlayNext: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -154,7 +204,14 @@ namespace SPleer
         /// </summary>
         public void PlayPrevious()
         {
-            _audioPlayer.PlayPrevious();
+            try
+            {
+                _audioPlayer.PlayPrevious();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PlayPrevious: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -162,7 +219,14 @@ namespace SPleer
         /// </summary>
         public void PlayFirstIfNotPlaying()
         {
-            _audioPlayer.PlayFirstIfNotPlaying();
+            try
+            {
+                _audioPlayer.PlayFirstIfNotPlaying();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка PlayFirstIfNotPlaying: {ex.Message}");
+            }
         }
 
 
@@ -174,7 +238,14 @@ namespace SPleer
         /// <param name="volume">Число от 0.0 до 1.0 .</param>
         public void SetVolume(float volume)
         {
-            _audioPlayer.SetVolume(volume);
+            try
+            {
+                _audioPlayer.SetVolume(volume);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SetVolume: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -228,7 +299,14 @@ namespace SPleer
         /// <param name="mode">"sequential" или "shuffle".</param>
         public void SetMode(string mode)
         {
-            _audioPlayer.SetMode(mode == "shuffle" ? PlaybackMode.Shuffle : PlaybackMode.Sequential);
+            try
+            {
+                _audioPlayer.SetMode(mode == "shuffle" ? PlaybackMode.Shuffle : PlaybackMode.Sequential);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SetMode: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -254,7 +332,14 @@ namespace SPleer
         /// </summary>
         public void ToggleRepeatOne()
         {
-            _audioPlayer.ToggleRepeatOne();
+            try
+            {
+                _audioPlayer.ToggleRepeatOne();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}");
+            }
         }
     }
 }
