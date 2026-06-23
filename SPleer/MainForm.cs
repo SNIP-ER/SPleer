@@ -102,6 +102,11 @@ namespace SPleer
                 await webView21.EnsureCoreWebView2Async();
                 WebView = webView21;
 
+                #if !DEBUG
+                var settings = webView21.CoreWebView2.Settings;
+                settings.AreDevToolsEnabled = false;
+                #endif
+
                 // Настройка виртуального хоста для безопасной загрузки локальных файлов
                 string wwwRootFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "www");
                 string appRootFolder = AppDomain.CurrentDomain.BaseDirectory;
