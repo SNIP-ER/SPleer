@@ -39,6 +39,11 @@ async function loadTracks() {
             `;
             row.addEventListener('click', () => playByIndex(index));
             container.appendChild(row);
+
+            if (tracks.length == 0) {
+                document.getElementById('player__cover-img').classList.add('u-hidden');
+                document.getElementById('player__cover').classList.add('u-hidden');
+            }
         });
     } catch (error) {
         console.error('Ошибка загрузки треков:', error);
@@ -64,6 +69,11 @@ async function refreshTracks() {
  * @async
  */
 async function playByIndex(index) {
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const tracks = JSON.parse(json);
+
+    if (tracks.length === 0) return;
+    
     if (lastTrackIndex === index) {
         const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
 
@@ -127,6 +137,11 @@ async function updateUIByIndex(index) {
 
     if (index < 0 || index >= tracks.length) return;
 
+    if (index > 0) {
+        document.getElementById('player__cover-img').classList.remove('u-hidden');
+        document.getElementById('player__cover').classList.remove('u-hidden');
+    }
+
     const track = tracks[index];
     const coverImg = document.querySelector('#player__cover-img');
     const fullCoverImg = document.querySelector('#now-playing__cover-img');
@@ -177,6 +192,11 @@ async function updateUIForCurrentTrack() {
  * @async
  */
 async function nextTrack() {
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const tracks = JSON.parse(json);
+
+    if (tracks.length === 0) return;
+
     removeTrackHighlight(lastTrackIndex);
     await window.chrome.webview.hostObjects.musicLibrary.PlayNext();
 
@@ -192,6 +212,11 @@ async function nextTrack() {
  * @async
  */
 async function previousTrack() {
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const tracks = JSON.parse(json);
+
+    if (tracks.length === 0) return;
+
     removeTrackHighlight(lastTrackIndex);
     await window.chrome.webview.hostObjects.musicLibrary.PlayPrevious();
 
@@ -208,6 +233,11 @@ async function previousTrack() {
  */
 async function playOrResume() {
     try {
+        const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+        const tracks = JSON.parse(json);
+
+        if (tracks.length === 0) return;
+
         await window.chrome.webview.hostObjects.musicLibrary.ResumeTrack();
 
         const currentIndex = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackIndex();
@@ -450,6 +480,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         lastTrackIndex = 0;
         addTrackHighlight(0);
         showPlayButton();
+    } else {
+        document.getElementById('player__cover-img').classList.add('u-hidden');
+        document.getElementById('player__cover').classList.add('u-hidden');
     }
 
     let isDragging = false;

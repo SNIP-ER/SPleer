@@ -5,14 +5,30 @@ namespace SPleer
 {
     public partial class MainForm : Form
     {
+        /// <summary>
+        /// Отправляет сообщение указанному окну. Используется для вызова системных команд (сворачивание, разворачивание).
+        /// </summary>
         [DllImport("user32.dll")]
         private static extern bool SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        /// <summary>
+        /// Возвращает значение атрибута окна по указанному индексу (например, стили окна).
+        /// </summary>
         [DllImport("user32.dll")]
         private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        /// <summary>
+        /// Устанавливает значение атрибута окна по указанному индексу (например, изменение стилей окна).
+        /// </summary>
         [DllImport("user32.dll")]
         private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
 
+        /// <summary>
+        /// Индекс для получения/установки стилей окна через GetWindowLong/SetWindowLong.
+        /// </summary>
         private const int GWL_STYLE = -16;
+        /// <summary>
+        /// Стандартный стиль окна с рамкой, заголовком и системными кнопками.
+        /// Временно добавляется для запуска системных анимаций сворачивания/разворачивания.
+        /// </summary>
         private const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
 
         public static Microsoft.Web.WebView2.WinForms.WebView2? WebView;
@@ -47,6 +63,7 @@ namespace SPleer
         public void AnimateMinimize()
         {
             var style = GetWindowLong(this.Handle, GWL_STYLE);
+
             SetWindowLong(this.Handle, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
             SendMessage(this.Handle, 0x0112, 0xF020, 0);
             SetWindowLong(this.Handle, GWL_STYLE, style);
@@ -59,7 +76,9 @@ namespace SPleer
         {
             var style = GetWindowLong(this.Handle, GWL_STYLE);
             SetWindowLong(this.Handle, GWL_STYLE, style | WS_OVERLAPPEDWINDOW);
+
             this.WindowState = FormWindowState.Normal;
+
             var timer = new System.Threading.Timer(_ =>
             {
                 this.Invoke(new Action(() =>
@@ -102,6 +121,7 @@ namespace SPleer
                 await webView21.EnsureCoreWebView2Async();
                 WebView = webView21;
 
+                // Отключение DevTools в сборке Release
                 #if !DEBUG
                 var settings = webView21.CoreWebView2.Settings;
                 settings.AreDevToolsEnabled = false;
