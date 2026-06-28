@@ -21,6 +21,7 @@
 	--border-light: rgba(255, 255, 255, 0.2);
 	--border-dark: rgba(77, 67, 84, 0.1);
 	--border-table: rgba(77, 67, 84, 0.2);
+    --border-card: rgba(77, 67, 84, 0.3);
 
 	--shadow-heavy: rgba(0, 0, 0, 0.4);
 	--shadow-medium: rgba(0, 0, 0, 0.25);
@@ -35,6 +36,8 @@
 	--grad-light: rgba(221, 227, 236, 0.1);
 
 	--glow-blue: rgba(0, 98, 255, 0.15);
+
+    --card-width: 221px;
 }
 
 
@@ -42,6 +45,13 @@
     font-family: 'Hanken Grotesk';
     src: url('fonts/HankenGrotesk-Regular.ttf') format('truetype');
     font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'Hanken Grotesk';
+    src: url('fonts/HankenGrotesk-Medium.ttf') format('truetype');
+    font-weight: 500;
     font-style: normal;
 }
 
@@ -548,6 +558,96 @@ input, textarea {
 }
 
 
+/* ПЛЕЙЛИСТЫ (PLAYLISTS) */
+#playlists {
+    display: block;
+    height: calc(100vh - 96px - 48px - 14px);
+    background-color: var(--bg-content);
+    overflow-y: auto;
+}
+
+#playlists-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, var(--card-width));
+    gap: 24px;
+    margin: 24px;
+}
+
+#playlist-card__cover--create {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 64px;
+    height: 64px;
+    border-radius: 9999px;
+    background-color: var(--bg-search);
+}
+
+#playlist-card__plus {
+    width: 18.67px;
+    height: 18.67px;
+}
+
+#playlist-card__title--create {
+    font-family: 'Hanken Grotesk';
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: 0px;
+    color: var(--text-table);
+}
+
+.playlist-card {
+    display: flex;
+    flex-direction: column;
+    width: var(--card-width);
+    height: 295.3px;
+}
+
+.playlist-card--common {
+    gap: 4px;
+    border-radius: 16px;
+    border: 1px solid var(--border-card);
+    background-color: var(--bg-table);
+}
+
+.playlist-card--create {
+    gap: 12px;
+    border-radius: 16px;
+    border: 2px dashed var(--border-card);
+    justify-content: center;
+    align-items: center;
+}
+
+.playlist-card__cover {
+    width: 172.1px;
+    height: 172.1px;
+    margin: 24px 24px 18px 24px;
+    border-radius: 12px;
+}
+
+.playlist-card__title {
+    margin-left: 24px;
+    margin-bottom: 2px;
+    font-family: 'Hanken Grotesk';
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 28px;
+    letter-spacing: 0px;
+    color: var(--text-primary);
+}
+
+.playlist-card__count {
+    margin-left: 24px;
+    font-family: 'Hanken Grotesk';
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 20px;
+    letter-spacing: 0px;
+    color: var(--text-table);
+}
+
+
 /* ПОЛНОЭКРАННЫЙ РЕЖИМ ТРЕКА (NOW PLAYING) */
 #now-playing {
     position: absolute;
@@ -854,6 +954,7 @@ input, textarea {
 
 #player__volume-slider {
     --volume: 40%;
+    position: relative;
     display: flex;
     align-items: center;
     width: 102px;
@@ -865,12 +966,39 @@ input, textarea {
     appearance: none;
 }
 
+#player__volume-slider::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, var(--accent), var(--accent-light) var(--volume), var(--border-default) var(--volume));
+    border-radius: 12px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+#player__volume-slider:hover::before {
+    opacity: 1;
+}
+
 #player__volume-slider::-webkit-slider-thumb {
+    position: relative;
+    z-index: 2;
     width: 4px;
     height: 4px;
     background: transparent;
     border-radius: 50%;
     appearance: none;
+    transition: width 0.1s, height 0.1s, background 0.1s;
+}
+
+#player__volume-slider:hover::-webkit-slider-thumb {
+    width: 8px;
+    height: 8px;
+    background: var(--text-white);
 }
 
 .volume-icon {
