@@ -37,7 +37,7 @@
 
 	--glow-blue: rgba(0, 98, 255, 0.15);
 
-    --card-width: 221px;
+    --card-width: 220px;
 }
 
 
@@ -165,6 +165,24 @@ input, textarea {
     line-height: 40px;
     letter-spacing: -1.6px;
     color: var(--accent-light);
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--text-secondary);
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.scrollbar-thin::-webkit-scrollbar-button {
+    display: none;
 }
 
 
@@ -436,23 +454,6 @@ input, textarea {
     height: 52.5px;
 }
 
-#library__body::-webkit-scrollbar {
-    width: 6px;
-}
-
-#library__body::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-#library__body::-webkit-scrollbar-thumb {
-    background: var(--text-secondary);
-    border-radius: 3px;
-}
-
-#library__body::-webkit-scrollbar-button {
-    display: none;
-}
-
 .library__col--number {
     position: relative;
     width: 58.97px;
@@ -584,8 +585,8 @@ input, textarea {
 }
 
 #playlist-card__plus {
-    width: 18.67px;
-    height: 18.67px;
+    width: 18px;
+    height: 18px;
 }
 
 #playlist-card__title--create {
@@ -601,7 +602,7 @@ input, textarea {
     display: flex;
     flex-direction: column;
     width: var(--card-width);
-    height: 295.3px;
+    height: 295px;
 }
 
 .playlist-card--common {
@@ -620,8 +621,8 @@ input, textarea {
 }
 
 .playlist-card__cover {
-    width: 172.1px;
-    height: 172.1px;
+    width: 172px;
+    height: 172px;
     margin: 24px 24px 18px 24px;
     border-radius: 12px;
 }

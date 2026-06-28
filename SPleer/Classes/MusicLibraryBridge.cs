@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace SPleer
 {
@@ -8,6 +9,7 @@ namespace SPleer
     {
         private readonly MusicLibrary _library;
         private readonly AudioPlayer _audioPlayer = new AudioPlayer();
+        private readonly PlaylistManager _playlistManager = new PlaylistManager();
 
         /// <summary>
         /// Создаёт экземпляр класса <see cref="MusicLibraryBridge"/>.
@@ -350,6 +352,34 @@ namespace SPleer
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Возвращает список плейлистов в формате JSON.
+        /// </summary>
+        public string GetPlaylistsJson()
+        {
+            var playlists = _playlistManager.GetAllPlaylists();
+            return System.Text.Json.JsonSerializer.Serialize(playlists);
+        }
+
+        /// <summary>
+        /// Создание плейлиста.
+        /// </summary>
+        /// <param name="name">Название плейлиста.</param>
+        public void CreatePlaylist(string name)
+        {
+            _playlistManager.CreatePlaylist(name);
+        }
+
+        /// <summary>
+        /// Добавление трека в плейлист.
+        /// </summary>
+        /// <param name="playlistId">Номер плейлиста.</param>
+        /// <param name="trackPath">Путь трека.</param>
+        public void AddTrackToPlaylist(int playlistId, string trackPath)
+        {
+            _playlistManager.AddTrackToPlaylist(playlistId, trackPath);
         }
     }
 }

@@ -259,6 +259,52 @@ async function playOrResume() {
 }
 
 /**
+ * Создание карточек с плейлистами.
+ */
+async function loadPlaylists() {
+    const container = document.getElementById('playlists-grid');
+    container.innerHTML = '';
+
+    // Получение плейлистов
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
+    const playlists = JSON.parse(json);
+
+    // Обычные плейлисты
+    playlists.forEach(playlist => {
+        const card = document.createElement('div');
+
+        card.className = 'playlist-card playlist-card--common cursor-pointer';
+        card.innerHTML = `
+            <img class='playlist-card__cover' src='${playlist.CoverPath || 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist'}'>
+            <div class='playlist-card__title'>${playlist.Name}</div>
+            <div class='playlist-card__count'>${playlist.TrackPaths ? playlist.TrackPaths.length : 0} Tracks</div>
+        `;
+        container.appendChild(card);
+    });
+
+    // "Создать" плейлисты
+    const createCard = document.createElement('div');
+
+    createCard.className = 'playlist-card playlist-card--create cursor-pointer';
+    createCard.innerHTML = `
+        <div id='playlist-card__cover--create'>
+            <div id='playlist-card__plus'><img src="Image/plus.svg"></div>
+        </div>
+        <div id='playlist-card__title--create'>New Playlist</div>
+    `;
+    createCard.addEventListener('click', () => createPlaylist());
+    container.appendChild(createCard);
+}
+
+/**
+ * Создание плейлиста.
+ */
+async function createPlaylist() {
+    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist(name);
+    await loadPlaylists(); // Обновить список
+}
+
+/**
  * Ставит трек на паузу.
  */
 function pause() {
@@ -429,44 +475,6 @@ function toggleTab(value) {
         nowPlaying.classList.toggle('visible');
         cover.classList.toggle('open');
     }
-}
-
-/**
- * Создание карточек с плейлистами.
- */
-function loadPlaylists() {
-    const container = document.getElementById('playlists-grid');
-    container.innerHTML = '';
-
-    // Обычные плейлисты
-    const playlistsData = [
-        { name: 'Favorites', cover: 'https://placehold.co/200x200/3a3f47/E0E0E0?text=❤️', count: 12 },
-        { name: 'Workout', cover: 'https://placehold.co/200x200/3a3f47/E0E0E0?text=💪', count: 8 }
-    ];
-
-    playlistsData.forEach(playlist => {
-        const card = document.createElement('div');
-        card.className = 'playlist-card playlist-card--common cursor-pointer';
-        card.innerHTML = `
-            <img class='playlist-card__cover' src='${playlist.cover}'>
-            <div class='playlist-card__title'>${playlist.name}</div>
-            <div class='playlist-card__count'>${playlist.count} Tracks</div>
-        `;
-        container.appendChild(card);
-    });
-
-    // "Создать" плейлисты
-    const createCard = document.createElement('div');
-
-    createCard.className = 'playlist-card playlist-card--create cursor-pointer';
-    createCard.innerHTML = `
-        <div id='playlist-card__cover--create'>
-            <div id='playlist-card__plus'><img src="Image/plus.svg"></div>
-        </div>
-        <div id='playlist-card__title--create'>New Playlist</div>
-    `;
-    createCard.addEventListener('click', () => createPlaylist());
-    container.appendChild(createCard);
 }
 
 /**
