@@ -11,7 +11,7 @@
     <div id='sidebar'>
         <div id='margin'>
             <div id='margin_title'>SPleer</div>
-            <div id='margin_version'>2.0 Beta</div>
+            <div id='margin_version'>3.0 Beta</div>
         </div>
 
         <div id='nav'>
@@ -63,6 +63,12 @@
             <div id='playlists-grid'></div>
         </div>
 
+        <div id='open-playlist'>
+            <div class='ambient-glow'></div>
+
+            <div id='open-playlist-content'></div>
+        </div>
+
         <div id='now-playing'>
             <div id='now-playing__cover'><img id='now-playing__cover-img'></div>
 
@@ -81,6 +87,32 @@
             <div id='player__info'>
                 <div id='player__title'></div>
                 <div class='text-secondary' id='player__artist'></div>
+            </div>
+
+            <div class='icon-btn cursor-pointer' id='player__playlist' role="button" tabindex="0" onclick="openPlaylistsList()"><img src="Image/add.svg"></div>
+
+            <div class='u-hidden' id='player__add-popup'>
+                <div id='player__add-popup-title'>
+                    <div id='player__add-popup-header'>ADD IN PLAYLIST</div>
+
+                    <div id='player__add-popup-search'>
+                        <div id='player__add-popup-search-container'>
+                            <div id='add__icon'></div>
+                            <div id='add__search'>Search playlist</div>
+                        </div>
+                    </div>
+
+                    <div id='player__add-popup-new'>
+                        <div class='cursor-pointer' id='player__add-popup-new-btn'><img src="Image/plus.svg"></div>
+                        <div id='player__add-popup-new-text'>Create playlist</div>
+                    </div>
+                </div>
+
+                <div class='scrollbar-thin' id='player__add-popup-list'></div>
+
+                <div id='player__add-popup-footer'>
+                    <div class='cursor-pointer' id='player__add-popup-footer-btn'  role="button" tabindex="0" onclick="closePlaylistsList()">Cancel</div>
+                </div>
             </div>
         </div>
 

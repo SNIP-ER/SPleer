@@ -8,8 +8,9 @@ namespace SPleer
     public class MusicLibraryBridge
     {
         private readonly MusicLibrary _library;
-        private readonly AudioPlayer _audioPlayer = new AudioPlayer();
-        private readonly PlaylistManager _playlistManager = new PlaylistManager();
+        private readonly MusicLibrary _musicLibrary;
+        private readonly AudioPlayer _audioPlayer;
+        private readonly PlaylistManager _playlistManager;
 
         /// <summary>
         /// Создаёт экземпляр класса <see cref="MusicLibraryBridge"/>.
@@ -18,6 +19,9 @@ namespace SPleer
         public MusicLibraryBridge(MusicLibrary library)
         {
             _library = library;
+            _musicLibrary = library;
+            _playlistManager = new PlaylistManager(library);
+            _audioPlayer = new AudioPlayer();
             _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
         }
 
@@ -380,6 +384,82 @@ namespace SPleer
         public void AddTrackToPlaylist(int playlistId, string trackPath)
         {
             _playlistManager.AddTrackToPlaylist(playlistId, trackPath);
+        }
+
+        /// <summary>
+        /// Удаление трека из плейлиста.
+        /// </summary>
+        /// <param name="playlistId">Номер плейлиста.</param>
+        /// <param name="trackPath">Путь трека.</param>
+        public void RemoveTrackFromPlaylist(int playlistId, string trackPath)
+        {
+            _playlistManager.RemoveTrackFromPlaylist(playlistId, trackPath);
+        }
+
+        /// <summary>
+        /// Удаление плейлиста.
+        /// </summary>
+        /// <param name="id">Номер плейлиста.</param>
+        public void DeletePlaylist(int id)
+        {
+            _playlistManager.DeletePlaylist(id);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string? GetCurrentTrackPath()
+        {
+            return _audioPlayer.GetCurrentTrackPath();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="playlistId"></param>
+        /// <returns></returns>
+        public string GetPlaylistTracksJson(int playlistId)
+        {
+            var playlist = _playlistManager.GetPlaylistById(playlistId);
+            if (playlist == null) return "[]";
+            var allTracks = _musicLibrary.GetAllTracks();
+            var tracks = playlist.TrackPaths
+                .Select(path => allTracks.FirstOrDefault(t => t.FilePath == path))
+                .Where(t => t != null)
+                .ToList();
+            return System.Text.Json.JsonSerializer.Serialize(tracks);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="playlistId"></param>
+        /// <param name="trackPath"></param>
+        /// <returns></returns>
+        public bool IsTrackInPlaylist(int playlistId, string trackPath)
+        {
+            return _playlistManager.IsTrackInPlaylist(playlistId, trackPath);
+        }
+
+        /// <summary>
+        /// Устанавливает список треков плейлиста для ограничения воспроизведения.
+        /// </summary>
+        /// <param name="json">JSON-строка с массивом путей к файлам треков.</param>
+        public void SetPlaylistTracksJson(string json)
+        {
+            var trackPaths = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+            _audioPlayer.SetPlaylistTracks(trackPaths);
+        }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="playlistId"></param>
+        /// <returns></returns>
+        public string? GetFirstTrackCoverPath(int playlistId)
+        {
+            return _playlistManager.GetFirstTrackCoverPath(playlistId);
         }
     }
 }

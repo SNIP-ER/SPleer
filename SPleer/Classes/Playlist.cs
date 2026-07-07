@@ -16,6 +16,7 @@
     public Playlist(string name,  string coverPath)
     {
         Id = _nextId++;
+ 
         Name = string.IsNullOrEmpty(name) ? "New Playlist" : name;
         CoverPath = string.IsNullOrEmpty(coverPath) ? null : coverPath;
         TrackPaths = new List<string>();

@@ -15,6 +15,7 @@ namespace SPleer
         private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
         private Stack<int> _history = new Stack<int>(); // История треков
         private bool _isRepeatOne = false;  // Флаг для кнопки repeat
+        private List<string>? _playlistTrackPaths = null;  // Пути треков текущего плейлиста
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
@@ -205,15 +206,31 @@ namespace SPleer
         {
             if (_musicLibrary == null) return;
 
-            var tracks = _musicLibrary.GetAllTracks();
+            var allTracks = _musicLibrary.GetAllTracks();
+            var allTracksList = allTracks.ToList();
+            if (allTracks.Count == 0) return;
 
-            if (tracks.Count == 0) return;
+            // Если задан плейлист
+            List<Track> tracks;
+            if (_playlistTrackPaths != null)
+            {
+                tracks = allTracks.Where(t => _playlistTrackPaths.Contains(t.FilePath)).ToList();
+                if (tracks.Count == 0) return;
+            }
+            else
+            {
+                tracks = allTracks.ToList();
+            }
 
             // Повтор трека
             if (_isRepeatOne && _currentTrackIndex >= 0)
             {
-                PlayByIndex(_currentTrackIndex);
-                return;
+                var currentTrack = allTracks[_currentTrackIndex];
+                if (_playlistTrackPaths == null || _playlistTrackPaths.Contains(currentTrack.FilePath))
+                {
+                    PlayByIndex(_currentTrackIndex);
+                    return;
+                }
             }
 
             if (_currentTrackIndex >= 0)
@@ -232,14 +249,18 @@ namespace SPleer
                 {
                     do
                     {
-                        nextIndex = Random.Shared.Next(tracks.Count);
+                        nextIndex = allTracksList.IndexOf(tracks[Random.Shared.Next(tracks.Count)]);
                     }
                     while (nextIndex == _currentTrackIndex);
                 }
             }
             else
             {
-                nextIndex = (_currentTrackIndex + 1) % tracks.Count;    // Последовательно по кругу
+                // Последовательно по кругу
+                var currentPlaylistIndex = tracks.FindIndex(t => t.FilePath == allTracks[_currentTrackIndex].FilePath);
+                var nextPlaylistIndex = (currentPlaylistIndex + 1) % tracks.Count;
+
+                nextIndex = allTracksList.IndexOf(tracks[nextPlaylistIndex]);
             }
 
             PlayByIndex(nextIndex);
@@ -332,6 +353,31 @@ namespace SPleer
         public bool IsRepeatOn()
         {
             return _isRepeatOne;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string? GetCurrentTrackPath()
+        {
+            if (_currentTrackIndex >= 0 && _musicLibrary != null)
+            {
+                var tracks = _musicLibrary.GetAllTracks();
+
+                if (_currentTrackIndex < tracks.Count)
+                    return tracks[_currentTrackIndex].FilePath;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Устанавливает список треков для воспроизведения в режиме плейлиста.
+        /// Если null — воспроизводится вся библиотека.
+        /// </summary>
+        public void SetPlaylistTracks(List<string>? trackPaths)
+        {
+            _playlistTrackPaths = trackPaths;
         }
     }
 }

@@ -1,5 +1,8 @@
 ﻿let updateInterval;
 let lastTrackIndex = -1;
+let currentPlayingPath = -1;
+let currentPlaylistId = -1;
+let currentPlaylistData = null;
 let isMaximized = false;
 let savedVolume = 40;
 let lastClickTime = 0;
@@ -71,7 +74,6 @@ async function refreshTracks() {
 async function playByIndex(index) {
     const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
     const tracks = JSON.parse(json);
-
     if (tracks.length === 0) return;
     
     if (lastTrackIndex === index) {
@@ -107,23 +109,45 @@ async function playByIndex(index) {
 }
 
 /**
- * Снимает подсветку с указанного трека в библиотеке.
- * @param {number} index - Индекс трека.
+ * Воспроизводит трек по пути.
+ * @param {string} filePath - Путь файла.
  */
-function removeTrackHighlight(index) {
-    if (index >= 0) {
-        const el = document.getElementById(`track-number-${index}`);
-        if (el) el.classList.remove('library__number--active');
-    }
-}
+async function playByPath(filePath) {
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const tracks = JSON.parse(json);
+    if (tracks.length === 0) return;
 
-/**
- * Добавляет подсветку указанному треку в библиотеке.
- * @param {number} index - Индекс трека.
- */
-function addTrackHighlight(index) {
-    const el = document.getElementById(`track-number-${index}`);
-    if (el) el.classList.add('library__number--active');
+    if (currentPlayingPath === filePath) {
+        const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
+
+        if (state === 1) {
+            await window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
+            showPlayButton();
+            stopProgressUpdate();
+        } else {
+            await window.chrome.webview.hostObjects.musicLibrary.ResumeTrack();
+            const newState = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
+            if (newState === 0) {
+                await window.chrome.webview.hostObjects.musicLibrary.PlayTrack(filePath);
+            }
+            showPauseButton();
+            startProgressUpdate();
+        }
+        return;
+    }
+    currentPlayingPath = filePath;
+
+    const index = tracks.findIndex(t => t.FilePath === filePath);
+    if (index === -1) return;
+
+    removeTrackHighlight(lastTrackIndex);
+    await window.chrome.webview.hostObjects.musicLibrary.PlayByIndex(index);
+    addTrackHighlight(index);
+
+    lastTrackIndex = index;
+    showPauseButton();
+    startProgressUpdate();
+    updateUIByIndex(index);
 }
 
 /**
@@ -259,6 +283,46 @@ async function playOrResume() {
 }
 
 /**
+ * Воспроизводит первый трек в плейлисте, если ничего не выбрано, или переключает Play/Pause.
+ * @async
+ */
+async function playPlaylist() {
+    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId);
+    const tracks = JSON.parse(tracksJson);
+
+    if (tracks.length === 0) return;
+
+    const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
+    if (state === 1) {
+        await window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
+        showPlayButton();
+        stopProgressUpdate();
+        return;
+    }
+
+    const firstTrack = tracks[0];
+    const allTracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const allTracks = JSON.parse(allTracksJson);
+    const index = allTracks.findIndex(t => t.FilePath === firstTrack.FilePath);
+    if (index >= 0) {
+        await window.chrome.webview.hostObjects.musicLibrary.PlayByIndex(index);
+        await updateUIByIndex(index);
+    }
+
+    showPauseButton();
+    startProgressUpdate();
+}
+
+/**
+ * Ставит трек на паузу.
+ */
+async function pause() {
+    await window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
+    showPlayButton();
+    stopProgressUpdate();
+}
+
+/**
  * Создание карточек с плейлистами.
  */
 async function loadPlaylists() {
@@ -270,17 +334,26 @@ async function loadPlaylists() {
     const playlists = JSON.parse(json);
 
     // Обычные плейлисты
-    playlists.forEach(playlist => {
+    for (const playlist of playlists) {
+        const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
+        const coverSrc = firstCover 
+            ? `https://appfiles.local/${firstCover}` 
+            : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+        
         const card = document.createElement('div');
-
         card.className = 'playlist-card playlist-card--common cursor-pointer';
         card.innerHTML = `
-            <img class='playlist-card__cover' src='${playlist.CoverPath || 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist'}'>
+            <img class='playlist-card__cover' src='${coverSrc}'>
             <div class='playlist-card__title'>${playlist.Name}</div>
             <div class='playlist-card__count'>${playlist.TrackPaths ? playlist.TrackPaths.length : 0} Tracks</div>
         `;
         container.appendChild(card);
-    });
+
+        card.addEventListener('click', () => {
+            openPlaylist(playlist.Id, playlist.Name, playlist.TrackPaths ? playlist.TrackPaths.length : 0, playlist.CoverPath, '')
+            toggleTab(3);
+        });
+    }
 
     // "Создать" плейлисты
     const createCard = document.createElement('div');
@@ -300,17 +373,213 @@ async function loadPlaylists() {
  * Создание плейлиста.
  */
 async function createPlaylist() {
-    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist(name);
+    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist("");
     await loadPlaylists(); // Обновить список
 }
 
 /**
- * Ставит трек на паузу.
+ * Удаление плейлиста.
+ * @param {*} playlistId - Номер плейлиста.
  */
-function pause() {
-    window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
-    showPlayButton();
-    stopProgressUpdate();
+async function deletePlaylist(playlistId) {
+    await window.chrome.webview.hostObjects.musicLibrary.DeletePlaylist(playlistId);
+    toggleTab(1); 
+}
+
+/**
+ * Список доступных плейлистов.
+ */
+async function openPlaylistsList() {
+    const popup = document.getElementById('player__add-popup');
+    const listContainer = document.getElementById('player__add-popup-list');
+    listContainer.innerHTML = '';
+    
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
+    const playlists = JSON.parse(json);
+
+    for (const playlist of playlists) {
+        const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
+        const coverSrc = firstCover 
+            ? `https://appfiles.local/${firstCover}` 
+            : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+
+        const item = document.createElement('div');
+        item.className = 'popup-item';
+
+        let isAdded = false;
+        if (currentTrackPath) {
+            isAdded = await window.chrome.webview.hostObjects.musicLibrary.IsTrackInPlaylist(playlist.Id, currentTrackPath);
+        }
+
+        const actionDiv = isAdded
+            ? `<div class='cursor-pointer popup-item__check' onclick='removeFromPlaylist(${playlist.Id})'><img src='Image/check.svg'></div>`
+            : `<div class='cursor-pointer popup-item__add' onclick='addToPlaylist(${playlist.Id})'></div>`;
+
+        item.innerHTML = `
+            <div class='popup-item__container'>
+                <div class='popup-item__cover'><img src='${coverSrc}'></div>
+                <div class='popup-item__name'>${playlist.Name}</div>
+            </div>
+            ${actionDiv}
+        `;
+        listContainer.appendChild(item);
+    }
+
+    popup.classList.remove('u-hidden');
+}
+
+/**
+ * Добавляет текущий трек в выбранный плейлист.
+ * @param {number} playlistId - ID плейлиста.
+ */
+async function addToPlaylist(playlistId) {
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    if (!currentTrackPath) {
+        console.log('Нет текущего трека');
+        return;
+    }
+
+    await window.chrome.webview.hostObjects.musicLibrary.AddTrackToPlaylist(playlistId, currentTrackPath);
+    openPlaylistsList();
+    loadPlaylists();
+
+    if (currentPlaylistId === playlistId && currentPlaylistData) {
+        const d = currentPlaylistData;
+        await openPlaylist(d.id, d.name, d.count, d.coverPath, d.duration);
+    }
+}
+
+/**
+ * Удаляет текущий трек из выбранного плейлиста.
+ * @param {number} playlistId - ID плейлиста.
+ */
+async function removeFromPlaylist(playlistId, trackPath) {
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    if (!currentTrackPath) return;
+
+    await window.chrome.webview.hostObjects.musicLibrary.RemoveTrackFromPlaylist(playlistId, currentTrackPath);
+    openPlaylistsList();
+}
+
+/**
+ * Показ содержимого плейлиста.
+ */
+async function openPlaylist(id, name, count, coverPath, duration) {
+    currentPlaylistId = id;
+    currentPlaylistData = { id, name, count, coverPath, duration };
+    
+    const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(id);
+    const coverSrc = firstCover 
+        ? `https://appfiles.local/${firstCover}` 
+        : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+
+    const container = document.getElementById('open-playlist-content');
+    container.innerHTML = ''
+
+    const title = document.createElement('div');
+    title.className = 'container';
+    title.innerHTML = `
+        <div class='playlist__header'>
+            <div class='playlist__header--cover'><img src='${coverSrc}'></div>
+
+            <div class='playlist__header--title'>
+                <div class='playlist__header--text'>${name}</div>
+
+                <div class='playlist__header--info'>
+                    <div class='playlist__info--text'>${count} Tracks</div>
+                    <div class='separator'></div>
+                    <div class='playlist__info--text'>${duration}</div>
+                </div>
+
+                <div class='playlist__buttons'>
+                    <div class='cursor-pointer play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>Play</div>
+                    <div class='cursor-pointer pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>Stop</div>
+                    <div class='cursor-pointer playlist__buttons--toggle' role="button" tabindex="0" onclick="toggleMode()"><img src='Image/toggle.svg'></div>
+                    <div class='cursor-pointer playlist__buttons--toggle special' role="button" tabindex="0" onclick="deletePlaylist(${id})"><img src='Image/recycleBin.svg'></div>
+                </div>
+            </div>
+        </div>
+
+        <div class='playlist--library__row--header'>
+            <div class='playlist__col'>#</div>
+            <div class='playlist__col'>TITLE</div>
+            <div class='playlist__col'>ARTIST</div>
+            <div class='playlist__col'>ALBUM</div>
+            <div></div>
+            <div class='playlist__col'><img src="Image/time.svg"></div>
+        </div>
+    `;
+    container.appendChild(title);
+
+    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
+    const tracks = JSON.parse(tracksJson);
+
+    const body = document.createElement('div');
+    body.id = 'playlist__tracks-body';
+    body.className = 'scrollbar-thin'
+
+    tracks.forEach((track, index) => {
+        const coverSrc = track.CoverPath
+            ? `https://appfiles.local/${track.CoverPath}`
+            : 'https://placehold.co/40x40/3a3f47/E0E0E0?text=Music';
+
+        const row = document.createElement('div');
+        row.className = 'cursor-pointer playlist--library__row';
+        row.innerHTML = `
+            <div class='playlist--library__text playlist--library__col--number'>${index + 1}</div>
+            <div class='playlist--library__text playlist--library__col--title'>
+                    <img class='library__cover' src='${coverSrc}'>
+                    ${track.Title}
+            </div>
+            <div class='playlist--library__text playlist--library__col--artist'>${track.Artist}</div>
+            <div class='playlist--library__text playlist--library__col--album'>${track.Album || '—'}</div>
+            <div class='cursor-pointer popup-item__check' onclick='event.stopPropagation(); removeFromPlaylist(${id})'><img src='Image/check.svg'></div>
+            <div class='playlist--library__text playlist--library__text--time'>${track.DurationFormatted}</div>
+        `;
+        row.addEventListener('click', () => playByPath(track.FilePath));
+        body.appendChild(row);
+    });
+
+    container.appendChild(body);
+    
+    const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
+    if (state === 1) {
+        showPauseButton();
+    } else {
+        showPlayButton();
+    }
+
+    const trackPaths = tracks.map(t => t.FilePath);
+    await window.chrome.webview.hostObjects.musicLibrary.SetPlaylistTracksJson(JSON.stringify(trackPaths));
+}
+
+/**
+ * Закрытие списка плейлиста.
+ */
+function closePlaylistsList() {
+    const container = document.getElementById('player__add-popup');
+    container.classList.add('u-hidden');
+}
+
+/**
+ * Снимает подсветку с указанного трека в библиотеке.
+ * @param {number} index - Индекс трека.
+ */
+function removeTrackHighlight(index) {
+    if (index >= 0) {
+        const el = document.getElementById(`track-number-${index}`);
+        if (el) el.classList.remove('library__number--active');
+    }
+}
+
+/**
+ * Добавляет подсветку указанному треку в библиотеке.
+ * @param {number} index - Индекс трека.
+ */
+function addTrackHighlight(index) {
+    const el = document.getElementById(`track-number-${index}`);
+    if (el) el.classList.add('library__number--active');
 }
 
 /**
@@ -329,16 +598,16 @@ function changeVolume(value) {
  * Показывает кнопку Play, скрывает Pause.
  */
 function showPlayButton() {
-    document.querySelector('.play').classList.remove('u-hidden');
-    document.querySelector('.pause').classList.add('u-hidden');
+    document.querySelectorAll('.play').forEach(el => el.classList.remove('u-hidden'));
+    document.querySelectorAll('.pause').forEach(el => el.classList.add('u-hidden'));
 }
 
 /**
  * Показывает кнопку Pause, скрывает Play.
  */
 function showPauseButton() {
-    document.querySelector('.play').classList.add('u-hidden');
-    document.querySelector('.pause').classList.remove('u-hidden');
+    document.querySelectorAll('.play').forEach(el => el.classList.add('u-hidden'));
+    document.querySelectorAll('.pause').forEach(el => el.classList.remove('u-hidden'));
 }
 
 /**
@@ -399,13 +668,16 @@ function formatTime(seconds) {
  */
 function toggleMode() {
     const btn = document.getElementById('btn-shuffle');
+    const btn2 = document.querySelector('.playlist__buttons--toggle')
     const isActive = btn.classList.contains('active');
 
     if (isActive) {
         btn.classList.remove('active');
+        btn2.classList.remove('active');
         window.chrome.webview.hostObjects.musicLibrary.SetMode('sequential');
     } else {
         btn.classList.add('active');
+        btn2.classList.add('active');
         window.chrome.webview.hostObjects.musicLibrary.SetMode('shuffle');
     }
 }
@@ -459,21 +731,26 @@ function toggleTab(value) {
     const playlists = document.getElementById('playlists');
     const nowPlaying = document.getElementById('now-playing');
     const cover = document.getElementById('player__cover');
+    const playlist = document.getElementById('open-playlist');
 
     if (value === 0) {
         library.classList.remove('u-hidden');
         playlists.classList.add('u-hidden');
         nowPlaying.classList.remove('visible');
         cover.classList.remove('open');
+        playlist.classList.remove('visible');
     } else if (value === 1) {
         playlists.classList.remove('u-hidden');
         library.classList.add('u-hidden');
         nowPlaying.classList.remove('visible');
-        cover.classList.remove('open');
+        playlist.classList.remove('visible');
         loadPlaylists();
     } else if (value === 2) {
         nowPlaying.classList.toggle('visible');
         cover.classList.toggle('open');
+        playlist.classList.remove('visible');
+    } else if (value === 3) {
+        playlist.classList.add('visible');
     }
 }
 
@@ -549,13 +826,13 @@ window.addEventListener('DOMContentLoaded', async () => {
             isDragging = true;
             window.chrome.webview.hostObjects.musicLibrary.StartDrag();
         }
-});
+    }
+);
 
 document.addEventListener('mouseup', () => { isDragging = false; });
     /*topBar.addEventListener('dblclick', () => {
         window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
     });*/
-    document.addEventListener('mouseup', () => { isDragging = false; });
 
     document.getElementById('minimize-btn').addEventListener('click', () => {
         window.chrome.webview.hostObjects.musicLibrary.MinimizeWindow();
