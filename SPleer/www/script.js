@@ -375,6 +375,11 @@ async function loadPlaylists() {
 async function createPlaylist() {
     await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist("");
     await loadPlaylists(); // Обновить список
+    
+    const popup = document.getElementById('player__add-popup');
+    if (!popup.classList.contains('u-hidden')) {
+        openPlaylistsList();
+    }
 }
 
 /**
@@ -808,6 +813,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (tracks.length > 0) {
         await updateUIByIndex(0);
+        await window.chrome.webview.hostObjects.musicLibrary.SetCurrentTrackIndex(0);
         lastTrackIndex = 0;
         addTrackHighlight(0);
         showPlayButton();

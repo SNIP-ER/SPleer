@@ -379,5 +379,14 @@ namespace SPleer
         {
             _playlistTrackPaths = trackPaths;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        public void SetCurrentTrackIndex(int index)
+        {
+            _currentTrackIndex = index;
+        }
     }
 }

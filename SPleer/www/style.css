@@ -11,6 +11,7 @@
     --bg-add: rgba(255, 255, 255, 0.05);
     --bg-window: rgb(18, 33, 49, 0.95);
     --bg-card: rgba(221, 183, 255, 0.05);
+    --bg-card-btn: rgba(183, 223, 255, 0.05);
     --bg-separator: #4D4354;
     --bg-play: #00B954;
     --bg-play-dark: #004119;
@@ -30,6 +31,7 @@
 	--border-light: rgba(255, 255, 255, 0.2);
     --border-window: rgba(255, 255, 255, 0.08);
     --border-card-add: rgba(221, 183, 255, 0.1);
+    --border-card-add-btn: rgba(202, 183, 255, 0.1);
     --border-check: rgba(207, 194, 214, 0.2);
 	--border-dark: rgba(77, 67, 84, 0.1);
 	--border-table: rgba(77, 67, 84, 0.2);
@@ -1212,6 +1214,12 @@ input, textarea {
     gap: 12px;
 }
 
+#player__add-popup-new:hover {
+    background-color: var(--bg-card-btn);
+    border-radius: 8px;
+    border: 1px solid var(--border-card-add-btn);
+}
+
 #player__add-popup-new-btn {
     display: flex;
     justify-content: center;
@@ -1228,7 +1236,7 @@ input, textarea {
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
-    letter-spacing: 0px;
+    letter-spacing: 0.8px;
     color: var(--text-primary);
 }
 
@@ -1253,17 +1261,24 @@ input, textarea {
 #player__add-popup-footer-btn {
     display: flex;
     align-items: center;
+    justify-content: center;
     height: 28px;
     width: 93px;
-    margin-top: 8px;
-    margin-bottom: 8px;
-    margin-left: auto;
+    margin: 8px 12px 8px auto;
     font-family: 'Liberation Serif', sans-serif;
     font-weight: 400;
     font-size: 14px;
     line-height: 20px;
-    letter-spacing: 0px;
+    letter-spacing: 0.5px;
     color: var(--text-primary);
+    opacity: 70%;
+    transform-origin: center;
+    transition: scale 0.06s, opacity 0.08s;
+}
+
+#player__add-popup-footer-btn:hover {
+    scale: 1.05;
+    opacity: 100%;
 }
 
 .popup-item {
@@ -1300,8 +1315,8 @@ input, textarea {
 }
 
 .popup-item__name {
-    font-family: 'Liberation Serif', sans-serif;
-    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    font-weight: 400;
     font-size: 16px;
     line-height: 20px;
     letter-spacing: 0px;

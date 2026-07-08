@@ -461,5 +461,14 @@ namespace SPleer
         {
             return _playlistManager.GetFirstTrackCoverPath(playlistId);
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="index"></param>
+        public void SetCurrentTrackIndex(int index)
+        {
+            _audioPlayer.SetCurrentTrackIndex(index);
+        }
     }
 }
