@@ -459,7 +459,14 @@ async function removeFromPlaylist(playlistId, trackPath) {
     if (!currentTrackPath) return;
 
     await window.chrome.webview.hostObjects.musicLibrary.RemoveTrackFromPlaylist(playlistId, currentTrackPath);
-    openPlaylistsList();
+    if (currentPlaylistId === playlistId && currentPlaylistData) {
+        openPlaylist(currentPlaylistData.id, currentPlaylistData.name, currentPlaylistData.count, currentPlaylistData.coverPath, currentPlaylistData.duration);
+    }
+
+    const popup = document.getElementById('player__add-popup');
+    if (!popup.classList.contains('u-hidden')) {
+        openPlaylistsList();
+    }
 }
 
 /**
@@ -826,13 +833,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             isDragging = true;
             window.chrome.webview.hostObjects.musicLibrary.StartDrag();
         }
-    }
-);
+    });
 
-document.addEventListener('mouseup', () => { isDragging = false; });
-    /*topBar.addEventListener('dblclick', () => {
-        window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
-    });*/
+    document.addEventListener('mouseup', () => { isDragging = false; });
 
     document.getElementById('minimize-btn').addEventListener('click', () => {
         window.chrome.webview.hostObjects.musicLibrary.MinimizeWindow();
@@ -848,6 +851,18 @@ document.addEventListener('mouseup', () => { isDragging = false; });
 
     document.getElementById('close-btn').addEventListener('click', () => {
         window.chrome.webview.hostObjects.musicLibrary.CloseWindow();
+    });
+
+    document.addEventListener('click', (e) => {
+        const popup = document.getElementById('player__add-popup');
+        const playlistBtn = document.getElementById('player__playlist');
+
+        if (!popup.classList.contains('u-hidden') &&
+            !popup.contains(e.target) &&
+            e.target !== playlistBtn &&
+            !playlistBtn.contains(e.target)) {
+            popup.classList.add('u-hidden');
+        }
     });
 
     const volumeSlider = document.getElementById('player__volume-slider');
