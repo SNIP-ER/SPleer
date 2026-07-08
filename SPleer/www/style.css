@@ -48,9 +48,12 @@
 	--grad-dark: rgba(5, 20, 36, 1);
 	--grad-green: rgba(74, 225, 118, 0.1);
 	--grad-light: rgba(221, 227, 236, 0.1);
+    --grad-black: rgba(0, 0, 0, 0.3);
 
 	--glow-blue: rgba(0, 98, 255, 0.15);
     --glow-white: rgba(221, 183, 255, 0.1);
+
+    --black: black;
 
     --card-width: 220px;
 }
@@ -614,6 +617,13 @@ input, textarea {
 
 
 /* СТРОКИ ТРЕКОВ В ПЛЕЙЛИСТЕ (LIST TRACKS IN PLAYLIST) */
+#playlist__tracks-body {
+    margin-left: 48px;
+    margin-right: 48px;
+    flex: 1;
+    overflow-y: auto;
+}
+
 .playlist--library__row--header {
     display: grid;
     margin-left: 48px;
@@ -636,8 +646,6 @@ input, textarea {
 
 .playlist--library__row {
     display: grid;
-    margin-left: 48px;
-    margin-right: 48px;
     grid-template-columns: 48px 210px repeat(2, 158px) 105px 80px;
     grid-template-rows: 44px;
     column-gap: 24px;
@@ -788,6 +796,10 @@ input, textarea {
 
 #open-playlist-content {
     width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .container {
@@ -1146,6 +1158,8 @@ input, textarea {
 
 /* ОКОШКО ДЛЯ ДОБАВЛЕНИЯ ТРЕКА В ПЛЕЙЛИСТЫ (ADD IN PLAYLISTS) */
 #player__add-popup {
+    display: flex;
+    flex-direction: column;
     position: absolute;
     bottom: 100%;
     right: -210px;
@@ -1193,7 +1207,7 @@ input, textarea {
 #player__add-popup-new {
     display: flex;
     align-items: center;
-    margin: 0 12px 24px 12px;
+    margin: 0 12px 12px 12px;
     padding: 4px;
     gap: 12px;
 }
@@ -1219,12 +1233,14 @@ input, textarea {
 }
 
 #player__add-popup-list {
-    height: 140px;
+    flex: 1;
     overflow-y: auto;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, var(--grad-black) 3%, var(--black) 5%, var(--black) 95%, var(--grad-black) 99%, transparent 100%);
 }
 
 #player__add-popup-footer {
-    position: absolute;
+    position: relative;
+    flex-shrink: 0;
     height: 45px;
     width: 290px;
     bottom: 0px;

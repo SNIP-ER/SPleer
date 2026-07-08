@@ -356,9 +356,9 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Возвращает путь к файлу текущего воспроизводимого трека.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Путь к файлу или null.</returns>
         public string? GetCurrentTrackPath()
         {
             if (_currentTrackIndex >= 0 && _musicLibrary != null)

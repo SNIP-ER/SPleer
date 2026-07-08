@@ -405,7 +405,7 @@ async function openPlaylistsList() {
             : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
 
         const item = document.createElement('div');
-        item.className = 'popup-item';
+        item.className = 'popup-item scrollbar-thin';
 
         let isAdded = false;
         if (currentTrackPath) {
@@ -516,8 +516,8 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     const tracks = JSON.parse(tracksJson);
 
     const body = document.createElement('div');
-    body.id = 'playlist__tracks-body';
     body.className = 'scrollbar-thin'
+    body.id = 'playlist__tracks-body';
 
     tracks.forEach((track, index) => {
         const coverSrc = track.CoverPath

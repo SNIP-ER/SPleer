@@ -406,19 +406,19 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Возвращает путь к файлу текущего воспроизводимого трека.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Путь к файлу или null, если ничего не играет.</returns>
         public string? GetCurrentTrackPath()
         {
             return _audioPlayer.GetCurrentTrackPath();
         }
 
         /// <summary>
-        /// 
+        /// Возвращает JSON-строку со списком треков указанного плейлиста.
         /// </summary>
-        /// <param name="playlistId"></param>
-        /// <returns></returns>
+        /// <param name="playlistId">ID плейлиста.</param>
+        /// <returns>JSON-строка с треками или "[]", если плейлист не найден.</returns>
         public string GetPlaylistTracksJson(int playlistId)
         {
             var playlist = _playlistManager.GetPlaylistById(playlistId);
@@ -432,11 +432,11 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Проверяет, добавлен ли трек в указанный плейлист.
         /// </summary>
-        /// <param name="playlistId"></param>
-        /// <param name="trackPath"></param>
-        /// <returns></returns>
+        /// <param name="playlistId">ID плейлиста.</param>
+        /// <param name="trackPath">Путь к файлу трека.</param>
+        /// <returns>true, если трек уже в плейлисте.</returns>
         public bool IsTrackInPlaylist(int playlistId, string trackPath)
         {
             return _playlistManager.IsTrackInPlaylist(playlistId, trackPath);
@@ -451,12 +451,12 @@ namespace SPleer
             var trackPaths = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
             _audioPlayer.SetPlaylistTracks(trackPaths);
         }
-        
+
         /// <summary>
-        /// 
+        /// Возвращает путь к обложке первого трека в плейлисте.
         /// </summary>
-        /// <param name="playlistId"></param>
-        /// <returns></returns>
+        /// <param name="playlistId">ID плейлиста.</param>
+        /// <returns>Путь к обложке или null, если треков нет.</returns>
         public string? GetFirstTrackCoverPath(int playlistId)
         {
             return _playlistManager.GetFirstTrackCoverPath(playlistId);

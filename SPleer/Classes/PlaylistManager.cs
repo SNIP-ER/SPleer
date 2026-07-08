@@ -70,7 +70,7 @@
 
         if (playlist != null && !playlist.TrackPaths.Contains(filePath))
         {
-            playlist.TrackPaths.Add(filePath);
+            playlist.TrackPaths.Insert(0, filePath);
             Save();
         }
     }
@@ -92,18 +92,18 @@
     }
 
     /// <summary>
-    /// 
+    /// Возвращает плейлист по ID.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
+    /// <param name="id">ID плейлиста.</param>
+    /// <returns>Объект плейлиста или null.</returns>
     public Playlist? GetPlaylistById(int id) => _playlists.FirstOrDefault(p => p.Id == id);
 
     /// <summary>
-    /// 
+    /// Проверка, содержится ли трек в плейлисте по указанному пути.
     /// </summary>
-    /// <param name="playlistId"></param>
-    /// <param name="trackPath"></param>
-    /// <returns></returns>
+    /// <param name="playlistId">ID плейлиста.</param>
+    /// <param name="trackPath">Путь к файлу трека.</param>
+    /// <returns>true, если трек в плейлисте.</returns>
     public bool IsTrackInPlaylist(int playlistId, string trackPath)
     {
         var playlist = GetPlaylistById(playlistId);
@@ -111,10 +111,10 @@
     }
 
     /// <summary>
-    /// 
+    /// Возвращает путь к обложке первого трека в плейлисте.
     /// </summary>
-    /// <param name="playlistId"></param>
-    /// <returns></returns>
+    /// <param name="playlistId">ID плейлиста.</param>
+    /// <returns>Путь к обложке или null.</returns>
     public string? GetFirstTrackCoverPath(int playlistId)
     {
         var playlist = GetPlaylistById(playlistId);
