@@ -463,9 +463,9 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Устанавливает индекс текущего трека в аудиоплеере.
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="index">Индекс трека.</param>
         public void SetCurrentTrackIndex(int index)
         {
             _audioPlayer.SetCurrentTrackIndex(index);

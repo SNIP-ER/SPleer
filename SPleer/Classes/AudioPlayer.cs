@@ -381,9 +381,9 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Устанавливает индекс текущего трека.
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="index">Индекс трека (0 — первый).</param>
         public void SetCurrentTrackIndex(int index)
         {
             _currentTrackIndex = index;
