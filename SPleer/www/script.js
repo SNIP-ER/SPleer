@@ -481,6 +481,9 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     currentPlaylistId = id;
     currentPlaylistData = { id, name, count, coverPath, duration };
     
+    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
+    const tracks = JSON.parse(tracksJson);
+    const totalDuration = formatTotalDuration(tracks);
     const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(id);
     const coverSrc = firstCover 
         ? `https://appfiles.local/${firstCover}` 
@@ -501,7 +504,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
                 <div class='playlist__header--info'>
                     <div class='playlist__info--text'>${count} Tracks</div>
                     <div class='separator'></div>
-                    <div class='playlist__info--text'>${duration}</div>
+                    <div class='playlist__info--text'>${totalDuration }</div>
                 </div>
 
                 <div class='playlist__buttons'>
@@ -523,9 +526,6 @@ async function openPlaylist(id, name, count, coverPath, duration) {
         </div>
     `;
     container.appendChild(title);
-
-    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
-    const tracks = JSON.parse(tracksJson);
 
     const body = document.createElement('div');
     body.className = 'scrollbar-thin'
@@ -788,6 +788,32 @@ function toggleVolume() {
     }
 
     changeVolume(slider.value);
+}
+
+/**
+ * Вычисляет общую длительность треков и возвращает строку в формате "Xh Ym" или "Ym".
+ * @param {Array} tracks - Массив треков с полем Duration.
+ * @returns {string} Отформатированная длительность.
+ */
+function formatTotalDuration(tracks) {
+    let totalSeconds = 0;
+
+    tracks.forEach(track => {
+        const parts = track.Duration.split(':');
+        if (parts.length === 3) {
+            totalSeconds += parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
+        } else if (parts.length === 2) {
+            totalSeconds += parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+    });
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
 }
 
 // Обработчик перемотки трека
