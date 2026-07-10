@@ -335,10 +335,7 @@ async function loadPlaylists() {
 
     // Обычные плейлисты
     for (const playlist of playlists) {
-        const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
-        const coverSrc = firstCover 
-            ? `https://appfiles.local/${firstCover}` 
-            : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+        const coverSrc = await getPlaylistCoverSrc(playlist);
         
         const card = document.createElement('div');
         card.className = 'playlist-card playlist-card--common cursor-pointer';
@@ -404,10 +401,7 @@ async function openPlaylistsList() {
     const playlists = JSON.parse(json);
 
     for (const playlist of playlists) {
-        const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
-        const coverSrc = firstCover 
-            ? `https://appfiles.local/${firstCover}` 
-            : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+        const coverSrc = await getPlaylistCoverSrc(playlist);
 
         const item = document.createElement('div');
         item.className = 'popup-item scrollbar-thin';
@@ -484,10 +478,11 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
     const tracks = JSON.parse(tracksJson);
     const totalDuration = formatTotalDuration(tracks);
-    const firstCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(id);
-    const coverSrc = firstCover 
-        ? `https://appfiles.local/${firstCover}` 
-        : 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
+    const coverSrc = coverPath && count > 0 
+    ? `https://appfiles.local/${coverPath}`
+    : (tracks.length > 0 && tracks[0].CoverPath 
+        ? `https://appfiles.local/${tracks[0].CoverPath}` 
+        : 'https://placehold.co/256x256/3a3f47/E0E0E0?text=Playlist');
 
     const container = document.getElementById('open-playlist-content');
     container.innerHTML = ''
@@ -499,7 +494,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
             <div class='playlist__header--cover'><img src='${coverSrc}'></div>
 
             <div class='playlist__header--title'>
-                <div class='playlist__header--text'>${name}</div>
+                <div class='cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${name}</div>
 
                 <div class='playlist__header--info'>
                     <div class='playlist__info--text'>${count} Tracks</div>
@@ -526,6 +521,17 @@ async function openPlaylist(id, name, count, coverPath, duration) {
         </div>
     `;
     container.appendChild(title);
+
+    const coverElement = document.querySelector('.playlist__header--cover');
+    if (coverElement) {
+        coverElement.addEventListener('click', async () => {
+            const filePath = await window.chrome.webview.hostObjects.musicLibrary.PickCoverImage();
+            if (filePath) {
+                await window.chrome.webview.hostObjects.musicLibrary.SetPlaylistCover(id, filePath);
+                coverElement.querySelector('img').src = 'https://appfiles.local/Covers/playlist_' + id + '.' + filePath.split('.').pop();
+            }
+        });
+    }
 
     const body = document.createElement('div');
     body.className = 'scrollbar-thin'
@@ -564,6 +570,39 @@ async function openPlaylist(id, name, count, coverPath, duration) {
 
     const trackPaths = tracks.map(t => t.FilePath);
     await window.chrome.webview.hostObjects.musicLibrary.SetPlaylistTracksJson(JSON.stringify(trackPaths));
+}
+
+/**
+ * Сохраняет новое название плейлиста.
+ * @param {number} playlistId - ID плейлиста.
+ * @param {string} newName - Новое название плейлиста.
+ */
+async function renamePlaylist(playlistId, newName) {
+    if (!newName.trim()) return;
+
+    await window.chrome.webview.hostObjects.musicLibrary.RenamePlaylist(playlistId, newName.trim());
+    
+    const titleElement = document.querySelector('#playlist__header--text');
+    if (titleElement) {
+        titleElement.textContent = newName.trim();
+    }
+}
+
+/**
+ * 
+ * @param {*} playlist 
+ * @returns 
+ */
+async function getPlaylistCoverSrc(playlist) {
+    if (playlist.CoverPath) {
+        const exists = await window.chrome.webview.hostObjects.musicLibrary.FileExists(playlist.CoverPath);
+        if (exists) return `https://appfiles.local/${playlist.CoverPath}`;
+    }
+
+    const firstTrackCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
+    if (firstTrackCover) return `https://appfiles.local/${firstTrackCover}`;
+
+    return 'https://placehold.co/172x172/3a3f47/E0E0E0?text=Playlist';
 }
 
 /**

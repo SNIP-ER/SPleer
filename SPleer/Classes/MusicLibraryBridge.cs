@@ -470,5 +470,54 @@ namespace SPleer
         {
             _audioPlayer.SetCurrentTrackIndex(index);
         }
+
+        /// <summary>
+        /// Изменение названия плейлиста.
+        /// </summary>
+        /// <param name="id">ID плейлиста.</param>
+        /// <param name="newName">Новое название плейлиста.</param>
+        public void RenamePlaylist(int id, string newName)
+        {
+            _playlistManager.RenamePlaylist(id, newName);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string? PickCoverImage()
+        {
+            using var dialog = new OpenFileDialog
+            {
+                Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
+                Title = "Select cover image"
+            };
+
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                return dialog.FileName;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="sourcePath"></param>
+        public void SetPlaylistCover(int id, string sourcePath)
+        {
+            _playlistManager.SetPlaylistCover(id, sourcePath);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public bool FileExists(string path)
+        {
+            return File.Exists(path);
+        }
     }
 }

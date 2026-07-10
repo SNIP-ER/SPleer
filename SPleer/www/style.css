@@ -837,6 +837,21 @@ input, textarea {
     color: var(--text-primary);
 }
 
+.playlist__header--text[contenteditable='true']:focus {
+    outline: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 4px;
+}
+
+.playlist__header--text[contenteditable='true'] {
+    caret-color: var(--border-light);
+}
+
+.playlist__header--text::selection {
+    background-color: var(--text-secondary);
+    color: var(--text-muted);
+}
+
 .playlist__header--info {
     display: flex;
     align-items: center;

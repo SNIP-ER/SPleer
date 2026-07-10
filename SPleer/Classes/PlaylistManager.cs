@@ -36,7 +36,24 @@
         if (File.Exists(_filePath))
         {
             var json = File.ReadAllText(_filePath);
-            _playlists = System.Text.Json.JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                _playlists = new List<Playlist>();
+                return;
+            }
+
+            try
+            {
+                _playlists = System.Text.Json.JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
+            }
+            catch
+            {
+                _playlists = new List<Playlist>();
+            }
+        }
+        else
+        {
+            _playlists = new List<Playlist>();
         }
     }
 
@@ -124,5 +141,50 @@
         // Ищем трек в MusicLibrary по пути
         var track = _musicLibrary.GetAllTracks().FirstOrDefault(t => t.FilePath == firstTrackPath);
         return track?.CoverPath;
+    }
+
+    /// <summary>
+    /// Сохранение нового названия плейлиста.
+    /// </summary>
+    /// <param name="id">ID плейлиста.</param>
+    /// <param name="newName">Новое название плейлиста.</param>
+    public void RenamePlaylist(int id, string newName)
+    {
+        var playlist = _playlists.FirstOrDefault(p => p.Id == id);
+
+        if (playlist != null)
+        {
+            playlist.Name = newName;
+            Save();
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="sourcePath"></param>
+    public void SetPlaylistCover(int id, string sourcePath)
+    {
+        var playlist = _playlists.FirstOrDefault(p => p.Id == id);
+        if (playlist == null) return;
+
+        try
+        {
+            string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+            if (!Directory.Exists(coversFolder))
+                Directory.CreateDirectory(coversFolder);
+
+            string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
+            string destPath = Path.Combine(coversFolder, fileName);
+            System.IO.File.Copy(sourcePath, destPath, true);
+
+            playlist.CoverPath = "Covers/" + fileName;
+            Save();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
+        }
     }
 }
