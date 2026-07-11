@@ -117,37 +117,45 @@ namespace SPleer
         {
             try
             {
-                // Ожидание инициализации ядра WebView2
-                await webView21.EnsureCoreWebView2Async();
+                // Отключение проверки прокси и поиска адресов в сети
+                var options = new CoreWebView2EnvironmentOptions
+                {
+                    AdditionalBrowserArguments =
+        "--no-proxy-server " +
+        "--disable-background-networking " +
+        "--disable-component-update " +
+        "--disable-domain-reliability " +
+        "--disable-sync " +
+        "--disable-client-side-phishing-detection " +
+        "--disable-quic " +
+        "--host-resolver-rules=\"MAP splayer.web 127.0.0.1,MAP appfiles.local 127.0.0.1\""
+                };
+
+                var environment = await CoreWebView2Environment.CreateAsync(
+                    browserExecutableFolder: null,
+                    userDataFolder: null,
+                    options: options);
+
+                await webView21.EnsureCoreWebView2Async(environment);
+
                 WebView = webView21;
 
-                // Отключение DevTools в сборке Release
-                #if !DEBUG
-                var settings = webView21.CoreWebView2.Settings;
-                settings.AreDevToolsEnabled = false;
-                #endif
+#if !DEBUG
+        var settings = webView21.CoreWebView2.Settings;
+        settings.AreDevToolsEnabled = false;
+#endif
 
-                // Настройка виртуального хоста для безопасной загрузки локальных файлов
                 string wwwRootFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "www");
                 string appRootFolder = AppDomain.CurrentDomain.BaseDirectory;
 
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "splayer.web",      // Виртуальное доменное имя
-                    wwwRootFolder,            // Путь к папке "www"
-                    CoreWebView2HostResourceAccessKind.Allow    // Открывает доступ ко всем ресурсам
-                );
+                    "splayer.web", wwwRootFolder, CoreWebView2HostResourceAccessKind.Allow);
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "appfiles.local",
-                    appRootFolder,
-                    CoreWebView2HostResourceAccessKind.Allow
-                );
+                    "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
 
-                // Создание библиотеки
                 var musicLibrary = new MusicLibrary();
-                // Ее регистрация для доступа из JavaScript
-                webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", new MusicLibraryBridge(musicLibrary));
 
-                // Загрузка HTML, используя виртуальный хост
+                webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", new MusicLibraryBridge(musicLibrary));
                 webView21.CoreWebView2.Navigate("https://splayer.web/index.html");
             }
             catch (Exception ex)
