@@ -827,13 +827,72 @@ input, textarea {
     gap: 24px;
 }
 
+.playlist__header--cover {
+    position: relative;
+    display: inline-block;
+    transition: filter 0.1s;
+}
+
 .playlist__header--cover img {
     width: 256px;
     height: 256px;
     border-radius: 16px;
+    object-fit: cover;
     box-shadow: 
         0 25px 50px -12px var(--shadow-medium),
         0 0 20px 5px var(--bg-row-hover)
+}
+
+.playlist__header--cover:hover {
+    object-fit: cover;
+    filter: brightness(0.6);
+}
+
+.playlist__header--cover::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 48px;
+    height: 48px;
+    background-image: url('Image/Pensil.svg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    transition: opacity 0.1s;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.playlist__header--cover:hover::after {
+    opacity: 1;
+}
+
+.playlist__header--cover-remove {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: var(--bg-row-hover);
+    background-image: url('Image/recycleBin.svg');
+    background-size: 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: brightness(0) saturate(100%) invert(93%) sepia(18%) saturate(455%) hue-rotate(179deg) brightness(102%) contrast(101%);
+    opacity: 0;
+    transition: opacity 0.2s, background-color 0.2s;
+    cursor: pointer;
+}
+
+.playlist__header--cover:hover .playlist__header--cover-remove {
+    opacity: 1;
+}
+
+.playlist__header--cover-remove:hover {
+    background-color: var(--shadow-medium);
 }
 
 .playlist__header--title {

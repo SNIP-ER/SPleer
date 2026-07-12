@@ -1,4 +1,12 @@
-﻿let updateInterval;
+﻿/**
+ * @typedef {Object} PlaylistData
+ * @property {number} Id - Уникальный идентификатор плейлиста.
+ * @property {string} Name - Название плейлиста.
+ * @property {string|null} CoverPath - Относительный путь к файлу обложки или null, если не задан.
+ * @property {string[]} TrackPaths - Список путей к файлам треков в плейлисте.
+ */
+
+let updateInterval;
 let lastTrackIndex = -1;
 let currentPlayingPath = -1;
 let currentPlaylistId = -1;
@@ -6,6 +14,17 @@ let currentPlaylistData = null;
 let isMaximized = false;
 let savedVolume = 40;
 let lastClickTime = 0;
+
+/**
+ * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
+ * @param {string} str - Исходная строка.
+ * @returns {string} Безопасная для вставки в innerHTML строка.
+ */
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str ?? '';
+    return div.innerHTML;
+}
 
 /**
  * Загружает список треков из C# и отрисовывает их в библиотеке.
@@ -34,10 +53,10 @@ async function loadTracks() {
                 </div>
                 <div class='library__text library__text--cell library__col--title'>
                     <img class='library__cover' src='${coverSrc}'>
-                    ${track.Title}
+                    ${escapeHtml(track.Title)}
                 </div>
-                <div class='library__text library__text--cell library__col--artist'>${track.Artist}</div>
-                <div class='library__text library__text--cell library__col--album'>${track.Album || '—'}</div>
+                <div class='library__text library__text--cell library__col--artist'>${escapeHtml(track.Artist)}</div>
+                <div class='library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
                 <div class='library__text library__text--time'>${track.DurationFormatted}</div>
             `;
             row.addEventListener('click', () => playByIndex(index));
@@ -212,6 +231,36 @@ async function updateUIForCurrentTrack() {
 }
 
 /**
+ * Обновляет изображение обложки и видимость кнопки удаления по актуальным данным плейлиста.
+ * @param {HTMLElement} coverElement - Контейнер обложки плейлиста.
+ * @param {PlaylistData} playlist - Актуальный объект плейлиста.
+ */
+async function refreshPlaylistCoverUI(coverElement, playlist) {
+    const src = await getPlaylistCoverSrc(playlist);
+    coverElement.querySelector('img').src = src;
+
+    let removeBtn = coverElement.querySelector('.playlist__header--cover-remove');
+    if (playlist.CoverPath) {
+        if (!removeBtn) {
+            removeBtn = document.createElement('div');
+            removeBtn.className = 'playlist__header--cover-remove';
+            removeBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await window.chrome.webview.hostObjects.musicLibrary.RemovePlaylistCover(playlist.Id);
+
+                currentPlaylistData.coverPath = null;
+                playlist.CoverPath = null;
+                await refreshPlaylistCoverUI(coverElement, playlist);
+            });
+
+            coverElement.appendChild(removeBtn);
+        }
+    } else {
+        removeBtn?.remove();
+    }
+}
+
+/**
  * Переключает на следующий трек.
  * @async
  */
@@ -341,7 +390,7 @@ async function loadPlaylists() {
         card.className = 'playlist-card playlist-card--common cursor-pointer';
         card.innerHTML = `
             <img class='playlist-card__cover' src='${coverSrc}'>
-            <div class='playlist-card__title'>${playlist.Name}</div>
+            <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
             <div class='playlist-card__count'>${playlist.TrackPaths ? playlist.TrackPaths.length : 0} Tracks</div>
         `;
         container.appendChild(card);
@@ -381,7 +430,7 @@ async function createPlaylist() {
 
 /**
  * Удаление плейлиста.
- * @param {*} playlistId - Номер плейлиста.
+ * @param {number} playlistId - Номер плейлиста.
  */
 async function deletePlaylist(playlistId) {
     await window.chrome.webview.hostObjects.musicLibrary.DeletePlaylist(playlistId);
@@ -418,7 +467,7 @@ async function openPlaylistsList() {
         item.innerHTML = `
             <div class='popup-item__container'>
                 <div class='popup-item__cover'><img src='${coverSrc}'></div>
-                <div class='popup-item__name'>${playlist.Name}</div>
+                <div class='popup-item__name'>${escapeHtml(playlist.Name)}</div>
             </div>
             ${actionDiv}
         `;
@@ -491,10 +540,10 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     title.className = 'container';
     title.innerHTML = `
         <div class='playlist__header'>
-            <div class='playlist__header--cover'><img src='${coverSrc}'></div>
+            <div class='playlist__header--cover cursor-pointer'><img src='${coverSrc}'></div>
 
             <div class='playlist__header--title'>
-                <div class='cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${name}</div>
+                <div class='cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${escapeHtml(name)}</div>
 
                 <div class='playlist__header--info'>
                     <div class='playlist__info--text'>${count} Tracks</div>
@@ -524,13 +573,20 @@ async function openPlaylist(id, name, count, coverPath, duration) {
 
     const coverElement = document.querySelector('.playlist__header--cover');
     if (coverElement) {
-        coverElement.addEventListener('click', async () => {
+        coverElement.addEventListener('click', async (e) => {
+            if (e.target.closest('.playlist__header--cover-remove')) return;
+
             const filePath = await window.chrome.webview.hostObjects.musicLibrary.PickCoverImage();
             if (filePath) {
                 await window.chrome.webview.hostObjects.musicLibrary.SetPlaylistCover(id, filePath);
-                coverElement.querySelector('img').src = 'https://appfiles.local/Covers/playlist_' + id + '.' + filePath.split('.').pop();
+                const newCoverPath = `Covers/playlist_${id}.${filePath.split('.').pop()}`;
+
+                currentPlaylistData.coverPath = newCoverPath; // обновляем общее состояние
+                await refreshPlaylistCoverUI(coverElement, { Id: id, CoverPath: newCoverPath });
             }
         });
+
+        await refreshPlaylistCoverUI(coverElement, { Id: id, CoverPath: coverPath });
     }
 
     const body = document.createElement('div');
@@ -548,10 +604,10 @@ async function openPlaylist(id, name, count, coverPath, duration) {
             <div class='playlist--library__text playlist--library__col--number'>${index + 1}</div>
             <div class='playlist--library__text playlist--library__col--title'>
                     <img class='library__cover' src='${coverSrc}'>
-                    ${track.Title}
+                    ${escapeHtml(track.Title)}
             </div>
-            <div class='playlist--library__text playlist--library__col--artist'>${track.Artist}</div>
-            <div class='playlist--library__text playlist--library__col--album'>${track.Album || '—'}</div>
+            <div class='playlist--library__text playlist--library__col--artist'>${escapeHtml(track.Artist)}</div>
+            <div class='playlist--library__text playlist--library__col--album'>${escapeHtml(track.Album) || '—'}</div>
             <div class='cursor-pointer popup-item__check' onclick='event.stopPropagation(); removeFromPlaylist(${id})'><img src='Image/check.svg'></div>
             <div class='playlist--library__text playlist--library__text--time'>${track.DurationFormatted}</div>
         `;
@@ -589,14 +645,17 @@ async function renamePlaylist(playlistId, newName) {
 }
 
 /**
- * 
- * @param {*} playlist 
- * @returns 
+ * Определяет URL обложки плейлиста: собственная обложка, обложка первого трека или заглушка.
+ * @param {PlaylistData} playlist - Объект плейлиста. 
+ * @returns {Promise<string>} URL изображения для отображения.
  */
 async function getPlaylistCoverSrc(playlist) {
     if (playlist.CoverPath) {
         const exists = await window.chrome.webview.hostObjects.musicLibrary.FileExists(playlist.CoverPath);
-        if (exists) return `https://appfiles.local/${playlist.CoverPath}`;
+        if (exists) {
+            const lastModified = await window.chrome.webview.hostObjects.musicLibrary.GetFileLastModified(playlist.CoverPath);
+            return `https://appfiles.local/${playlist.CoverPath}?v=${lastModified}`;
+        }
     }
 
     const firstTrackCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);

@@ -32,6 +32,7 @@ namespace SPleer
         private const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
 
         public static Microsoft.Web.WebView2.WinForms.WebView2? WebView;
+        private MusicLibraryBridge? _bridge;
 
         /// <summary>
         /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
@@ -154,14 +155,25 @@ namespace SPleer
                     "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
 
                 var musicLibrary = new MusicLibrary();
+                _bridge = new MusicLibraryBridge(musicLibrary);
+                webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", _bridge);
 
-                webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", new MusicLibraryBridge(musicLibrary));
                 webView21.CoreWebView2.Navigate("https://splayer.web/index.html");
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка запуска: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+
+        /// <summary>
+        /// Вызывается перед закрытием окна приложения. Очищает неиспользуемые файлы обложек.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            _bridge?.CleanupOrphanedCovers();
+            base.OnFormClosing(e);
         }
     }
 }

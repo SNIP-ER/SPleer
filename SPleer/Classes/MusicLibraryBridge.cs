@@ -482,9 +482,9 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Открывает системный диалог выбора файла для обложки плейлиста.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Полный путь к выбранному файлу изображения или null, если пользователь отменил выбор.</returns>
         public string? PickCoverImage()
         {
             using var dialog = new OpenFileDialog
@@ -501,23 +501,68 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Устанавливает обложку плейлиста, копируя изображение в папку Covers.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="sourcePath"></param>
+        /// <param name="id">ID плейлиста.</param>
+        /// <param name="sourcePath">Путь к исходному файлу изображения на диске пользователя.</param>
         public void SetPlaylistCover(int id, string sourcePath)
         {
             _playlistManager.SetPlaylistCover(id, sourcePath);
         }
 
         /// <summary>
-        /// 
+        /// Проверяет существование файла по указанному пути.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">Путь к файлу.</param>
+        /// <returns>true, если файл существует.</returns>
         public bool FileExists(string path)
         {
             return File.Exists(path);
+        }
+
+        /// <summary>
+        /// Удаляет неиспользуемые файлы обложек. Вызывается при закрытии приложения.
+        /// </summary>
+        public void CleanupOrphanedCovers()
+        {
+            try
+            {
+                _playlistManager.CleanupOrphanedCovers();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Возвращает время последнего изменения файла в виде Unix-таймстампа (миллисекунды).
+        /// Используется для сброса кэша картинок в браузере при изменении файла.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <returns>Unix-таймстамп в миллисекундах или 0, если файл не найден.</returns>
+        public long GetFileLastModified(string path)
+        {
+            var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+            if (!File.Exists(fullPath)) return 0;
+
+            return new DateTimeOffset(File.GetLastWriteTimeUtc(fullPath)).ToUnixTimeMilliseconds();
+        }
+
+        /// <summary>
+        /// Удаление обложки плейлиста.
+        /// </summary>
+        /// <param name="id">ID плейлиста.</param>
+        public void RemovePlaylistCover(int id)
+        {
+            try
+            {
+                _playlistManager.RemovePlaylistCover(id);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
+            }
         }
     }
 }

@@ -45,6 +45,11 @@
             try
             {
                 _playlists = System.Text.Json.JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
+
+                foreach (var playlist in _playlists)
+                {
+                    Playlist.EnsureNextIdAtLeast(playlist.Id);
+                }
             }
             catch
             {
@@ -160,10 +165,26 @@
     }
 
     /// <summary>
-    /// 
+    /// Удаляет с диска все файлы обложки указанного плейлиста (независимо от расширения).
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="sourcePath"></param>
+    /// <param name="id">ID плейлиста.</param>
+    private void DeleteCoverFiles(int id)
+    {
+        string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+        if (!Directory.Exists(coversFolder)) return;
+
+        foreach (var file in Directory.GetFiles(coversFolder, $"playlist_{id}.*"))
+        {
+            try { System.IO.File.Delete(file); }
+            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+        }
+    }
+
+    /// <summary>
+    /// Сохранение новой обложки плейлиста.
+    /// </summary>
+    /// <param name="id">ID плейлиста.</param>
+    /// <param name="sourcePath">Путь к исходному файлу изображения.</param>
     public void SetPlaylistCover(int id, string sourcePath)
     {
         var playlist = _playlists.FirstOrDefault(p => p.Id == id);
@@ -175,6 +196,8 @@
             if (!Directory.Exists(coversFolder))
                 Directory.CreateDirectory(coversFolder);
 
+            DeleteCoverFiles(id); // убираем старую обложку перед сохранением новой
+
             string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
             string destPath = Path.Combine(coversFolder, fileName);
             System.IO.File.Copy(sourcePath, destPath, true);
@@ -185,6 +208,58 @@
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Удаляет обложку плейлиста. После этого будет показываться обложка первого трека.
+    /// </summary>
+    /// <param name="id">ID плейлиста.</param>
+    public void RemovePlaylistCover(int id)
+    {
+        var playlist = _playlists.FirstOrDefault(p => p.Id == id);
+        if (playlist == null || string.IsNullOrEmpty(playlist.CoverPath)) return;
+
+        DeleteCoverFiles(id);
+        playlist.CoverPath = null;
+        Save();
+    }
+
+    /// <summary>
+    /// Удаляет файлы обложек в папке Covers, на которые не ссылается ни один плейлист.
+    /// </summary>
+    public void CleanupOrphanedCovers()
+    {
+        try
+        {
+            string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+            if (!Directory.Exists(coversFolder)) return;
+
+            // Собираем все пути обложек, которые реально используются:
+            // и плейлистами, и треками в библиотеке
+            var usedCoverPaths = new HashSet<string>(
+                _playlists.Where(p => !string.IsNullOrEmpty(p.CoverPath)).Select(p => p.CoverPath),
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var track in _musicLibrary.GetAllTracks())
+            {
+                if (!string.IsNullOrEmpty(track.CoverPath))
+                    usedCoverPaths.Add(track.CoverPath);
+            }
+
+            foreach (var file in Directory.GetFiles(coversFolder))
+            {
+                string relativePath = "Covers/" + Path.GetFileName(file);
+                if (!usedCoverPaths.Contains(relativePath))
+                {
+                    try { System.IO.File.Delete(file); }
+                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
         }
     }
 }
