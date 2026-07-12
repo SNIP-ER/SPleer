@@ -589,6 +589,16 @@ async function openPlaylist(id, name, count, coverPath, duration) {
         await refreshPlaylistCoverUI(coverElement, { Id: id, CoverPath: coverPath });
     }
 
+    const titleElement = document.querySelector('.playlist__header--text');
+    if (titleElement) {
+        titleElement.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                titleElement.blur();
+            }
+        });
+    }
+
     const body = document.createElement('div');
     body.className = 'scrollbar-thin'
     body.id = 'playlist__tracks-body';
