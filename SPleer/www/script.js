@@ -27,6 +27,16 @@ function escapeHtml(str) {
 }
 
 /**
+ * Задаёт активный порядок/подмножество треков для кнопок "следующий"/"предыдущий".
+ * @param {string[]|null} orderedPaths - Пути треков в нужном порядке, или null для сброса к порядку всей библиотеки.
+ * @async
+ */
+async function applyActiveOrder(orderedPaths) {
+    const json = orderedPaths ? JSON.stringify(orderedPaths) : null;
+    await window.chrome.webview.hostObjects.musicLibrary.SetActiveOrderJson(json);
+}
+
+/**
  * Загружает список треков из C# и отрисовывает их в библиотеке.
  * @async
  */
@@ -59,7 +69,7 @@ async function loadTracks() {
                 <div class='library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
                 <div class='library__text library__text--time'>${track.DurationFormatted}</div>
             `;
-            row.addEventListener('click', () => playByIndex(index));
+            row.addEventListener('click', () => playByPath(track.FilePath));
             container.appendChild(row);
 
             if (tracks.length == 0) {
@@ -349,14 +359,7 @@ async function playPlaylist() {
         return;
     }
 
-    const firstTrack = tracks[0];
-    const allTracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const allTracks = JSON.parse(allTracksJson);
-    const index = allTracks.findIndex(t => t.FilePath === firstTrack.FilePath);
-    if (index >= 0) {
-        await window.chrome.webview.hostObjects.musicLibrary.PlayByIndex(index);
-        await updateUIByIndex(index);
-    }
+    await playByPath(tracks[0].FilePath);
 
     showPauseButton();
     startProgressUpdate();
@@ -526,6 +529,9 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     
     const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
     const tracks = JSON.parse(tracksJson);
+
+    await applyActiveOrder(tracks.map(t => t.FilePath));
+
     const totalDuration = formatTotalDuration(tracks);
     const coverSrc = coverPath && count > 0 
     ? `https://appfiles.local/${coverPath}`
@@ -635,7 +641,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     }
 
     const trackPaths = tracks.map(t => t.FilePath);
-    await window.chrome.webview.hostObjects.musicLibrary.SetPlaylistTracksJson(JSON.stringify(trackPaths));
+    await window.chrome.webview.hostObjects.musicLibrary.SetActiveOrderJson(JSON.stringify(trackPaths));
 }
 
 /**
@@ -822,12 +828,13 @@ function toggleRepeat() {
  * Обрабатывает нажатие на пункты бокового меню (Library / Playlists / Now Playing).
  * @param {number} value - 0 = Library, 1 = Playlists, 2 = Now Playing.
  */
-function toggleControl(value) {
+async function toggleControl(value) {
     const lib = document.getElementById('nav_library');
     const pl = document.getElementById('nav_playlists');
     const cover = document.getElementById('player__cover');
 
     if (value === 0) {
+        await applyActiveOrder(null);
         lib.classList.add('control_blue');
         pl.classList.remove('control_blue');
         cover.classList.remove('open');

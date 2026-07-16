@@ -15,7 +15,7 @@ namespace SPleer
         private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
         private Stack<int> _history = new Stack<int>(); // История треков
         private bool _isRepeatOne = false;  // Флаг для кнопки repeat
-        private List<string>? _playlistTrackPaths = null;  // Пути треков текущего плейлиста
+        private List<string>? _activeOrder = null; // явный порядок путей
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
@@ -207,30 +207,19 @@ namespace SPleer
             if (_musicLibrary == null) return;
 
             var allTracks = _musicLibrary.GetAllTracks();
-            var allTracksList = allTracks.ToList();
             if (allTracks.Count == 0) return;
 
-            // Если задан плейлист
-            List<Track> tracks;
-            if (_playlistTrackPaths != null)
-            {
-                tracks = allTracks.Where(t => _playlistTrackPaths.Contains(t.FilePath)).ToList();
-                if (tracks.Count == 0) return;
-            }
-            else
-            {
-                tracks = allTracks.ToList();
-            }
+            // Порядок для навигации: явный (сортировка/поиск/плейлист) или порядок библиотеки
+            List<string> orderPaths = _activeOrder ?? allTracks.Select(t => t.FilePath).ToList();
+            if (orderPaths.Count == 0) return;
+
+            string? currentPath = _currentTrackIndex >= 0 ? allTracks[_currentTrackIndex].FilePath : null;
 
             // Повтор трека
-            if (_isRepeatOne && _currentTrackIndex >= 0)
+            if (_isRepeatOne && currentPath != null && orderPaths.Contains(currentPath))
             {
-                var currentTrack = allTracks[_currentTrackIndex];
-                if (_playlistTrackPaths == null || _playlistTrackPaths.Contains(currentTrack.FilePath))
-                {
-                    PlayByIndex(_currentTrackIndex);
-                    return;
-                }
+                PlayByIndex(_currentTrackIndex);
+                return;
             }
 
             if (_currentTrackIndex >= 0)
@@ -238,32 +227,33 @@ namespace SPleer
                 _history.Push(_currentTrackIndex);
             }
 
-            int nextIndex;
+            string nextPath;
             if (_currentMode == PlaybackMode.Shuffle)
             {
-                if (tracks.Count == 1)
+                if (orderPaths.Count == 1)
                 {
-                    nextIndex = 0;
+                    nextPath = orderPaths[0];
                 }
                 else
                 {
                     do
                     {
-                        nextIndex = allTracksList.IndexOf(tracks[Random.Shared.Next(tracks.Count)]);
+                        nextPath = orderPaths[Random.Shared.Next(orderPaths.Count)];
                     }
-                    while (nextIndex == _currentTrackIndex);
+                    while (nextPath == currentPath);
                 }
             }
             else
             {
-                // Последовательно по кругу
-                var currentPlaylistIndex = tracks.FindIndex(t => t.FilePath == allTracks[_currentTrackIndex].FilePath);
-                var nextPlaylistIndex = (currentPlaylistIndex + 1) % tracks.Count;
-
-                nextIndex = allTracksList.IndexOf(tracks[nextPlaylistIndex]);
+                int currentOrderIndex = currentPath != null ? orderPaths.IndexOf(currentPath) : -1;
+                int nextOrderIndex = (currentOrderIndex + 1) % orderPaths.Count;
+                nextPath = orderPaths[nextOrderIndex];
             }
 
-            PlayByIndex(nextIndex);
+            int nextLibraryIndex = allTracks.ToList().FindIndex(t => t.FilePath == nextPath);
+            if (nextLibraryIndex == -1) return;
+
+            PlayByIndex(nextLibraryIndex);
         }
 
         /// <summary>
@@ -273,31 +263,29 @@ namespace SPleer
         {
             if (_musicLibrary == null) return;
 
-            var tracks = _musicLibrary.GetAllTracks();
-
-            if (tracks.Count == 0) return;
+            var allTracks = _musicLibrary.GetAllTracks();
+            if (allTracks.Count == 0) return;
 
             if (_history.Count > 0)
             {
                 int prevIndex = _history.Pop();
                 _currentTrackIndex = prevIndex;     // Текущий не сохраняется в истории при возврате
-                PlayWithNormalization(tracks[prevIndex].FilePath);
+                PlayWithNormalization(allTracks[prevIndex].FilePath);
+                return;
             }
-            else
-            {
-                int prevIndex;
-                if (_currentTrackIndex <= 0)
-                {
-                    prevIndex = tracks.Count - 1;
-                }
-                else
-                {
-                    prevIndex = _currentTrackIndex - 1;
-                }
 
-                _currentTrackIndex = prevIndex;
-                PlayWithNormalization(tracks[prevIndex].FilePath);
-            }
+            List<string> orderPaths = _activeOrder ?? allTracks.Select(t => t.FilePath).ToList();
+            if (orderPaths.Count == 0) return;
+
+            string? currentPath = _currentTrackIndex >= 0 ? allTracks[_currentTrackIndex].FilePath : null;
+            int currentOrderIndex = currentPath != null ? orderPaths.IndexOf(currentPath) : 0;
+            int prevOrderIndex = currentOrderIndex <= 0 ? orderPaths.Count - 1 : currentOrderIndex - 1;
+
+            int prevLibraryIndex = allTracks.ToList().FindIndex(t => t.FilePath == orderPaths[prevOrderIndex]);
+            if (prevLibraryIndex == -1) return;
+
+            _currentTrackIndex = prevLibraryIndex;
+            PlayWithNormalization(allTracks[prevLibraryIndex].FilePath);
         }
 
         /// <summary>
@@ -372,12 +360,13 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Устанавливает список треков для воспроизведения в режиме плейлиста.
-        /// Если null — воспроизводится вся библиотека.
+        /// Задаёт явный порядок треков для навигации "следующий"/"предыдущий".
+        /// Используется для плейлистов, результатов поиска и сортированного отображения.
+        /// Если null — навигация идёт по порядку самой библиотеки.
         /// </summary>
-        public void SetPlaylistTracks(List<string>? trackPaths)
+        public void SetActiveOrder(List<string>? orderedPaths)
         {
-            _playlistTrackPaths = trackPaths;
+            _activeOrder = orderedPaths;
         }
 
         /// <summary>

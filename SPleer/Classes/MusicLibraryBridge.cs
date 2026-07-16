@@ -443,13 +443,15 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Устанавливает список треков плейлиста для ограничения воспроизведения.
+        /// Задаёт активный порядок треков для навигации (сортировка, поиск или плейлист).
         /// </summary>
         /// <param name="json">JSON-строка с массивом путей к файлам треков.</param>
-        public void SetPlaylistTracksJson(string json)
+        public void SetActiveOrderJson(string? json)
         {
-            var trackPaths = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
-            _audioPlayer.SetPlaylistTracks(trackPaths);
+            var orderedPaths = string.IsNullOrEmpty(json)
+                ? null
+                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+            _audioPlayer.SetActiveOrder(orderedPaths);
         }
 
         /// <summary>
