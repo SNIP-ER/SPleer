@@ -813,11 +813,11 @@ function toggleMode() {
 
     if (isActive) {
         btn.classList.remove('active');
-        btn2.classList.remove('active');
+        btn2?.classList.remove('active');
         window.chrome.webview.hostObjects.musicLibrary.SetMode('sequential');
     } else {
         btn.classList.add('active');
-        btn2.classList.add('active');
+        btn2?.classList.add('active');
         window.chrome.webview.hostObjects.musicLibrary.SetMode('shuffle');
     }
 }
