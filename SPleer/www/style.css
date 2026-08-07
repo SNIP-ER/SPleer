@@ -271,7 +271,7 @@ input, textarea {
 
 .sort-arrow::before {
     content: '▲';
-    color: var(--text-white);
+    color: var(--text-table);
 }
 
 .sortable.sort-active .sort-arrow {
@@ -578,9 +578,6 @@ input, textarea {
 }
 
 .library__text--header {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
     padding: 18px 24px 18.5px 24px;
     font-family: 'Geist', sans-serif;
     font-weight: 700;

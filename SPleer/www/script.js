@@ -83,48 +83,6 @@ async function refreshTracks() {
 }
 
 /**
- * Воспроизводит трек по индексу. Если трек уже выбран — переключает Play/Pause.
- * @param {number} index - Индекс трека в списке.
- * @async
- */
-async function playByIndex(index) {
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
-    if (tracks.length === 0) return;
-    
-    if (lastTrackIndex === index) {
-        const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
-
-        if (state === 1) {
-            await window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
-            showPlayButton();
-            stopProgressUpdate();
-        } else {
-            await window.chrome.webview.hostObjects.musicLibrary.ResumeTrack();
-
-            const newState = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
-
-            if (newState === 0) {
-                await window.chrome.webview.hostObjects.musicLibrary.PlayByIndex(index);
-            }
-
-            showPauseButton();
-            startProgressUpdate();
-        }
-        return;
-    }
-
-    removeTrackHighlight(lastTrackIndex);
-    await window.chrome.webview.hostObjects.musicLibrary.PlayByIndex(index);
-    addTrackHighlight(index);
-
-    lastTrackIndex = index;
-    showPauseButton();
-    startProgressUpdate();
-    updateUIByIndex(index);
-}
-
-/**
  * Воспроизводит трек по пути.
  * @param {string} filePath - Путь файла.
  * @async
