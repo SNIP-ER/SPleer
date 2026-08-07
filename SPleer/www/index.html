@@ -29,7 +29,9 @@
 
     <div id='main'>
         <div id='top-bar'>
-            <div id='search'></div>
+            <div id='search'>
+                <input type='text' id='search-input' placeholder='Search library...' oninput="searchTracks(this.value)">
+            </div>
 
             <div id='top-bar__actions'>
                 <div id='top-bar__notifications'></div>

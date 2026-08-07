@@ -21,7 +21,7 @@ const sortConfigs = {
         fetch: async () => JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId)),
         render: (tracks) => renderPlaylistRows(tracks, currentPlaylistId),
     },
-};
+}
 
 let updateInterval;
 let lastClickTime = 0;
@@ -31,8 +31,10 @@ let currentPlaylistId = -1;
 let currentPlaylistData = null;
 let currentSortColumn = null;
 let currentSortAscending = true;
+let searchDebounceTimer = null;
 let isMaximized = false;
 let savedVolume = 40;
+let globalSearchQuery = '';
 
 /**
  * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
@@ -60,6 +62,8 @@ async function applyActiveOrder(orderedPaths) {
  * @async
  */
 async function loadTracks() {
+    await refreshView('library');
+    
     try {
         const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
         const tracks = JSON.parse(json);
@@ -571,7 +575,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     body.id = 'playlist__tracks-body';
     container.appendChild(body);
 
-    renderPlaylistRows(tracks, id);
+    await refreshView('playlist');
     
     const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
     if (state === 1) {
@@ -623,9 +627,36 @@ async function getPlaylistCoverSrc(playlist) {
 }
 
 /**
+ * Общий пайплайн: получить треки → отфильтровать по поиску → отсортировать → применить порядок → отрисовать.
+ * @param {'library'|'playlist'} context - Какое представление сортируется.
+ * @async
+ */
+async function refreshView(context) {
+    const config = sortConfigs[context];
+    let tracks = await config.fetch();
+
+    if (globalSearchQuery) {
+        const q = globalSearchQuery.toLowerCase();
+        tracks = tracks.filter(t =>
+            t.Title.toLowerCase().includes(q) ||
+            t.Artist.toLowerCase().includes(q) ||
+            t.Album.toLowerCase().includes(q)
+        );
+    }
+
+    if (config.column) {
+        tracks = sortTracksArray(tracks, config.column, config.ascending);
+    }
+
+    await applyActiveOrder(tracks.map(t => t.FilePath));
+    config.render(tracks);
+}
+
+/**
  * Сортирует треки в указанном представлении (библиотека или открытый плейлист).
  * @param {'library'|'playlist'} context - Какое представление сортируется.
  * @param {string} column - Поле: title, artist, album, duration.
+ * @async
  */
 async function sortByColumn(context, column) {
     const config = sortConfigs[context];
@@ -638,12 +669,7 @@ async function sortByColumn(context, column) {
     }
 
     updateSortIndicators(config);
-
-    const tracks = await config.fetch();
-    const sorted = sortTracksArray(tracks, column, config.ascending);
-
-    await applyActiveOrder(sorted.map(t => t.FilePath));
-    config.render(sorted);
+    await refreshView(context);
 }
 
 /**
@@ -980,6 +1006,22 @@ function formatTotalDuration(tracks) {
     return `${minutes}m`;
 }
 
+/**
+ * Фильтрует отображаемые треки по поисковому запросу (с небольшой задержкой при вводе).
+ * @param {string} query - Текст поиска.
+ */
+function searchTracks(query) {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(async () => {
+        globalSearchQuery = query.trim();
+        await refreshView('library');
+
+        if (currentPlaylistId !== null) {
+            await refreshView('playlist');
+        }
+    }, 200);
+}
+
 // Обработчик перемотки трека
 document.getElementById('time-progress').addEventListener('input', async (e) => {
     const seconds = parseFloat(e.target.value);
@@ -1014,6 +1056,8 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let isDragging = false;
     topBar.addEventListener('mousedown', (e) => {
+        if (e.target.closest('#search-input')) return;
+
         const now = Date.now();
 
         // Проверка на двойной клик

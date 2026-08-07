@@ -440,6 +440,30 @@ input, textarea {
     border-radius: 9999px;
 }
 
+#search-input {
+    pointer-events: auto;
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
+    color: var(--text-primary);
+    font: inherit;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+#search-input:focus {
+    border-bottom-color: var(--border-light);
+}
+
+#search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+#search-input:focus {
+    outline: none;
+}
+
 #top-bar__actions {
     display: flex;
     right: 0;
