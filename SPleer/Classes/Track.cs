@@ -13,6 +13,7 @@
     // Свойство для получения пути файла, не хранявшееся в памяти
     public string FileName => Path.GetFileName(FilePath);
     public string DurationFormatted => Duration.ToString(@"mm\:ss");
+    public double DurationSeconds => Duration.TotalSeconds;
 
 
     /// <summary>

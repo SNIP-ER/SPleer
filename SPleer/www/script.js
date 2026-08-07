@@ -6,14 +6,33 @@
  * @property {string[]} TrackPaths - Список путей к файлам треков в плейлисте.
  */
 
+const sortConfigs = {
+    library: {
+        headerContainer: '#library__header-row',
+        column: null,
+        ascending: true,
+        fetch: async () => JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson()),
+        render: renderLibraryRows,
+    },
+    playlist: {
+        headerContainer: '.playlist--library__row--header',
+        column: null,
+        ascending: true,
+        fetch: async () => JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId)),
+        render: (tracks) => renderPlaylistRows(tracks, currentPlaylistId),
+    },
+};
+
 let updateInterval;
+let lastClickTime = 0;
 let lastTrackIndex = -1;
 let currentPlayingPath = -1;
 let currentPlaylistId = -1;
 let currentPlaylistData = null;
+let currentSortColumn = null;
+let currentSortAscending = true;
 let isMaximized = false;
 let savedVolume = 40;
-let lastClickTime = 0;
 
 /**
  * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
@@ -37,44 +56,14 @@ async function applyActiveOrder(orderedPaths) {
 }
 
 /**
- * Загружает список треков из C# и отрисовывает их в библиотеке.
+ * Загружает список треков из C#.
  * @async
  */
 async function loadTracks() {
     try {
         const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
         const tracks = JSON.parse(json);
-        const container = document.querySelector('#library__body');
-
-        container.innerHTML = '';
-
-        tracks.forEach((track, index) => {
-            const row = document.createElement('div');
-            const coverSrc = `https://appfiles.local/${track.CoverPath}`;
-
-            row.className = 'library__row';
-            row.id = `track-row-${index}`;
-            row.innerHTML = `
-                <div class='library__text library__text--cell library__col--number' id='track-number-${index}'>
-                    <span class='library__number'>${index + 1}</span>
-                    <img class='library__play-icon' src='Image/play.svg'>
-                </div>
-                <div class='library__text library__text--cell library__col--title'>
-                    <img class='library__cover' src='${coverSrc}'>
-                    ${escapeHtml(track.Title)}
-                </div>
-                <div class='library__text library__text--cell library__col--artist'>${escapeHtml(track.Artist)}</div>
-                <div class='library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
-                <div class='library__text library__text--time'>${track.DurationFormatted}</div>
-            `;
-            row.addEventListener('click', () => playByPath(track.FilePath));
-            container.appendChild(row);
-
-            if (tracks.length == 0) {
-                document.getElementById('player__cover-img').classList.add('u-hidden');
-                document.getElementById('player__cover').classList.add('u-hidden');
-            }
-        });
+        renderLibraryRows(tracks);
     } catch (error) {
         console.error('Ошибка загрузки треков:', error);
     }
@@ -582,11 +571,11 @@ async function openPlaylist(id, name, count, coverPath, duration) {
 
         <div class='playlist--library__row--header'>
             <div class='playlist__col'>#</div>
-            <div class='playlist__col'>TITLE</div>
-            <div class='playlist__col'>ARTIST</div>
-            <div class='playlist__col'>ALBUM</div>
+            <div class='playlist__col sortable' data-sort='title' onclick="sortByColumn('playlist', 'title')">TITLE<span class='sort-arrow'></span></div>
+            <div class='playlist__col sortable' data-sort='artist' onclick="sortByColumn('playlist', 'artist')">ARTIST<span class='sort-arrow'></span></div>
+            <div class='playlist__col sortable' data-sort='album' onclick="sortByColumn('playlist', 'album')">ALBUM<span class='sort-arrow'></span></div>
             <div></div>
-            <div class='playlist__col'><img src="Image/time.svg"></div>
+            <div class='playlist__col sortable' data-sort='duration' onclick="sortByColumn('playlist', 'duration')"><img src="Image/time.svg"><span class='sort-arrow'></span></div>
         </div>
     `;
     container.appendChild(title);
@@ -622,28 +611,9 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     const body = document.createElement('div');
     body.className = 'scrollbar-thin'
     body.id = 'playlist__tracks-body';
-
-    tracks.forEach((track, index) => {
-        const coverSrc = `https://appfiles.local/${track.CoverPath}`;
-
-        const row = document.createElement('div');
-        row.className = 'cursor-pointer playlist--library__row';
-        row.innerHTML = `
-            <div class='playlist--library__text playlist--library__col--number'>${index + 1}</div>
-            <div class='playlist--library__text playlist--library__col--title'>
-                    <img class='library__cover' src='${coverSrc}'>
-                    ${escapeHtml(track.Title)}
-            </div>
-            <div class='playlist--library__text playlist--library__col--artist'>${escapeHtml(track.Artist)}</div>
-            <div class='playlist--library__text playlist--library__col--album'>${escapeHtml(track.Album) || '—'}</div>
-            <div class='cursor-pointer popup-item__check' onclick='event.stopPropagation(); removeFromPlaylist(${id})'><img src='Image/check.svg'></div>
-            <div class='playlist--library__text playlist--library__text--time'>${track.DurationFormatted}</div>
-        `;
-        row.addEventListener('click', () => playByPath(track.FilePath));
-        body.appendChild(row);
-    });
-
     container.appendChild(body);
+
+    renderPlaylistRows(tracks, id);
     
     const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
     if (state === 1) {
@@ -692,6 +662,138 @@ async function getPlaylistCoverSrc(playlist) {
     if (firstTrackCover) return `https://appfiles.local/${firstTrackCover}`;
 
     return '';
+}
+
+/**
+ * Сортирует треки в указанном представлении (библиотека или открытый плейлист).
+ * @param {'library'|'playlist'} context - Какое представление сортируется.
+ * @param {string} column - Поле: title, artist, album, duration.
+ */
+async function sortByColumn(context, column) {
+    const config = sortConfigs[context];
+
+    if (config.column === column) {
+        config.ascending = !config.ascending;
+    } else {
+        config.column = column;
+        config.ascending = true;
+    }
+
+    updateSortIndicators(config);
+
+    const tracks = await config.fetch();
+    const sorted = sortTracksArray(tracks, column, config.ascending);
+
+    await applyActiveOrder(sorted.map(t => t.FilePath));
+    config.render(sorted);
+}
+
+/**
+ * Отрисовывает список треков библиотеки.
+ * @param {Array<Object>} tracks - Массив треков для отображения.
+ */
+function renderLibraryRows(tracks) {
+    const container = document.querySelector('#library__body');
+    container.innerHTML = '';
+
+    tracks.forEach((track, index) => {
+        const row = document.createElement('div');
+        const coverSrc = `https://appfiles.local/${track.CoverPath}`;
+
+        row.className = 'library__row';
+        row.id = `track-row-${index}`;
+        row.innerHTML = `
+            <div class='library__text library__text--cell library__col--number' id='track-number-${index}'>
+                <span class='library__number'>${index + 1}</span>
+                <img class='library__play-icon' src='Image/play.svg'>
+            </div>
+            <div class='library__text library__text--cell library__col--title'>
+                <img class='library__cover' src='${coverSrc}'>
+                ${escapeHtml(track.Title)}
+            </div>
+            <div class='library__text library__text--cell library__col--artist'>${escapeHtml(track.Artist)}</div>
+            <div class='library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
+            <div class='library__text library__text--time'>${track.DurationFormatted}</div>
+        `;
+        row.addEventListener('click', () => playByPath(track.FilePath));
+        container.appendChild(row);
+    });
+
+    if (tracks.length === 0) {
+        document.getElementById('player__cover-img').classList.add('u-hidden');
+        document.getElementById('player__cover').classList.add('u-hidden');
+    }
+}
+
+/**
+ * Отрисовывает список треков в открытом плейлисте.
+ * @param {Array<Object>} tracks - Массив треков плейлиста.
+ * @param {number} playlistId - ID плейлиста (нужен для кнопки удаления трека).
+ */
+function renderPlaylistRows(tracks, playlistId) {
+    const body = document.getElementById('playlist__tracks-body');
+    if (!body) return;
+
+    body.innerHTML = '';
+
+    tracks.forEach((track, index) => {
+        const coverSrc = `https://appfiles.local/${track.CoverPath}`;
+
+        const row = document.createElement('div');
+        row.className = 'cursor-pointer playlist--library__row';
+        row.innerHTML = `
+            <div class='playlist--library__text playlist--library__col--number'>${index + 1}</div>
+            <div class='playlist--library__text playlist--library__col--title'>
+                    <img class='library__cover' src='${coverSrc}'>
+                    ${escapeHtml(track.Title)}
+            </div>
+            <div class='playlist--library__text playlist--library__col--artist'>${escapeHtml(track.Artist)}</div>
+            <div class='playlist--library__text playlist--library__col--album'>${escapeHtml(track.Album) || '—'}</div>
+            <div class='cursor-pointer popup-item__check' onclick='event.stopPropagation(); removeFromPlaylist(${playlistId})'><img src='Image/check.svg'></div>
+            <div class='playlist--library__text playlist--library__text--time'>${track.DurationFormatted}</div>
+        `;
+        row.addEventListener('click', () => playByPath(track.FilePath));
+        body.appendChild(row);
+    });
+}
+
+/**
+ * Сортировка массива.
+ * @param {*} tracksArray 
+ * @param {*} column 
+ * @param {*} ascending 
+ * @returns 
+ */
+function sortTracksArray(tracksArray, column, ascending) {
+    const collator = new Intl.Collator('ru');
+    const comparators = {
+        artist: (a, b) => collator.compare(a.Artist, b.Artist),
+        album: (a, b) => collator.compare(a.Album, b.Album),
+        duration: (a, b) => a.DurationSeconds - b.DurationSeconds,
+        title: (a, b) => collator.compare(a.Title, b.Title),
+    };
+    const compare = comparators[column] ?? comparators.title;
+    return [...tracksArray].sort((a, b) => ascending ? compare(a, b) : compare(b, a));
+}
+
+/**
+ * 
+ * @param {*} config 
+ * @returns 
+ */
+function updateSortIndicators(config) {
+    const container = document.querySelector(config.headerContainer);
+    if (!container) return;
+
+    container.querySelectorAll('.sortable').forEach(el => {
+        el.classList.remove('sort-active', 'sort-desc');
+    });
+
+    const activeHeader = container.querySelector(`[data-sort="${config.column}"]`);
+    if (activeHeader) {
+        activeHeader.classList.add('sort-active');
+        if (!config.ascending) activeHeader.classList.add('sort-desc');
+    }
 }
 
 /**

@@ -48,10 +48,10 @@
                 <div id='library__header'>
                     <div id='library__header-row'>
                         <div class='library__text library__text--header library__col--number'>#</div>
-                        <div class='cursor-pointer library__text library__text--header library__col--title'>TITLE</div>
-                        <div class='cursor-pointer library__text library__text--header library__col--artist'>ARTIST</div>
-                        <div class='cursor-pointer library__text library__text--header library__col--album'>ALBUM</div>
-                        <div class='cursor-pointer' id='library__col--time'><img src="Image/time.svg"></div>
+                        <div class='cursor-pointer library__text library__text--header library__col--title sortable' data-sort='title' onclick="sortByColumn('library', 'title')">TITLE<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text library__text--header library__col--artist sortable' data-sort='artist' onclick="sortByColumn('library', 'artist')">ARTIST<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text library__text--header library__col--album sortable' data-sort='album' onclick="sortByColumn('library', 'album')">ALBUM<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text--header sortable' id='library__col--time' data-sort='duration' onclick="sortByColumn('library', 'duration')"><img src="Image/time.svg"><span class='sort-arrow'></span></div>
                     </div>
                 </div>
 
