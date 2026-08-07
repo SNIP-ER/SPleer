@@ -30,7 +30,7 @@
     <div id='main'>
         <div id='top-bar'>
             <div id='search'>
-                <input type='text' id='search-input' placeholder='Search library...' oninput="searchTracks(this.value)">
+                <input type='text' id='search-input' placeholder='Search...' oninput="searchTracks(this.value)">
             </div>
 
             <div id='top-bar__actions'>
@@ -99,8 +99,7 @@
 
                     <div id='player__add-popup-search'>
                         <div id='player__add-popup-search-container'>
-                            <div id='add__icon'></div>
-                            <div id='add__search'>Search playlist</div>
+                            <input type='text' id='playlist-popup-search-input' placeholder='Search...' oninput="searchPlaylistPopup(this.value)">
                         </div>
                     </div>
 

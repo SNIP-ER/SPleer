@@ -1333,14 +1333,28 @@ input, textarea {
     border: 1px solid var(--border-default);
 }
 
-#add__search {
-    margin-left: 16px;
-    font-family: 'Liberation Serif', sans-serif;
-    font-weight: 400;
-    font-size: 14px;
-    line-height: auto;
-    letter-spacing: 0px;
+#playlist-popup-search-input {
+    pointer-events: auto;
+    background: none;
+    border: none;
+    border-bottom: 1px solid transparent;
+    outline: none;
     color: var(--text-add-search);
+    font: inherit;
+    width: 100%;
+    transition: border-color 0.15s;
+}
+
+#playlist-popup-search-input:focus {
+    border-bottom-color: var(--border-light);
+}
+
+#playlist-popup-search-input::placeholder {
+    color: var(--text-secondary);
+}
+
+#playlist-popup-search-input:focus {
+    outline: none;
 }
 
 #player__add-popup-new {

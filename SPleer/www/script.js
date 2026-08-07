@@ -25,16 +25,19 @@ const sortConfigs = {
 
 let updateInterval;
 let lastClickTime = 0;
+let searchDebounceTimer = null;
+let playlistSearchDebounceTimer = null;
 let lastTrackIndex = -1;
 let currentPlayingPath = -1;
 let currentPlaylistId = -1;
 let currentPlaylistData = null;
 let currentSortColumn = null;
 let currentSortAscending = true;
-let searchDebounceTimer = null;
 let isMaximized = false;
 let savedVolume = 40;
 let globalSearchQuery = '';
+let cachedPopupPlaylists = [];
+let cachedPopupCurrentTrackPath = null;
 
 /**
  * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
@@ -409,12 +412,22 @@ async function deletePlaylist(playlistId) {
  */
 async function openPlaylistsList() {
     const popup = document.getElementById('player__add-popup');
+
+    cachedPopupCurrentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
+    cachedPopupPlaylists = JSON.parse(json);
+
+    await renderPlaylistPopupItems(cachedPopupPlaylists);
+    popup.classList.remove('u-hidden');
+}
+
+/**
+ * Отрисовывает список плейлистов в попапе добавления трека.
+ * @param {Array<Object>} playlists - Массив плейлистов для отображения.
+ */
+async function renderPlaylistPopupItems(playlists) {
     const listContainer = document.getElementById('player__add-popup-list');
     listContainer.innerHTML = '';
-    
-    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
-    const playlists = JSON.parse(json);
 
     for (const playlist of playlists) {
         const coverSrc = await getPlaylistCoverSrc(playlist);
@@ -423,8 +436,8 @@ async function openPlaylistsList() {
         item.className = 'popup-item scrollbar-thin';
 
         let isAdded = false;
-        if (currentTrackPath) {
-            isAdded = await window.chrome.webview.hostObjects.musicLibrary.IsTrackInPlaylist(playlist.Id, currentTrackPath);
+        if (cachedPopupCurrentTrackPath) {
+            isAdded = await window.chrome.webview.hostObjects.musicLibrary.IsTrackInPlaylist(playlist.Id, cachedPopupCurrentTrackPath);
         }
 
         const actionDiv = isAdded
@@ -440,8 +453,6 @@ async function openPlaylistsList() {
         `;
         listContainer.appendChild(item);
     }
-
-    popup.classList.remove('u-hidden');
 }
 
 /**
@@ -786,6 +797,9 @@ function updateSortIndicators(config) {
 function closePlaylistsList() {
     const container = document.getElementById('player__add-popup');
     container.classList.add('u-hidden');
+
+    const searchInput = document.getElementById('playlist-popup-search-input');
+    if (searchInput) searchInput.value = '';
 }
 
 /**
@@ -1020,6 +1034,22 @@ function searchTracks(query) {
             await refreshView('playlist');
         }
     }, 200);
+}
+
+/**
+ * Фильтрует список плейлистов в попапе по названию.
+ * @param {string} query - Текст поиска.
+ */
+function searchPlaylistPopup(query) {
+    clearTimeout(playlistSearchDebounceTimer);
+    playlistSearchDebounceTimer = setTimeout(async () => {
+        const q = query.trim().toLowerCase();
+        const filtered = q
+            ? cachedPopupPlaylists.filter(p => p.Name.toLowerCase().includes(q))
+            : cachedPopupPlaylists;
+
+        await renderPlaylistPopupItems(filtered);
+    }, 150);
 }
 
 // Обработчик перемотки трека
