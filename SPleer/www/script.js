@@ -31,8 +31,6 @@ let lastTrackIndex = -1;
 let currentPlayingPath = -1;
 let currentPlaylistId = -1;
 let currentPlaylistData = null;
-let currentSortColumn = null;
-let currentSortAscending = true;
 let isMaximized = false;
 let savedVolume = 40;
 let globalSearchQuery = '';
@@ -66,27 +64,6 @@ async function applyActiveOrder(orderedPaths) {
  */
 async function loadTracks() {
     await refreshView('library');
-    
-    try {
-        const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-        const tracks = JSON.parse(json);
-        renderLibraryRows(tracks);
-    } catch (error) {
-        console.error('Ошибка загрузки треков:', error);
-    }
-}
-
-/**
- * Обновляет библиотеку треков (повторное сканирование папки).
- * @async
- */
-async function refreshTracks() {
-    try {
-        await window.chrome.webview.hostObjects.musicLibrary.RefreshLibrary();
-        await loadTracks();
-    } catch (error) {
-        console.error('Ошибка обновления:', error);
-    }
 }
 
 /**
@@ -322,7 +299,6 @@ async function toggleControl(value) {
     const cover = document.getElementById('player__cover');
 
     if (value === 0) {
-        await applyActiveOrder(null);
         lib.classList.add('control_blue');
         pl.classList.remove('control_blue');
         cover.classList.remove('open');
@@ -423,7 +399,8 @@ async function openPlaylistsList() {
 
 /**
  * Отрисовывает список плейлистов в попапе добавления трека.
- * @param {Array<Object>} playlists - Массив плейлистов для отображения.
+ * @param {Array<PlaylistData>} playlists - Массив плейлистов для отображения.
+ * @async
  */
 async function renderPlaylistPopupItems(playlists) {
     const listContainer = document.getElementById('player__add-popup-list');
@@ -478,8 +455,9 @@ async function addToPlaylist(playlistId) {
 }
 
 /**
- * Удаляет текущий трек из выбранного плейлиста.
+ * Удаляет трек из выбранного плейлиста.
  * @param {number} playlistId - ID плейлиста.
+ * @param {string} [trackPath] - Не используется, оставлен для обратной совместимости вызова.
  * @async
  */
 async function removeFromPlaylist(playlistId, trackPath) {
@@ -507,8 +485,6 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     
     const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(id);
     const tracks = JSON.parse(tracksJson);
-
-    await applyActiveOrder(tracks.map(t => t.FilePath));
 
     const totalDuration = formatTotalDuration(tracks);
     const coverSrc = coverPath && count > 0 
@@ -594,9 +570,6 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     } else {
         showPlayButton();
     }
-
-    const trackPaths = tracks.map(t => t.FilePath);
-    await window.chrome.webview.hostObjects.musicLibrary.SetActiveOrderJson(JSON.stringify(trackPaths));
 }
 
 /**
@@ -753,11 +726,11 @@ function renderPlaylistRows(tracks, playlistId) {
 }
 
 /**
- * Сортировка массива.
- * @param {*} tracksArray 
- * @param {*} column 
- * @param {*} ascending 
- * @returns 
+ * Сортирует переданный массив треков по указанному полю.
+ * @param {Array<Object>} tracksArray - Массив треков для сортировки.
+ * @param {string} column - Поле сортировки: title, artist, album или duration.
+ * @param {boolean} ascending - true — по возрастанию, false — по убыванию.
+ * @returns {Array<Object>} Новый отсортированный массив (исходный не изменяется).
  */
 function sortTracksArray(tracksArray, column, ascending) {
     const collator = new Intl.Collator('ru');
@@ -772,9 +745,8 @@ function sortTracksArray(tracksArray, column, ascending) {
 }
 
 /**
- * 
- * @param {*} config 
- * @returns 
+ * Обновляет визуальные индикаторы (стрелки) сортировки у заголовков колонок текущего контекста.
+ * @param {Object} config - Конфиг контекста из sortConfigs (library или playlist).
  */
 function updateSortIndicators(config) {
     const container = document.querySelector(config.headerContainer);
