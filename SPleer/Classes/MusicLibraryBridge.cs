@@ -23,6 +23,17 @@ namespace SPleer
             _playlistManager = new PlaylistManager(library);
             _audioPlayer = new AudioPlayer();
             _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
+
+            _library.TrackRenamed += (oldPath, newPath) =>
+            {
+                _playlistManager.RenameTrackPath(oldPath, newPath);
+                _audioPlayer.RenameCurrentTrackPath(oldPath, newPath);
+
+                MainForm.WebView?.Invoke(new Action(() =>
+                {
+                    MainForm.WebView.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
+                }));
+            };
         }
 
 

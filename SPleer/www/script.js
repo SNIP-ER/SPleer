@@ -621,6 +621,14 @@ async function refreshView(context) {
 }
 
 /**
+ * Вызывается из C# при изменении состава файлов в папке с музыкой.
+ * @async
+ */
+async function onLibraryChanged() {
+    await refreshView('library');
+}
+
+/**
  * Сортирует треки в указанном представлении (библиотека или открытый плейлист).
  * @param {'library'|'playlist'} context - Какое представление сортируется.
  * @param {string} column - Поле: title, artist, album, duration.

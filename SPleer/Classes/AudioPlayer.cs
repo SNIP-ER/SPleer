@@ -16,6 +16,7 @@ namespace SPleer
         private Stack<int> _history = new Stack<int>(); // История треков
         private bool _isRepeatOne = false;  // Флаг для кнопки repeat
         private List<string>? _activeOrder = null; // явный порядок путей
+        private string? _currentTrackPath = null;
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
@@ -182,20 +183,16 @@ namespace SPleer
         /// <param name="index">Индекс трека, целое число.</param>
         public void PlayByIndex(int index)
         {
-            if (_musicLibrary == null) return;
-
             var tracks = _musicLibrary.GetAllTracks();
+            if (tracks.Count == 0 || index < 0 || index >= tracks.Count) return;
 
-            if (tracks.Count == 0) return;
-            if (index < 0 || index >= tracks.Count) return;
-
-            // Сохранение индекса текущего трека в историю перед сменой
             if (_currentTrackIndex >= 0 && _currentTrackIndex != index)
             {
                 _history.Push(_currentTrackIndex);
             }
 
             _currentTrackIndex = index;
+            _currentTrackPath = tracks[index].FilePath; // запоминаем путь, а не только индекс
             PlayWithNormalization(tracks[index].FilePath);
         }
 
@@ -349,14 +346,7 @@ namespace SPleer
         /// <returns>Путь к файлу или null.</returns>
         public string? GetCurrentTrackPath()
         {
-            if (_currentTrackIndex >= 0 && _musicLibrary != null)
-            {
-                var tracks = _musicLibrary.GetAllTracks();
-
-                if (_currentTrackIndex < tracks.Count)
-                    return tracks[_currentTrackIndex].FilePath;
-            }
-            return null;
+            return _currentTrackPath;
         }
 
         /// <summary>
@@ -376,6 +366,32 @@ namespace SPleer
         public void SetCurrentTrackIndex(int index)
         {
             _currentTrackIndex = index;
+        }
+
+        /// <summary>
+        /// Пересчет _currentTrackIndex.
+        /// </summary>
+        public void SyncCurrentTrackIndex()
+        {
+            if (_currentTrackPath == null || _musicLibrary == null) return;
+
+            var tracks = _musicLibrary.GetAllTracks().ToList();
+            var newIndex = tracks.FindIndex(t => t.FilePath == _currentTrackPath);
+            _currentTrackIndex = newIndex; // будет -1, если трек реально удалён
+        }
+
+        /// <summary>
+        /// Обновляет путь текущего трека после переименования файла на диске, если играл именно он.
+        /// </summary>
+        /// <param name="oldPath">Старый путь файла.</param>
+        /// <param name="newPath">Новый путь файла.</param>
+        public void RenameCurrentTrackPath(string oldPath, string newPath)
+        {
+            if (_currentTrackPath == oldPath)
+            {
+                _currentTrackPath = newPath;
+                SyncCurrentTrackIndex();
+            }
         }
     }
 }

@@ -4,6 +4,17 @@ public class MusicLibrary
 {
     private List<Track> _tracks;
     private string _musicFolderPath;
+    private FileSystemWatcher? _watcher;
+
+    /// <summary>
+    /// Событие, вызываемое при изменении состава файлов в папке с музыкой.
+    /// </summary>
+    public event Action? LibraryChanged;
+
+    /// <summary>
+    /// Событие, вызываемое при переименовании файла в папке с музыкой. Параметры: старый путь, новый путь.
+    /// </summary>
+    public event Action<string, string>? TrackRenamed;
 
     /// <summary>
     /// Создаёт экземпляр класса <see cref="MusicLibrary"/>.
@@ -15,6 +26,50 @@ public class MusicLibrary
         _tracks = new List<Track>();
 
         ScanFolder();
+        StartWatching();
+    }
+
+    /// <summary>
+    /// Запускает отслеживание изменений в папке с музыкой (добавление/удаление/переименование mp3-файлов).
+    /// </summary>
+    private void StartWatching()
+    {
+        _watcher = new FileSystemWatcher(_musicFolderPath, "*.mp3")
+        {
+            NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
+            EnableRaisingEvents = true
+        };
+
+        _watcher.Created += OnFolderChanged;
+        _watcher.Deleted += OnFolderChanged;
+        _watcher.Renamed += OnFileRenamed;
+    }
+
+    /// <summary>
+    /// Ответ на уведомление об добавлении/удалении трека из папки.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void OnFolderChanged(object sender, FileSystemEventArgs e)
+    {
+        // Небольшая задержка
+        System.Threading.Thread.Sleep(300);
+
+        ScanFolder();
+        LibraryChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Ответ на уведомление об переименовании трека в папке.
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void OnFileRenamed(object sender, RenamedEventArgs e)
+    {
+        System.Threading.Thread.Sleep(300);
+        ScanFolder();
+        TrackRenamed?.Invoke(e.OldFullPath, e.FullPath);
+        LibraryChanged?.Invoke();
     }
 
     /// <summary>

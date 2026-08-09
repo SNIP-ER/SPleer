@@ -289,4 +289,26 @@
             ActiveTrackCount = GetActiveTrackCount(p)
         }).ToList();
     }
+
+    /// <summary>
+    /// Обновляет путь трека во всех плейлистах после переименования файла на диске.
+    /// </summary>
+    /// <param name="oldPath">Старый путь файла.</param>
+    /// <param name="newPath">Новый путь файла.</param>
+    public void RenameTrackPath(string oldPath, string newPath)
+    {
+        bool changed = false;
+
+        foreach (var playlist in _playlists)
+        {
+            int index = playlist.TrackPaths.IndexOf(oldPath);
+            if (index >= 0)
+            {
+                playlist.TrackPaths[index] = newPath;
+                changed = true;
+            }
+        }
+
+        if (changed) Save();
+    }
 }
