@@ -262,4 +262,31 @@
             System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
         }
     }
+
+    /// <summary>
+    /// Возвращает количество треков плейлиста, которые реально существуют в текущей библиотеке.
+    /// </summary>
+    /// <param name="playlist">Плейлист.</param>
+    /// <returns>Количество существующих треков.</returns>
+    private int GetActiveTrackCount(Playlist playlist)
+    {
+        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
+        return playlist.TrackPaths.Count(p => existingPaths.Contains(p));
+    }
+
+    /// <summary>
+    /// Возвращает список плейлистов вместе с актуальным количеством существующих треков в каждом.
+    /// </summary>
+    /// <returns>Список объектов для сериализации в JSON.</returns>
+    public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
+    {
+        return _playlists.Select(p => new
+        {
+            p.Id,
+            p.Name,
+            p.CoverPath,
+            p.TrackPaths,
+            ActiveTrackCount = GetActiveTrackCount(p)
+        }).ToList();
+    }
 }

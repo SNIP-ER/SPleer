@@ -334,12 +334,12 @@ async function loadPlaylists() {
         card.innerHTML = `
             <img class='playlist-card__cover' src='${coverSrc}'>
             <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
-            <div class='playlist-card__count'>${playlist.TrackPaths ? playlist.TrackPaths.length : 0} Tracks</div>
+            <div class='playlist-card__count'>${playlist.ActiveTrackCount} Tracks</div>
         `;
         container.appendChild(card);
 
         card.addEventListener('click', () => {
-            openPlaylist(playlist.Id, playlist.Name, playlist.TrackPaths ? playlist.TrackPaths.length : 0, playlist.CoverPath, '')
+            openPlaylist(playlist.Id, playlist.Name, playlist.ActiveTrackCount, playlist.CoverPath, '')
             toggleTab(3);
         });
     }
@@ -1047,7 +1047,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     if (tracks.length > 0) {
         await updateUIByIndex(0);
-        await window.chrome.webview.hostObjects.musicLibrary.SetCurrentTrackIndex(0);
         lastTrackIndex = 0;
         addTrackHighlight(0);
         showPlayButton();

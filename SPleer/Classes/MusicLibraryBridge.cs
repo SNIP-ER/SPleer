@@ -363,7 +363,7 @@ namespace SPleer
         /// </summary>
         public string GetPlaylistsJson()
         {
-            var playlists = _playlistManager.GetAllPlaylists();
+            var playlists = _playlistManager.GetAllPlaylistsWithActiveCount();
             return System.Text.Json.JsonSerializer.Serialize(playlists);
         }
 
