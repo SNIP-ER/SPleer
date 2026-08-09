@@ -120,10 +120,8 @@ async function updateUIByIndex(index) {
 
     if (index < 0 || index >= tracks.length) return;
 
-    if (index > 0) {
-        document.getElementById('player__cover-img').classList.remove('u-hidden');
-        document.getElementById('player__cover').classList.remove('u-hidden');
-    }
+    document.getElementById('player__cover-img').classList.remove('u-hidden');
+    document.getElementById('player__cover').classList.remove('u-hidden');
 
     const track = tracks[index];
     const coverImg = document.querySelector('#player__cover-img');
@@ -138,6 +136,8 @@ async function updateUIByIndex(index) {
 
     coverImg.src = src;
     fullCoverImg.src = src;
+
+    lastTrackIndex = index;
 }
 
 /**
@@ -145,26 +145,10 @@ async function updateUIByIndex(index) {
  * @async
  */
 async function updateUIForCurrentTrack() {
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
     const currentIndex = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackIndex();
+    if (currentIndex < 0) return;
 
-    if (currentIndex < 0 || currentIndex >= tracks.length) return;
-
-    const track = tracks[currentIndex];
-    const coverImg = document.querySelector('#player__cover-img');
-    const fullCoverImg = document.querySelector('#now-playing__cover-img');
-    const src = `https://appfiles.local/${track.CoverPath}`;
-
-    document.querySelector('#player__title').textContent = track.Title;
-    document.querySelector('#player__artist').textContent = track.Artist;
-    document.querySelector('#player__time--total').textContent = track.DurationFormatted;
-    document.querySelector('#now-playing__title').textContent = track.Title;
-    document.querySelector('#now-playing__artist').textContent = track.Artist;
-
-    coverImg.src = src;
-    fullCoverImg.src = src;
-    lastTrackIndex = currentIndex;
+    await updateUIByIndex(currentIndex);
 }
 
 /**
