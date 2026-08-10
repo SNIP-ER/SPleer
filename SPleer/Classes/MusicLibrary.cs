@@ -5,6 +5,7 @@ public class MusicLibrary
     private List<Track> _tracks;
     private string _musicFolderPath;
     private FileSystemWatcher? _watcher;
+    private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma" };
 
     /// <summary>
     /// Событие, вызываемое при изменении состава файлов в папке с музыкой.
@@ -34,11 +35,15 @@ public class MusicLibrary
     /// </summary>
     private void StartWatching()
     {
-        _watcher = new FileSystemWatcher(_musicFolderPath, "*.mp3")
+        _watcher = new FileSystemWatcher(_musicFolderPath)
         {
             NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
             EnableRaisingEvents = true
         };
+        foreach (var ext in SupportedExtensions)
+        {
+            _watcher.Filters.Add($"*{ext}");
+        }
 
         _watcher.Created += OnFolderChanged;
         _watcher.Deleted += OnFolderChanged;
@@ -84,7 +89,9 @@ public class MusicLibrary
             Directory.CreateDirectory(_musicFolderPath);
         }
 
-        string[] files = Directory.GetFiles(_musicFolderPath, "*.mp3");
+        string[] files = Directory.GetFiles(_musicFolderPath, ".")
+            .Where(f => SupportedExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+            .ToArray();
 
         foreach (string file in files)
         {
