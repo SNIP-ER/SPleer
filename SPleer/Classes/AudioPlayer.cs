@@ -1,11 +1,14 @@
-﻿using NAudio.Wave;
+﻿using NAudio.Vorbis;
+using NAudio.Wave;
+using NAudio.Wave.SampleProviders;
 
 namespace SPleer
 {
     public class AudioPlayer
     {
         private WaveOutEvent? outputDevice; // Устройство вывода
-        private AudioFileReader? audioFile; // Читатель аудиофайла
+        private WaveStream? audioFile; // Читатель аудиофайла
+        private VolumeSampleProvider? volumeProvider;
         private string? currentFilePath;    // Путь к текущему файлу
         private float _userVolume = 0.4f;   // Громкость, установленная пользователем
         private float _normalizedVolume = 1.0f;
@@ -21,7 +24,7 @@ namespace SPleer
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
         public double TotalDuration => audioFile?.TotalTime.TotalSeconds ?? 0; // Длительность трека в секундах
-        public AudioFileReader? AudioFile => audioFile;
+        public WaveStream? AudioFile => audioFile;
 
 
         /// <summary>
@@ -61,13 +64,14 @@ namespace SPleer
             {
                 float maxPeak = 0;
                 // Создаем буфер для чтения сэмплов
-                using (var reader = new AudioFileReader(filePath))
+                using (var reader = CreateReader(filePath))
                 {
+                    var sampleProvider = reader.ToSampleProvider();
                     float[] buffer = new float[reader.WaveFormat.SampleRate];
                     int samplesRead;
                     do
                     {
-                        samplesRead = reader.Read(buffer, 0, buffer.Length);
+                        samplesRead = sampleProvider.Read(buffer, 0, buffer.Length);
                         for (int i = 0; i < samplesRead; i++)
                         {
                             float sampleAbs = Math.Abs(buffer[i]);
@@ -77,15 +81,19 @@ namespace SPleer
                     while (samplesRead > 0);
                 }
 
-                audioFile = new AudioFileReader(filePath);
+                audioFile = CreateReader(filePath);
                 outputDevice = new WaveOutEvent();
 
                 // Вычисляем громкость так, чтобы пик файла был на заданном уровне
                 float normalizedVolume = maxPeak > 0 ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak) : 1.0f;
                 _normalizedVolume = normalizedVolume;
-                audioFile.Volume = normalizedVolume * _userVolume;
 
-                outputDevice.Init(audioFile);
+                volumeProvider = new VolumeSampleProvider(audioFile.ToSampleProvider())
+                {
+                    Volume = normalizedVolume * _userVolume
+                };
+
+                outputDevice.Init(volumeProvider);
                 outputDevice.Play();
                 currentFilePath = filePath;
             }
@@ -93,6 +101,23 @@ namespace SPleer
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка воспроизведения: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        private WaveStream CreateReader(string filePath)
+        {
+            string ext = Path.GetExtension(filePath).ToLowerInvariant();
+
+            if (ext == ".ogg")
+            {
+                return new VorbisWaveReader(filePath);
+            }
+
+            return new AudioFileReader(filePath);
         }
 
         /// <summary>
@@ -163,8 +188,8 @@ namespace SPleer
         /// </summary>
         public void ApplyUserVolume()
         {
-            if (audioFile != null)
-                audioFile.Volume = _normalizedVolume * _userVolume; ;
+            if (volumeProvider != null)
+                volumeProvider.Volume = _normalizedVolume * _userVolume;
         }
 
 

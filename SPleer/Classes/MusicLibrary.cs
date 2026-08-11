@@ -5,7 +5,7 @@ public class MusicLibrary
     private List<Track> _tracks;
     private string _musicFolderPath;
     private FileSystemWatcher? _watcher;
-    private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma" };
+    private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma", ".ogg" };
 
     /// <summary>
     /// Событие, вызываемое при изменении состава файлов в папке с музыкой.
