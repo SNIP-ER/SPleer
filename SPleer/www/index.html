@@ -34,8 +34,7 @@
             </div>
 
             <div id='top-bar__actions'>
-                <div id='top-bar__notifications'></div>
-                <div class='icon-btn cursor-pointer' id='top-bar__settings'><img src="Image/settings.svg"></div>
+                <div class='icon-btn cursor-pointer' id='top-bar__settings' role="button" tabindex="0" onclick="settings(0)"><img src="Image/settings.svg"></div>
 
                 <div id='top-bar__buttons'>
                     <button class='window-btn window-btn--minimize' id="minimize-btn"></button>
@@ -67,8 +66,15 @@
 
         <div id='open-playlist'>
             <div class='ambient-glow'></div>
-
             <div id='open-playlist-content'></div>
+        </div>
+
+        <div class='u-hidden' id='player__settings'>
+            <div id='player__settings--title'>SETTINGS</div>
+            <div id='player__settings--list'></div>
+            <div id='player__settings--footer'>
+                <div class='cursor-pointer' id='player__settings--footer-btn' role="button" tabindex="0" onclick="settings(1)">Close</div>
+            </div>
         </div>
 
         <div id='now-playing'>

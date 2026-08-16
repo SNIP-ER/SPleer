@@ -337,6 +337,9 @@
     <None Update="Music\Нервы - Лето, плавки, рок-н-ролл.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Music\.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Music\Тони Раут - Боги спустились с небес.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

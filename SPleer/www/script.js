@@ -6,6 +6,7 @@
  * @property {string[]} TrackPaths - Список путей к файлам треков в плейлисте.
  */
 
+
 const sortConfigs = {
     library: {
         headerContainer: '#library__header-row',
@@ -23,6 +24,13 @@ const sortConfigs = {
     },
 }
 
+const settingsSchema = [
+    { key: 'language', label: 'Language', type: 'select', options: ['English'], default: 'English' },
+    { key: 'theme', label: 'Theme', type: 'select', options: ['Dark'], default: 'Dark' },
+    { key: 'musicFolder', label: 'Folder musics', type: 'folder' }
+];
+
+
 let updateInterval;
 let lastClickTime = 0;
 let searchDebounceTimer = null;
@@ -32,10 +40,12 @@ let currentPlayingPath = -1;
 let currentPlaylistId = -1;
 let currentPlaylistData = null;
 let isMaximized = false;
+let settingsOpen = false;
 let savedVolume = 40;
 let globalSearchQuery = '';
 let cachedPopupPlaylists = [];
 let cachedPopupCurrentTrackPath = null;
+
 
 /**
  * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
@@ -595,6 +605,71 @@ async function getPlaylistCoverSrc(playlist) {
 }
 
 /**
+ * Отображение окна с настройками.
+ * @param {number} value - 0: открыть окно, 1: закрыть. 
+ */
+async function settings(value) {
+    const settingsPanel  = document.getElementById('player__settings');
+
+    if (settingsOpen === true && value === 0) {
+        settingsPanel .classList.add('u-hidden');
+        settingsOpen = false;
+    }
+    else if (value === 0) {
+        await renderSettings();
+        settingsPanel .classList.remove('u-hidden');
+        settingsOpen = true;
+    }
+    else if (value === 1) {
+        settingsPanel .classList.add('u-hidden');
+        settingsOpen = false;
+    }
+}
+
+/**
+ * Отрисовывает все настройки из settingsSchema в контейнер.
+ * @async
+ */
+async function renderSettings() {
+    const container = document.getElementById('player__settings--list');
+    container.innerHTML = '';
+
+    const savedJson = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
+    const saved = JSON.parse(savedJson);
+
+    settingsSchema.forEach(setting => {
+        const currentValue = saved[setting.key] ?? setting.default;
+
+        const row = document.createElement('div');
+        row.className = 'settings-row';
+        row.innerHTML = `
+            <div class='settings-row__label'>${setting.label}</div>
+            <div class='settings-row__control'>${renderControl(setting, currentValue)}</div>
+        `;
+        container.appendChild(row);
+    });
+}
+
+/**
+ * Сохраняет значение настройки.
+ */
+async function updateSetting(key, value) {
+    await window.chrome.webview.hostObjects.musicLibrary.SetSetting(key, String(value));
+}
+
+/**
+ * Выбор папки с музыкой.
+ * @param {*} key 
+ */
+async function pickSettingFolder(key) {
+    const path = await window.chrome.webview.hostObjects.musicLibrary.PickFolder();
+    if (path) {
+        await updateSetting(key, path);
+        document.getElementById(`${key}-path`).textContent = path;
+    }
+}
+
+/**
  * Общий пайплайн: получить треки → отфильтровать по поиску → отсортировать → применить порядок → отрисовать.
  * @param {'library'|'playlist'} context - Какое представление сортируется.
  * @async
@@ -715,6 +790,29 @@ function renderPlaylistRows(tracks, playlistId) {
         row.addEventListener('click', () => playByPath(track.FilePath));
         body.appendChild(row);
     });
+}
+
+/**
+ * Возвращает HTML для конкретного типа контрола настройки.
+ * @param {*} setting 
+ * @param {*} currentValue 
+ * @returns 
+ */
+function renderControl(setting, currentValue) {
+    switch (setting.type) {
+        case 'toggle':
+            return `<input type='checkbox' ${currentValue ? 'checked' : ''} onchange="updateSetting('${setting.key}', this.checked)">`;
+        case 'select':
+            return `<select onchange="updateSetting('${setting.key}', this.value)">
+                ${setting.options.map(o => `<option ${o === currentValue ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>`;
+        case 'slider':
+            return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
+        case 'folder':
+            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button><span id='${setting.key}-path'>${escapeHtml(currentValue || '')}</span>`;
+        default:
+            return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
+    }
 }
 
 /**
@@ -1049,7 +1147,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     let isDragging = false;
     topBar.addEventListener('mousedown', (e) => {
-        if (e.target.closest('#search-input')) return;
+        if (e.target.closest('#search-input') || e.target.closest('#top-bar__settings')) return;
 
         const now = Date.now();
 
@@ -1089,12 +1187,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.addEventListener('click', (e) => {
         const popup = document.getElementById('player__add-popup');
         const playlistBtn = document.getElementById('player__playlist');
+        const settingsPanel = document.getElementById('player__settings');
+        const settingsBtn = document.getElementById('top-bar__settings');
 
         if (!popup.classList.contains('u-hidden') &&
             !popup.contains(e.target) &&
             e.target !== playlistBtn &&
             !playlistBtn.contains(e.target)) {
             popup.classList.add('u-hidden');
+        }
+
+        if (!settingsPanel.classList.contains('u-hidden') &&
+            !settingsPanel.contains(e.target) &&
+            e.target !== settingsBtn &&
+            !settingsBtn.contains(e.target)) {
+            settings(1);
         }
     });
 

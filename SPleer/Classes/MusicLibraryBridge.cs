@@ -11,6 +11,7 @@ namespace SPleer
         private readonly MusicLibrary _musicLibrary;
         private readonly AudioPlayer _audioPlayer;
         private readonly PlaylistManager _playlistManager;
+        private readonly SettingsManager _settingsManager;
 
         /// <summary>
         /// Создаёт экземпляр класса <see cref="MusicLibraryBridge"/>.
@@ -21,6 +22,7 @@ namespace SPleer
             _library = library;
             _musicLibrary = library;
             _playlistManager = new PlaylistManager(library);
+            _settingsManager = new SettingsManager();
             _audioPlayer = new AudioPlayer();
             _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
 
@@ -576,6 +578,25 @@ namespace SPleer
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public string GetSettingsJson()
+        {
+            return System.Text.Json.JsonSerializer.Serialize(_settingsManager.GetAll());
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="value"></param>
+        public void SetSetting(string key, string value)
+        {
+            _settingsManager.Set(key, value);
         }
     }
 }
