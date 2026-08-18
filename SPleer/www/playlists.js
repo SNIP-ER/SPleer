@@ -14,7 +14,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     ? `https://appfiles.local/${coverPath}`
     : (tracks.length > 0
         ? `https://appfiles.local/${tracks[0].CoverPath}`
-        : '');
+        : 'https://splayer.web/Image/no-cover.svg');
 
     const container = document.getElementById('open-playlist-content');
     container.innerHTML = ''
@@ -171,7 +171,7 @@ async function getPlaylistCoverSrc(playlist) {
     const firstTrackCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
     if (firstTrackCover) return `https://appfiles.local/${firstTrackCover}`;
 
-    return '';
+    return 'https://splayer.web/Image/no-cover.svg';
 }
 
 /**
