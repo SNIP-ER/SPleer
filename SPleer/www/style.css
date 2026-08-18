@@ -1225,6 +1225,7 @@ input, textarea {
     position: relative;
     overflow: hidden;
     border-radius: 4px;
+    flex-shrink: 0;
 }
 
 #player__cover-img {
