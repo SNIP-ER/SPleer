@@ -181,14 +181,6 @@ public class MusicLibrary
     }
 
     /// <summary>
-    /// Обновление данных при добавлении файлов во время работы программы.
-    /// </summary>
-    public void Refresh()
-    {
-        ScanFolder();
-    }
-
-    /// <summary>
     /// Сканирование папки на файлы.
     /// </summary>
     /// <returns>Список найденных файлов.</returns>

@@ -132,21 +132,6 @@ namespace SPleer
             }
         }
 
-        /// <summary>
-        /// Обновляет библиотеку
-        /// </summary>
-        public void RefreshLibrary()
-        {
-            try
-            {
-                _library.Refresh();
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Ошибка RefreshLibrary: {ex.Message}");
-            }
-        }
-
 
         // --- ВОСПРОИЗВЕДЕНИЕ ---
 
