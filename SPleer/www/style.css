@@ -1335,8 +1335,10 @@ input, textarea {
 }
 
 #player__settings--list {
-    margin-top: 10px;
+    overflow-y: auto;
+    padding-top: 10px;
     margin-left: 10px;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, var(--grad-black) 3%, var(--black) 5%, var(--black) 95%, var(--grad-black) 99%, transparent 100%);
 }
 
 #player__settings--footer {
