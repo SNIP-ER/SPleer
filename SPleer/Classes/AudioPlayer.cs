@@ -104,10 +104,11 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Создаёт подходящий для формата файла аудио-ридер. Для .ogg используется VorbisWaveReader,
+        /// для остальных поддерживаемых форматов — AudioFileReader.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
+        /// <param name="filePath">Путь к аудиофайлу.</param>
+        /// <returns>Готовый к воспроизведению WaveStream.</returns>
         private WaveStream CreateReader(string filePath)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();

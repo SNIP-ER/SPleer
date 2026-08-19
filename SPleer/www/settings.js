@@ -52,6 +52,9 @@ async function renderSettings() {
 
 /**
  * Сохраняет значение настройки.
+ * @param {string} key - Ключ настройки.
+ * @param {*} value - Новое значение настройки.
+ * @async
  */
 async function updateSetting(key, value) {
     await window.chrome.webview.hostObjects.musicLibrary.SetSetting(key, String(value));
@@ -72,9 +75,9 @@ async function pickSettingFolder(key) {
 
 /**
  * Возвращает HTML для конкретного типа контрола настройки.
- * @param {*} setting 
- * @param {*} currentValue 
- * @returns 
+ * @param {Object} setting - Описание настройки из settingsSchema.
+ * @param {*} currentValue - Текущее значение настройки.
+ * @returns {string} HTML-разметка контрола.
  */
 function renderControl(setting, currentValue) {
     switch (setting.type) {

@@ -379,6 +379,9 @@ namespace SPleer
             }
         }
 
+
+        // --- Плейлисты ---
+
         /// <summary>
         /// Возвращает список плейлистов в формате JSON.
         /// </summary>
@@ -425,6 +428,9 @@ namespace SPleer
         {
             _playlistManager.DeletePlaylist(id);
         }
+
+
+        // --- Системные ---
 
         /// <summary>
         /// Возвращает путь к файлу текущего воспроизводимого трека.
@@ -589,19 +595,19 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Возвращает все сохранённые настройки приложения в виде JSON.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>JSON-объект вида "ключ": "значение" со всеми настройками.</returns>
         public string GetSettingsJson()
         {
             return System.Text.Json.JsonSerializer.Serialize(_settingsManager.GetAll());
         }
 
         /// <summary>
-        /// 
+        /// Сохраняет значение настройки.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="key">Ключ настройки.</param>
+        /// <param name="value">Новое значение настройки.</param>
         public void SetSetting(string key, string value)
         {
             _settingsManager.Set(key, value);
