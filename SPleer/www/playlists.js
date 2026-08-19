@@ -13,7 +13,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     const coverSrc = coverPath && count > 0
     ? `https://appfiles.local/${coverPath}`
     : (tracks.length > 0
-        ? `https://appfiles.local/${tracks[0].CoverPath}`
+        ? getTrackCoverSrc(tracks[0])
         : 'https://splayer.web/Image/no-cover.svg');
 
     const container = document.getElementById('open-playlist-content');
@@ -340,7 +340,7 @@ function renderPlaylistRows(tracks, playlistId) {
     body.innerHTML = '';
 
     tracks.forEach((track, index) => {
-        const coverSrc = `https://appfiles.local/${track.CoverPath}`;
+        const coverSrc = getTrackCoverSrc(track);
 
         const row = document.createElement('div');
         row.className = 'cursor-pointer playlist--library__row';

@@ -34,7 +34,11 @@ async function renderSettings() {
     const saved = JSON.parse(savedJson);
 
     settingsSchema.forEach(setting => {
-        const currentValue = saved[setting.key] ?? setting.default;
+        let currentValue = saved[setting.key] ?? setting.default;
+
+        if (setting.type === 'toggle') {
+            currentValue = currentValue === true || currentValue === 'true';
+        }
 
         const row = document.createElement('div');
         row.className = 'settings-row';
@@ -55,12 +59,13 @@ async function updateSetting(key, value) {
 
 /**
  * Выбор папки с музыкой.
- * @param {*} key 
+ * @param {string} key - Ключ настройки.
+ * @async
  */
 async function pickSettingFolder(key) {
     const path = await window.chrome.webview.hostObjects.musicLibrary.PickFolder();
     if (path) {
-        await updateSetting(key, path);
+        await window.chrome.webview.hostObjects.musicLibrary.SetMusicFolderPath(path);
         document.getElementById(`${key}-path`).textContent = path;
     }
 }
@@ -82,7 +87,7 @@ function renderControl(setting, currentValue) {
         case 'slider':
             return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
         case 'folder':
-            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button><span id='${setting.key}-path'>${escapeHtml(currentValue || '')}</span>`;
+            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button>`;
         default:
             return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
     }

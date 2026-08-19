@@ -159,7 +159,7 @@ async function updateUIByIndex(index) {
     const track = tracks[index];
     const coverImg = document.querySelector('#player__cover-img');
     const fullCoverImg = document.querySelector('#now-playing__cover-img');
-    const src = `https://appfiles.local/${track.CoverPath}`;
+    const src = getTrackCoverSrc(track);
 
     document.querySelector('#player__title').textContent = track.Title;
     document.querySelector('#player__artist').textContent = track.Artist;

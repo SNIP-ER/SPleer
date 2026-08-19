@@ -20,14 +20,27 @@ public class MusicLibrary
     /// <summary>
     /// Создаёт экземпляр класса <see cref="MusicLibrary"/>.
     /// </summary>
-    public MusicLibrary()
+    /// <param name="customFolderPath">Пользовательский путь к папке с музыкой, или null для пути по умолчанию.</param>
+    public MusicLibrary(string? customFolderPath = null)
     {
-        _musicFolderPath = $"{AppDomain.CurrentDomain.BaseDirectory}/Music";
-
+        _musicFolderPath = Path.GetFullPath(customFolderPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Music"));
         _tracks = new List<Track>();
 
         ScanFolder();
         StartWatching();
+    }
+
+    /// <summary>
+    /// Меняет папку с музыкой на новую, пересканирует её и перезапускает отслеживание изменений.
+    /// </summary>
+    /// <param name="newPath">Новый путь к папке с музыкой.</param>
+    public void SetMusicFolder(string newPath)
+    {
+        _watcher?.Dispose();
+        _musicFolderPath = Path.GetFullPath(newPath);
+        ScanFolder();
+        StartWatching();
+        LibraryChanged?.Invoke();
     }
 
     /// <summary>

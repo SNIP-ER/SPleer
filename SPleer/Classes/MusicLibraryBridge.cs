@@ -26,6 +26,14 @@ namespace SPleer
             _audioPlayer = new AudioPlayer();
             _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
 
+            _library.LibraryChanged += () =>
+            {
+                MainForm.WebView?.Invoke(new Action(() =>
+                {
+                    MainForm.WebView.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
+                }));
+            };
+
             _library.TrackRenamed += (oldPath, newPath) =>
             {
                 _playlistManager.RenameTrackPath(oldPath, newPath);
@@ -597,6 +605,38 @@ namespace SPleer
         public void SetSetting(string key, string value)
         {
             _settingsManager.Set(key, value);
+        }
+
+        /// <summary>
+        /// Открывает системный диалог выбора папки.
+        /// </summary>
+        /// <returns>Выбранный путь к папке, или null, если пользователь отменил выбор.</returns>
+        public string? PickFolder()
+        {
+            using var dialog = new FolderBrowserDialog
+            {
+                Description = "Select music folder",
+                UseDescriptionForTitle = true
+            };
+
+            return dialog.ShowDialog() == DialogResult.OK ? dialog.SelectedPath : null;
+        }
+
+        /// <summary>
+        /// Устанавливает новую папку с музыкой: сохраняет в настройках и применяет к библиотеке.
+        /// </summary>
+        /// <param name="path">Путь к папке.</param>
+        public void SetMusicFolderPath(string path)
+        {
+            try
+            {
+                _settingsManager.Set("musicFolder", path);
+                _library.SetMusicFolder(path);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка SetMusicFolderPath: {ex.Message}");
+            }
         }
     }
 }

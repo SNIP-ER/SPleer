@@ -27,7 +27,11 @@ const sortConfigs = {
 const settingsSchema = [
     { key: 'language', label: 'Language', type: 'select', options: ['English'], default: 'English' },
     { key: 'theme', label: 'Theme', type: 'select', options: ['Dark'], default: 'Dark' },
-    { key: 'musicFolder', label: 'Folder musics', type: 'folder' }
+    { key: 'close_btn', label: 'Close button', type: 'select', options: ['Close'], default: 'Close' },
+    { key: 'musicFolder', label: 'Folder musics', type: 'folder', default: null },
+    { key: 'normalization', label: 'Volume normalization', type: 'toggle', default: true },
+    { key: 'notifications', label: 'Track change notifications', type: 'toggle', default: false },
+    { key: 'cache', label: 'Clear cover cache', type: 'action', action: 'clearCoverCache', buttonLabel: 'Clear' }
 ];
 
 
@@ -75,7 +79,7 @@ function renderLibraryRows(tracks) {
 
     tracks.forEach((track, index) => {
         const row = document.createElement('div');
-        const coverSrc = `https://appfiles.local/${track.CoverPath}`;
+        const coverSrc = getTrackCoverSrc(track);
 
         row.className = 'library__row';
         row.id = `track-row-${index}`;
@@ -100,6 +104,15 @@ function renderLibraryRows(tracks) {
         document.getElementById('player__cover-img').classList.add('u-hidden');
         document.getElementById('player__cover').classList.add('u-hidden');
     }
+}
+
+/**
+ * Возвращает URL обложки трека, или локальную заглушку, если обложки нет.
+ * @param {Object} track - Объект трека.
+ * @returns {string} URL изображения.
+ */
+function getTrackCoverSrc(track) {
+    return track.CoverPath ? `https://appfiles.local/${track.CoverPath}` : 'https://splayer.web/Image/no-cover.svg';
 }
 
 /**

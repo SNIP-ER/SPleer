@@ -1375,7 +1375,7 @@ input, textarea {
 .settings-row {
     display: grid;
     margin-bottom: 10px;
-    grid-template-columns: 150px auto;
+    grid-template-columns: 210px auto;
     grid-template-rows: 22px;
 }
 

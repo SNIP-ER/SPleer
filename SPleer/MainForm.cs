@@ -154,7 +154,10 @@ namespace SPleer
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
 
-                var musicLibrary = new MusicLibrary();
+                var startupSettings = new SettingsManager();
+                string? savedMusicFolder = startupSettings.Get("musicFolder");
+
+                var musicLibrary = new MusicLibrary(savedMusicFolder);
                 _bridge = new MusicLibraryBridge(musicLibrary);
                 webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", _bridge);
 
