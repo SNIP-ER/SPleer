@@ -6,26 +6,37 @@ namespace SPleer
 {
     public class AudioPlayer
     {
+        private const float TargetNormalizedLevel = 0.6f; // Целевой уровень громкости после нормализации 
+
         private WaveOutEvent? outputDevice; // Устройство вывода
         private WaveStream? audioFile; // Читатель аудиофайла
         private VolumeSampleProvider? volumeProvider;
+        private MusicLibrary? _musicLibrary;    // Ссылка на библиотеку треков (НЕ копия списка)
+        private Stack<int> _history = new Stack<int>(); // История треков
+        private List<string>? _activeOrder = null; // явный порядок путей
+        private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
         private string? currentFilePath;    // Путь к текущему файлу
+        private string? _currentTrackPath = null;
         private float _userVolume = 0.4f;   // Громкость, установленная пользователем
         private float _normalizedVolume = 1.0f;
-        private const float TargetNormalizedLevel = 0.6f; // Целевой уровень громкости после нормализации        
-        private MusicLibrary? _musicLibrary;    // Ссылка на библиотеку треков (НЕ копия списка)
         private int _currentTrackIndex = -1;    // Индекс текущего трека
-        private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
-        private Stack<int> _history = new Stack<int>(); // История треков
         private bool _isRepeatOne = false;  // Флаг для кнопки repeat
-        private List<string>? _activeOrder = null; // явный порядок путей
-        private string? _currentTrackPath = null;
+        private bool _normalizationEnabled = true;  // Флаг для включения/выключения нормализации громкости
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
         public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
         public double TotalDuration => audioFile?.TotalTime.TotalSeconds ?? 0; // Длительность трека в секундах
         public WaveStream? AudioFile => audioFile;
 
+
+        /// <summary>
+        /// Включает или выключает автоматическую нормализацию громкости при воспроизведении.
+        /// </summary>
+        /// <param name="enabled">true — нормализация включена.</param>
+        public void SetNormalizationEnabled(bool enabled)
+        {
+            _normalizationEnabled = enabled;
+        }
 
         /// <summary>
         /// Начало воспроизведения.
@@ -62,30 +73,33 @@ namespace SPleer
 
             try
             {
-                float maxPeak = 0;
-                // Создаем буфер для чтения сэмплов
-                using (var reader = CreateReader(filePath))
+                float normalizedVolume = 1.0f;
+
+                if (_normalizationEnabled)
                 {
-                    var sampleProvider = reader.ToSampleProvider();
-                    float[] buffer = new float[reader.WaveFormat.SampleRate];
-                    int samplesRead;
-                    do
+                    float maxPeak = 0;
+                    using (var reader = CreateReader(filePath))
                     {
-                        samplesRead = sampleProvider.Read(buffer, 0, buffer.Length);
-                        for (int i = 0; i < samplesRead; i++)
+                        var sampleProvider = reader.ToSampleProvider();
+                        float[] buffer = new float[reader.WaveFormat.SampleRate];
+                        int samplesRead;
+                        do
                         {
-                            float sampleAbs = Math.Abs(buffer[i]);
-                            if (sampleAbs > maxPeak) maxPeak = sampleAbs;
+                            samplesRead = sampleProvider.Read(buffer, 0, buffer.Length);
+                            for (int i = 0; i < samplesRead; i++)
+                            {
+                                float sampleAbs = Math.Abs(buffer[i]);
+                                if (sampleAbs > maxPeak) maxPeak = sampleAbs;
+                            }
                         }
+                        while (samplesRead > 0);
                     }
-                    while (samplesRead > 0);
+                    normalizedVolume = maxPeak > 0 ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak) : 1.0f;
                 }
 
                 audioFile = CreateReader(filePath);
                 outputDevice = new WaveOutEvent();
 
-                // Вычисляем громкость так, чтобы пик файла был на заданном уровне
-                float normalizedVolume = maxPeak > 0 ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak) : 1.0f;
                 _normalizedVolume = normalizedVolume;
 
                 volumeProvider = new VolumeSampleProvider(audioFile.ToSampleProvider())

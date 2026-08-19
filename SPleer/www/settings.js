@@ -74,6 +74,30 @@ async function pickSettingFolder(key) {
 }
 
 /**
+ * Очищает неиспользуемые файлы обложек и обновляет кнопку с результатом.
+ * @param {HTMLElement} btn - Кнопка, на которую кликнули.
+ * @async
+ */
+async function clearCoverCache(btn) {
+    const originalText = btn.textContent;
+    btn.textContent = '...';
+    btn.disabled = true;
+
+    try {
+        await window.chrome.webview.hostObjects.musicLibrary.CleanupOrphanedCovers();
+        btn.textContent = 'Done';
+    } catch (e) {
+        btn.textContent = 'Error';
+        console.error('Ошибка очистки кэша обложек:', e);
+    } finally {
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }, 1500);
+    }
+}
+
+/**
  * Возвращает HTML для конкретного типа контрола настройки.
  * @param {Object} setting - Описание настройки из settingsSchema.
  * @param {*} currentValue - Текущее значение настройки.
@@ -91,6 +115,8 @@ function renderControl(setting, currentValue) {
             return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
         case 'folder':
             return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button>`;
+        case 'action':
+            return `<button onclick="${setting.action}(this)">${setting.buttonLabel}</button>`;
         default:
             return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
     }

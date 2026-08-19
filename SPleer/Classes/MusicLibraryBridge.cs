@@ -433,6 +433,15 @@ namespace SPleer
         // --- Системные ---
 
         /// <summary>
+        /// Включает или выключает нормализацию громкости.
+        /// </summary>
+        /// <param name="enabled">true — включить.</param>
+        public void SetNormalizationEnabled(bool enabled)
+        {
+            _audioPlayer.SetNormalizationEnabled(enabled);
+        }
+
+        /// <summary>
         /// Возвращает путь к файлу текущего воспроизводимого трека.
         /// </summary>
         /// <returns>Путь к файлу или null, если ничего не играет.</returns>

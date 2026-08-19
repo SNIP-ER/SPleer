@@ -30,7 +30,7 @@ const settingsSchema = [
     { key: 'close_btn', label: 'Close button', type: 'select', options: ['Close'], default: 'Close' },
     { key: 'musicFolder', label: 'Folder musics', type: 'folder', default: null },
     { key: 'normalization', label: 'Volume normalization', type: 'toggle', default: true },
-    { key: 'notifications', label: 'Track change notifications', type: 'toggle', default: false },
+    //{ key: 'notifications', label: 'Track change notifications', type: 'toggle', default: false },
     { key: 'cache', label: 'Clear cover cache', type: 'action', action: 'clearCoverCache', buttonLabel: 'Clear' }
 ];
 
