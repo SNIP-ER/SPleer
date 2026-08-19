@@ -58,6 +58,10 @@ async function renderSettings() {
  */
 async function updateSetting(key, value) {
     await window.chrome.webview.hostObjects.musicLibrary.SetSetting(key, String(value));
+
+    if (key === 'normalization') {
+        await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value);
+    }
 }
 
 /**

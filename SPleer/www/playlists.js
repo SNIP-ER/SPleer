@@ -213,7 +213,6 @@ async function refreshPlaylistCoverUI(coverElement, playlist) {
 async function addToPlaylist(playlistId) {
     const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
     if (!currentTrackPath) {
-        console.log('Нет текущего трека');
         return;
     }
 

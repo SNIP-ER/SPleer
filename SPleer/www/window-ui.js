@@ -35,12 +35,14 @@ function toggleTab(value) {
     const playlist = document.getElementById('open-playlist');
 
     if (value === 0) {
+        currentPlaylistId = null;
         library.classList.remove('u-hidden');
         playlists.classList.add('u-hidden');
         nowPlaying.classList.remove('visible');
         cover.classList.remove('open');
         playlist.classList.remove('visible');
     } else if (value === 1) {
+        currentPlaylistId = null;
         playlists.classList.remove('u-hidden');
         library.classList.add('u-hidden');
         nowPlaying.classList.remove('visible');
@@ -57,6 +59,11 @@ function toggleTab(value) {
 
 // Инициализация после загрузки DOM
 window.addEventListener('DOMContentLoaded', async () => {
+    const savedSettingsJson = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
+    const savedSettings = JSON.parse(savedSettingsJson);
+    const normalizationEnabled = savedSettings.normalization !== false && savedSettings.normalization !== 'false';
+    
+    await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(normalizationEnabled);
     await window.chrome.webview.hostObjects.musicLibrary.SetVolume(0.4);
     await loadTracks();
     showPlayButton();
