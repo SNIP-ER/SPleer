@@ -59,38 +59,26 @@ function toggleTab(value) {
 
 // Инициализация после загрузки DOM
 window.addEventListener('DOMContentLoaded', async () => {
-    const savedSettingsJson = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
-    const savedSettings = JSON.parse(savedSettingsJson);
+    const savedSettings = await getSavedSettings();
 
-    // Нормализация громкости
-    const normalizationEnabled = savedSettings.normalization !== false && savedSettings.normalization !== 'false';
-    await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(normalizationEnabled);
-    
-    await loadTracks();
-    showPlayButton();
-    toggleControl(0);
+    await applySettingsOnStartup(savedSettings);
+    await initLibrary();
+    initWindowControls();
+    initOutsideClickHandlers();
+    await initVolume(savedSettings);
+});
 
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
+/**
+ * Настраивает перетаскивание окна и кнопки управления окном (свернуть/развернуть/закрыть).
+ */
+function initWindowControls() {
     const topBar = document.getElementById('top-bar');
-
-    if (tracks.length > 0) {
-        await updateUIByIndex(0);
-        lastTrackIndex = 0;
-        addTrackHighlight(0);
-        showPlayButton();
-    } else {
-        document.getElementById('player__cover-img').classList.add('u-hidden');
-        document.getElementById('player__cover').classList.add('u-hidden');
-    }
-
     let isDragging = false;
+
     topBar.addEventListener('mousedown', (e) => {
         if (e.target.closest('#search-input') || e.target.closest('#top-bar__settings')) return;
 
         const now = Date.now();
-
-        // Проверка на двойной клик
         if (now - lastClickTime < 400) {
             window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
             lastClickTime = 0;
@@ -122,7 +110,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('close-btn').addEventListener('click', () => {
         window.chrome.webview.hostObjects.musicLibrary.CloseWindow();
     });
+}
 
+/**
+ * Закрывает всплывающие панели (попап плейлистов, панель настроек) при клике вне их области.
+ */
+function initOutsideClickHandlers() {
     document.addEventListener('click', (e) => {
         const popup = document.getElementById('player__add-popup');
         const playlistBtn = document.getElementById('player__playlist');
@@ -143,13 +136,4 @@ window.addEventListener('DOMContentLoaded', async () => {
             settings(1);
         }
     });
-
-    // Громкость плеера
-    const volumeSlider = document.getElementById('player__volume-slider');
-    const storedVolume = savedSettings.volume ? parseFloat(savedSettings.volume) : 40;
-
-    savedVolume = storedVolume;
-    volumeSlider.value = storedVolume;
-    volumeSlider.style.setProperty('--volume', `${storedVolume}%`);
-    await window.chrome.webview.hostObjects.musicLibrary.SetVolume(storedVolume / 100);
-});
+}

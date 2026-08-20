@@ -98,236 +98,6 @@ async function openPlaylist(id, name, count, coverPath, duration) {
 }
 
 /**
- * Список доступных плейлистов.
- * @async
- */
-async function openPlaylistsList() {
-    const popup = document.getElementById('player__add-popup');
-
-    cachedPopupCurrentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
-    cachedPopupPlaylists = JSON.parse(json);
-
-    await renderPlaylistPopupItems(cachedPopupPlaylists);
-    popup.classList.remove('u-hidden');
-}
-
-/**
- * Создание плейлиста.
- * @async
- */
-async function createPlaylist() {
-    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist("");
-    await loadPlaylists(); // Обновить список
-    
-    const popup = document.getElementById('player__add-popup');
-    if (!popup.classList.contains('u-hidden')) {
-        openPlaylistsList();
-    }
-}
-
-/**
- * Удаление плейлиста.
- * @param {number} playlistId - Номер плейлиста.
- * @async
- */
-async function deletePlaylist(playlistId) {
-    await window.chrome.webview.hostObjects.musicLibrary.DeletePlaylist(playlistId);
-    toggleTab(1); 
-}
-
-/**
- * Сохраняет новое название плейлиста.
- * @param {number} playlistId - ID плейлиста.
- * @param {string} newName - Новое название плейлиста.
- * @async
- */
-async function renamePlaylist(playlistId, newName) {
-    if (!newName.trim()) return;
-
-    await window.chrome.webview.hostObjects.musicLibrary.RenamePlaylist(playlistId, newName.trim());
-    
-    const titleElement = document.querySelector('#playlist__header--text');
-    if (titleElement) {
-        titleElement.textContent = newName.trim();
-    }
-}
-
-/**
- * Определяет URL обложки плейлиста: собственная обложка, обложка первого трека или заглушка.
- * @param {PlaylistData} playlist - Объект плейлиста. 
- * @returns {Promise<string>} URL изображения для отображения.
- * @async
- */
-async function getPlaylistCoverSrc(playlist) {
-    if (playlist.CoverPath) {
-        const exists = await window.chrome.webview.hostObjects.musicLibrary.FileExists(playlist.CoverPath);
-        if (exists) {
-            const lastModified = await window.chrome.webview.hostObjects.musicLibrary.GetFileLastModified(playlist.CoverPath);
-            return `https://appfiles.local/${playlist.CoverPath}?v=${lastModified}`;
-        }
-    }
-
-    const firstTrackCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
-    if (firstTrackCover) return `https://appfiles.local/${firstTrackCover}`;
-
-    return 'https://splayer.web/Image/no-cover.svg';
-}
-
-/**
- * Обновляет изображение обложки и видимость кнопки удаления по актуальным данным плейлиста.
- * @param {HTMLElement} coverElement - Контейнер обложки плейлиста.
- * @param {PlaylistData} playlist - Актуальный объект плейлиста.
- * @async
- */
-async function refreshPlaylistCoverUI(coverElement, playlist) {
-    const src = await getPlaylistCoverSrc(playlist);
-    coverElement.querySelector('img').src = src;
-
-    let removeBtn = coverElement.querySelector('.playlist__header--cover-remove');
-    if (playlist.CoverPath) {
-        if (!removeBtn) {
-            removeBtn = document.createElement('div');
-            removeBtn.className = 'playlist__header--cover-remove';
-            removeBtn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                await window.chrome.webview.hostObjects.musicLibrary.RemovePlaylistCover(playlist.Id);
-
-                currentPlaylistData.coverPath = null;
-                playlist.CoverPath = null;
-                await refreshPlaylistCoverUI(coverElement, playlist);
-            });
-
-            coverElement.appendChild(removeBtn);
-        }
-    } else {
-        removeBtn?.remove();
-    }
-}
-
-/**
- * Добавляет текущий трек в выбранный плейлист.
- * @param {number} playlistId - ID плейлиста.
- * @async
- */
-async function addToPlaylist(playlistId) {
-    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
-    if (!currentTrackPath) {
-        return;
-    }
-
-    await window.chrome.webview.hostObjects.musicLibrary.AddTrackToPlaylist(playlistId, currentTrackPath);
-    openPlaylistsList();
-    loadPlaylists();
-
-    if (currentPlaylistId === playlistId && currentPlaylistData) {
-        const d = currentPlaylistData;
-        await openPlaylist(d.id, d.name, d.count, d.coverPath, d.duration);
-    }
-}
-
-/**
- * Удаляет трек из выбранного плейлиста.
- * @param {number} playlistId - ID плейлиста.
- * @param {string} [trackPath] - Не используется, оставлен для обратной совместимости вызова.
- * @async
- */
-async function removeFromPlaylist(playlistId, trackPath) {
-    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
-    if (!currentTrackPath) return;
-
-    await window.chrome.webview.hostObjects.musicLibrary.RemoveTrackFromPlaylist(playlistId, currentTrackPath);
-    if (currentPlaylistId === playlistId && currentPlaylistData) {
-        openPlaylist(currentPlaylistData.id, currentPlaylistData.name, currentPlaylistData.count, currentPlaylistData.coverPath, currentPlaylistData.duration);
-    }
-
-    const popup = document.getElementById('player__add-popup');
-    if (!popup.classList.contains('u-hidden')) {
-        openPlaylistsList();
-    }
-}
-
-/**
- * Отрисовывает список плейлистов в попапе добавления трека.
- * @param {Array<PlaylistData>} playlists - Массив плейлистов для отображения.
- * @async
- */
-async function renderPlaylistPopupItems(playlists) {
-    const listContainer = document.getElementById('player__add-popup-list');
-    listContainer.innerHTML = '';
-
-    for (const playlist of playlists) {
-        const coverSrc = await getPlaylistCoverSrc(playlist);
-
-        const item = document.createElement('div');
-        item.className = 'popup-item scrollbar-thin';
-
-        let isAdded = false;
-        if (cachedPopupCurrentTrackPath) {
-            isAdded = await window.chrome.webview.hostObjects.musicLibrary.IsTrackInPlaylist(playlist.Id, cachedPopupCurrentTrackPath);
-        }
-
-        const actionDiv = isAdded
-            ? `<div class='cursor-pointer popup-item__check' onclick='removeFromPlaylist(${playlist.Id})'><img src='Image/check.svg'></div>`
-            : `<div class='cursor-pointer popup-item__add' onclick='addToPlaylist(${playlist.Id})'></div>`;
-
-        item.innerHTML = `
-            <div class='popup-item__container'>
-                <div class='popup-item__cover'><img src='${coverSrc}'></div>
-                <div class='popup-item__name'>${escapeHtml(playlist.Name)}</div>
-            </div>
-            ${actionDiv}
-        `;
-        listContainer.appendChild(item);
-    }
-}
-
-/**
- * Создание карточек с плейлистами.
- * @async
- */
-async function loadPlaylists() {
-    const container = document.getElementById('playlists-grid');
-    container.innerHTML = '';
-
-    // Получение плейлистов
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
-    const playlists = JSON.parse(json);
-
-    // Обычные плейлисты
-    for (const playlist of playlists) {
-        const coverSrc = await getPlaylistCoverSrc(playlist);
-        
-        const card = document.createElement('div');
-        card.className = 'playlist-card playlist-card--common cursor-pointer';
-        card.innerHTML = `
-            <img class='playlist-card__cover' src='${coverSrc}'>
-            <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
-            <div class='playlist-card__count'>${playlist.ActiveTrackCount} Tracks</div>
-        `;
-        container.appendChild(card);
-
-        card.addEventListener('click', () => {
-            openPlaylist(playlist.Id, playlist.Name, playlist.ActiveTrackCount, playlist.CoverPath, '')
-            toggleTab(3);
-        });
-    }
-
-    // "Создать" плейлисты
-    const createCard = document.createElement('div');
-
-    createCard.className = 'playlist-card playlist-card--create cursor-pointer';
-    createCard.innerHTML = `
-        <div id='playlist-card__cover--create'>
-            <div id='playlist-card__plus'><img src="Image/plus.svg"></div>
-        </div>
-        <div id='playlist-card__title--create'>New Playlist</div>
-    `;
-    createCard.addEventListener('click', () => createPlaylist());
-    container.appendChild(createCard);
-}
-
-/**
  * Отрисовывает список треков в открытом плейлисте.
  * @param {Array<Object>} tracks - Массив треков плейлиста.
  * @param {number} playlistId - ID плейлиста (нужен для кнопки удаления трека).
@@ -386,14 +156,233 @@ function formatTotalDuration(tracks) {
 }
 
 /**
- * Закрытие списка плейлиста.
+ * Определяет URL обложки плейлиста: собственная обложка, обложка первого трека или заглушка.
+ * @param {PlaylistData} playlist - Объект плейлиста. 
+ * @returns {Promise<string>} URL изображения для отображения.
+ * @async
  */
-function closePlaylistsList() {
-    const container = document.getElementById('player__add-popup');
-    container.classList.add('u-hidden');
+async function getPlaylistCoverSrc(playlist) {
+    if (playlist.CoverPath) {
+        const exists = await window.chrome.webview.hostObjects.musicLibrary.FileExists(playlist.CoverPath);
+        if (exists) {
+            const lastModified = await window.chrome.webview.hostObjects.musicLibrary.GetFileLastModified(playlist.CoverPath);
+            return `https://appfiles.local/${playlist.CoverPath}?v=${lastModified}`;
+        }
+    }
 
-    const searchInput = document.getElementById('playlist-popup-search-input');
-    if (searchInput) searchInput.value = '';
+    const firstTrackCover = await window.chrome.webview.hostObjects.musicLibrary.GetFirstTrackCoverPath(playlist.Id);
+    if (firstTrackCover) return `https://appfiles.local/${firstTrackCover}`;
+
+    return 'https://splayer.web/Image/no-cover.svg';
+}
+
+/**
+ * Обновляет изображение обложки и видимость кнопки удаления по актуальным данным плейлиста.
+ * @param {HTMLElement} coverElement - Контейнер обложки плейлиста.
+ * @param {PlaylistData} playlist - Актуальный объект плейлиста.
+ * @async
+ */
+async function refreshPlaylistCoverUI(coverElement, playlist) {
+    const src = await getPlaylistCoverSrc(playlist);
+    coverElement.querySelector('img').src = src;
+
+    let removeBtn = coverElement.querySelector('.playlist__header--cover-remove');
+    if (playlist.CoverPath) {
+        if (!removeBtn) {
+            removeBtn = document.createElement('div');
+            removeBtn.className = 'playlist__header--cover-remove';
+            removeBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                await window.chrome.webview.hostObjects.musicLibrary.RemovePlaylistCover(playlist.Id);
+
+                currentPlaylistData.coverPath = null;
+                playlist.CoverPath = null;
+                await refreshPlaylistCoverUI(coverElement, playlist);
+            });
+
+            coverElement.appendChild(removeBtn);
+        }
+    } else {
+        removeBtn?.remove();
+    }
+}
+
+/**
+ * Создание плейлиста.
+ * @async
+ */
+async function createPlaylist() {
+    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist("");
+    await loadPlaylists(); // Обновить список
+    
+    const popup = document.getElementById('player__add-popup');
+    if (!popup.classList.contains('u-hidden')) {
+        openPlaylistsList();
+    }
+}
+
+/**
+ * Сохраняет новое название плейлиста.
+ * @param {number} playlistId - ID плейлиста.
+ * @param {string} newName - Новое название плейлиста.
+ * @async
+ */
+async function renamePlaylist(playlistId, newName) {
+    if (!newName.trim()) return;
+
+    await window.chrome.webview.hostObjects.musicLibrary.RenamePlaylist(playlistId, newName.trim());
+    
+    const titleElement = document.querySelector('#playlist__header--text');
+    if (titleElement) {
+        titleElement.textContent = newName.trim();
+    }
+}
+
+/**
+ * Удаление плейлиста.
+ * @param {number} playlistId - Номер плейлиста.
+ * @async
+ */
+async function deletePlaylist(playlistId) {
+    await window.chrome.webview.hostObjects.musicLibrary.DeletePlaylist(playlistId);
+    toggleTab(1); 
+}
+
+/**
+ * Добавляет текущий трек в выбранный плейлист.
+ * @param {number} playlistId - ID плейлиста.
+ * @async
+ */
+async function addToPlaylist(playlistId) {
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    if (!currentTrackPath) {
+        return;
+    }
+
+    await window.chrome.webview.hostObjects.musicLibrary.AddTrackToPlaylist(playlistId, currentTrackPath);
+    openPlaylistsList();
+    loadPlaylists();
+
+    if (currentPlaylistId === playlistId && currentPlaylistData) {
+        const d = currentPlaylistData;
+        await openPlaylist(d.id, d.name, d.count, d.coverPath, d.duration);
+    }
+}
+
+/**
+ * Удаляет трек из выбранного плейлиста.
+ * @param {number} playlistId - ID плейлиста.
+ * @param {string} [trackPath] - Не используется, оставлен для обратной совместимости вызова.
+ * @async
+ */
+async function removeFromPlaylist(playlistId, trackPath) {
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    if (!currentTrackPath) return;
+
+    await window.chrome.webview.hostObjects.musicLibrary.RemoveTrackFromPlaylist(playlistId, currentTrackPath);
+    if (currentPlaylistId === playlistId && currentPlaylistData) {
+        openPlaylist(currentPlaylistData.id, currentPlaylistData.name, currentPlaylistData.count, currentPlaylistData.coverPath, currentPlaylistData.duration);
+    }
+
+    const popup = document.getElementById('player__add-popup');
+    if (!popup.classList.contains('u-hidden')) {
+        openPlaylistsList();
+    }
+}
+
+/**
+ * Создание карточек с плейлистами.
+ * @async
+ */
+async function loadPlaylists() {
+    const container = document.getElementById('playlists-grid');
+    container.innerHTML = '';
+
+    // Получение плейлистов
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
+    const playlists = JSON.parse(json);
+
+    // Обычные плейлисты
+    for (const playlist of playlists) {
+        const coverSrc = await getPlaylistCoverSrc(playlist);
+        
+        const card = document.createElement('div');
+        card.className = 'playlist-card playlist-card--common cursor-pointer';
+        card.innerHTML = `
+            <img class='playlist-card__cover' src='${coverSrc}'>
+            <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
+            <div class='playlist-card__count'>${playlist.ActiveTrackCount} Tracks</div>
+        `;
+        container.appendChild(card);
+
+        card.addEventListener('click', () => {
+            openPlaylist(playlist.Id, playlist.Name, playlist.ActiveTrackCount, playlist.CoverPath, '')
+            toggleTab(3);
+        });
+    }
+
+    // "Создать" плейлисты
+    const createCard = document.createElement('div');
+
+    createCard.className = 'playlist-card playlist-card--create cursor-pointer';
+    createCard.innerHTML = `
+        <div id='playlist-card__cover--create'>
+            <div id='playlist-card__plus'><img src="Image/plus.svg"></div>
+        </div>
+        <div id='playlist-card__title--create'>New Playlist</div>
+    `;
+    createCard.addEventListener('click', () => createPlaylist());
+    container.appendChild(createCard);
+}
+
+/**
+ * Список доступных плейлистов.
+ * @async
+ */
+async function openPlaylistsList() {
+    const popup = document.getElementById('player__add-popup');
+
+    cachedPopupCurrentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
+    cachedPopupPlaylists = JSON.parse(json);
+
+    await renderPlaylistPopupItems(cachedPopupPlaylists);
+    popup.classList.remove('u-hidden');
+}
+
+/**
+ * Отрисовывает список плейлистов в попапе добавления трека.
+ * @param {Array<PlaylistData>} playlists - Массив плейлистов для отображения.
+ * @async
+ */
+async function renderPlaylistPopupItems(playlists) {
+    const listContainer = document.getElementById('player__add-popup-list');
+    listContainer.innerHTML = '';
+
+    for (const playlist of playlists) {
+        const coverSrc = await getPlaylistCoverSrc(playlist);
+
+        const item = document.createElement('div');
+        item.className = 'popup-item scrollbar-thin';
+
+        let isAdded = false;
+        if (cachedPopupCurrentTrackPath) {
+            isAdded = await window.chrome.webview.hostObjects.musicLibrary.IsTrackInPlaylist(playlist.Id, cachedPopupCurrentTrackPath);
+        }
+
+        const actionDiv = isAdded
+            ? `<div class='cursor-pointer popup-item__check' onclick='removeFromPlaylist(${playlist.Id})'><img src='Image/check.svg'></div>`
+            : `<div class='cursor-pointer popup-item__add' onclick='addToPlaylist(${playlist.Id})'></div>`;
+
+        item.innerHTML = `
+            <div class='popup-item__container'>
+                <div class='popup-item__cover'><img src='${coverSrc}'></div>
+                <div class='popup-item__name'>${escapeHtml(playlist.Name)}</div>
+            </div>
+            ${actionDiv}
+        `;
+        listContainer.appendChild(item);
+    }
 }
 
 /**
@@ -410,4 +399,15 @@ function searchPlaylistPopup(query) {
 
         await renderPlaylistPopupItems(filtered);
     }, 150);
+}
+
+/**
+ * Закрытие списка плейлиста.
+ */
+function closePlaylistsList() {
+    const container = document.getElementById('player__add-popup');
+    container.classList.add('u-hidden');
+
+    const searchInput = document.getElementById('playlist-popup-search-input');
+    if (searchInput) searchInput.value = '';
 }

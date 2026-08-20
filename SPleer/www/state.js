@@ -60,6 +60,27 @@ function escapeHtml(str) {
 }
 
 /**
+ * Возвращает URL обложки трека, или локальную заглушку, если обложки нет.
+ * @param {Object} track - Объект трека.
+ * @returns {string} URL изображения.
+ */
+function getTrackCoverSrc(track) {
+    return track.CoverPath ? `https://appfiles.local/${track.CoverPath}` : 'https://splayer.web/Image/no-cover.svg';
+}
+
+/**
+ * Форматирует секунды в строку MM:SS.
+ * @param {number} seconds - Время в секундах.
+ * @returns {string} Отформатированное время.
+ */
+function formatTime(seconds) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+/**
  * Задаёт активный порядок/подмножество треков для кнопок "следующий"/"предыдущий".
  * @param {string[]|null} orderedPaths - Пути треков в нужном порядке, или null для сброса к порядку всей библиотеки.
  * @async
@@ -104,27 +125,6 @@ function renderLibraryRows(tracks) {
         document.getElementById('player__cover-img').classList.add('u-hidden');
         document.getElementById('player__cover').classList.add('u-hidden');
     }
-}
-
-/**
- * Возвращает URL обложки трека, или локальную заглушку, если обложки нет.
- * @param {Object} track - Объект трека.
- * @returns {string} URL изображения.
- */
-function getTrackCoverSrc(track) {
-    return track.CoverPath ? `https://appfiles.local/${track.CoverPath}` : 'https://splayer.web/Image/no-cover.svg';
-}
-
-/**
- * Форматирует секунды в строку MM:SS.
- * @param {number} seconds - Время в секундах.
- * @returns {string} Отформатированное время.
- */
-function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-
-    return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
 // Обработчик перемотки трека

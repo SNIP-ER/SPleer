@@ -249,6 +249,36 @@ namespace SPleer
             }
         }
 
+        /// <summary>
+        /// Возвращает путь к файлу текущего воспроизводимого трека.
+        /// </summary>
+        /// <returns>Путь к файлу или null, если ничего не играет.</returns>
+        public string? GetCurrentTrackPath()
+        {
+            return _audioPlayer.GetCurrentTrackPath();
+        }
+
+        /// <summary>
+        /// Задаёт активный порядок треков для навигации (сортировка, поиск или плейлист).
+        /// </summary>
+        /// <param name="json">JSON-строка с массивом путей к файлам треков.</param>
+        public void SetActiveOrderJson(string? json)
+        {
+            var orderedPaths = string.IsNullOrEmpty(json)
+                ? null
+                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+            _audioPlayer.SetActiveOrder(orderedPaths);
+        }
+
+        /// <summary>
+        /// Устанавливает индекс текущего трека в аудиоплеере.
+        /// </summary>
+        /// <param name="index">Индекс трека.</param>
+        public void SetCurrentTrackIndex(int index)
+        {
+            _audioPlayer.SetCurrentTrackIndex(index);
+        }
+
 
         // --- ГРОМКОСТЬ ---
 
@@ -275,6 +305,15 @@ namespace SPleer
         public float GetVolume()
         {
             return _audioPlayer.Volume;
+        }
+
+        /// <summary>
+        /// Включает или выключает нормализацию громкости.
+        /// </summary>
+        /// <param name="enabled">true — включить.</param>
+        public void SetNormalizationEnabled(bool enabled)
+        {
+            _audioPlayer.SetNormalizationEnabled(enabled);
         }
 
 
@@ -412,27 +451,6 @@ namespace SPleer
             _playlistManager.DeletePlaylist(id);
         }
 
-
-        // --- Системные ---
-
-        /// <summary>
-        /// Включает или выключает нормализацию громкости.
-        /// </summary>
-        /// <param name="enabled">true — включить.</param>
-        public void SetNormalizationEnabled(bool enabled)
-        {
-            _audioPlayer.SetNormalizationEnabled(enabled);
-        }
-
-        /// <summary>
-        /// Возвращает путь к файлу текущего воспроизводимого трека.
-        /// </summary>
-        /// <returns>Путь к файлу или null, если ничего не играет.</returns>
-        public string? GetCurrentTrackPath()
-        {
-            return _audioPlayer.GetCurrentTrackPath();
-        }
-
         /// <summary>
         /// Возвращает JSON-строку со списком треков указанного плейлиста.
         /// </summary>
@@ -462,18 +480,6 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Задаёт активный порядок треков для навигации (сортировка, поиск или плейлист).
-        /// </summary>
-        /// <param name="json">JSON-строка с массивом путей к файлам треков.</param>
-        public void SetActiveOrderJson(string? json)
-        {
-            var orderedPaths = string.IsNullOrEmpty(json)
-                ? null
-                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
-            _audioPlayer.SetActiveOrder(orderedPaths);
-        }
-
-        /// <summary>
         /// Возвращает путь к обложке первого трека в плейлисте.
         /// </summary>
         /// <param name="playlistId">ID плейлиста.</param>
@@ -481,15 +487,6 @@ namespace SPleer
         public string? GetFirstTrackCoverPath(int playlistId)
         {
             return _playlistManager.GetFirstTrackCoverPath(playlistId);
-        }
-
-        /// <summary>
-        /// Устанавливает индекс текущего трека в аудиоплеере.
-        /// </summary>
-        /// <param name="index">Индекс трека.</param>
-        public void SetCurrentTrackIndex(int index)
-        {
-            _audioPlayer.SetCurrentTrackIndex(index);
         }
 
         /// <summary>
@@ -532,13 +529,19 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Проверяет существование файла по указанному пути.
+        /// Удаление обложки плейлиста.
         /// </summary>
-        /// <param name="path">Путь к файлу.</param>
-        /// <returns>true, если файл существует.</returns>
-        public bool FileExists(string path)
+        /// <param name="id">ID плейлиста.</param>
+        public void RemovePlaylistCover(int id)
         {
-            return File.Exists(path);
+            try
+            {
+                _playlistManager.RemovePlaylistCover(id);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -557,6 +560,16 @@ namespace SPleer
         }
 
         /// <summary>
+        /// Проверяет существование файла по указанному пути.
+        /// </summary>
+        /// <param name="path">Путь к файлу.</param>
+        /// <returns>true, если файл существует.</returns>
+        public bool FileExists(string path)
+        {
+            return File.Exists(path);
+        }
+
+        /// <summary>
         /// Возвращает время последнего изменения файла в виде Unix-таймстампа (миллисекунды).
         /// Используется для сброса кэша картинок в браузере при изменении файла.
         /// </summary>
@@ -570,21 +583,8 @@ namespace SPleer
             return new DateTimeOffset(File.GetLastWriteTimeUtc(fullPath)).ToUnixTimeMilliseconds();
         }
 
-        /// <summary>
-        /// Удаление обложки плейлиста.
-        /// </summary>
-        /// <param name="id">ID плейлиста.</param>
-        public void RemovePlaylistCover(int id)
-        {
-            try
-            {
-                _playlistManager.RemovePlaylistCover(id);
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
-            }
-        }
+
+        // --- НАСТРОЙКИ ---
 
         /// <summary>
         /// Возвращает все сохранённые настройки приложения в виде JSON.

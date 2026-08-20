@@ -1,6 +1,26 @@
 let settingsOpen = false;
 
 /**
+ * Загружает все сохранённые настройки приложения из C#.
+ * @returns {Promise<Object>} Объект настроек вида "ключ": "значение".
+ * @async
+ */
+async function getSavedSettings() {
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
+    return JSON.parse(json);
+}
+
+/**
+ * Применяет настройки, которые должны действовать сразу при запуске приложения.
+ * @param {Object} savedSettings - Сохранённые настройки, полученные через getSavedSettings.
+ * @async
+ */
+async function applySettingsOnStartup(savedSettings) {
+    const normalizationEnabled = savedSettings.normalization !== false && savedSettings.normalization !== 'false';
+    await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(normalizationEnabled);
+}
+
+/**
  * Отображение окна с настройками.
  * @param {number} value - 0: открыть окно, 1: закрыть. 
  */
@@ -51,6 +71,31 @@ async function renderSettings() {
 }
 
 /**
+ * Возвращает HTML для конкретного типа контрола настройки.
+ * @param {Object} setting - Описание настройки из settingsSchema.
+ * @param {*} currentValue - Текущее значение настройки.
+ * @returns {string} HTML-разметка контрола.
+ */
+function renderControl(setting, currentValue) {
+    switch (setting.type) {
+        case 'toggle':
+            return `<input type='checkbox' ${currentValue ? 'checked' : ''} onchange="updateSetting('${setting.key}', this.checked)">`;
+        case 'select':
+            return `<select onchange="updateSetting('${setting.key}', this.value)">
+                ${setting.options.map(o => `<option ${o === currentValue ? 'selected' : ''}>${o}</option>`).join('')}
+            </select>`;
+        case 'slider':
+            return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
+        case 'folder':
+            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button>`;
+        case 'action':
+            return `<button onclick="${setting.action}(this)">${setting.buttonLabel}</button>`;
+        default:
+            return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
+    }
+}
+
+/**
  * Сохраняет значение настройки.
  * @param {string} key - Ключ настройки.
  * @param {*} value - Новое значение настройки.
@@ -98,30 +143,5 @@ async function clearCoverCache(btn) {
             btn.textContent = originalText;
             btn.disabled = false;
         }, 1500);
-    }
-}
-
-/**
- * Возвращает HTML для конкретного типа контрола настройки.
- * @param {Object} setting - Описание настройки из settingsSchema.
- * @param {*} currentValue - Текущее значение настройки.
- * @returns {string} HTML-разметка контрола.
- */
-function renderControl(setting, currentValue) {
-    switch (setting.type) {
-        case 'toggle':
-            return `<input type='checkbox' ${currentValue ? 'checked' : ''} onchange="updateSetting('${setting.key}', this.checked)">`;
-        case 'select':
-            return `<select onchange="updateSetting('${setting.key}', this.value)">
-                ${setting.options.map(o => `<option ${o === currentValue ? 'selected' : ''}>${o}</option>`).join('')}
-            </select>`;
-        case 'slider':
-            return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
-        case 'folder':
-            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button>`;
-        case 'action':
-            return `<button onclick="${setting.action}(this)">${setting.buttonLabel}</button>`;
-        default:
-            return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
     }
 }

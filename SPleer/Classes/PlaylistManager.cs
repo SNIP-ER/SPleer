@@ -4,6 +4,9 @@
     private readonly MusicLibrary _musicLibrary;
     private string _filePath;
 
+
+    // --- Хранение ---
+
     /// <summary>
     /// Создание файла для хранения данных плейлистов.
     /// </summary>
@@ -14,18 +17,6 @@
         _playlists = new List<Playlist>();
 
         Load();
-    }
-
-    public IReadOnlyList<Playlist> GetAllPlaylists() => _playlists;
-
-    /// <summary>
-    /// Создание плейлиста.
-    /// </summary>
-    /// <param name="name">Название плейлиста.</param>
-    public void CreatePlaylist(string name)
-    {
-        _playlists.Add(new Playlist(name, null));
-        Save();
     }
 
     /// <summary>
@@ -71,6 +62,19 @@
         File.WriteAllText(_filePath, json);
     }
 
+
+    // --- CRUD плейлиста ---
+
+    /// <summary>
+    /// Создание плейлиста.
+    /// </summary>
+    /// <param name="name">Название плейлиста.</param>
+    public void CreatePlaylist(string name)
+    {
+        _playlists.Add(new Playlist(name, null));
+        Save();
+    }
+
     /// <summary>
     /// Удаление плейлиста.
     /// </summary>
@@ -80,6 +84,25 @@
         _playlists.RemoveAll(p => p.Id == id);
         Save();
     }
+
+    /// <summary>
+    /// Сохранение нового названия плейлиста.
+    /// </summary>
+    /// <param name="id">ID плейлиста.</param>
+    /// <param name="newName">Новое название плейлиста.</param>
+    public void RenamePlaylist(int id, string newName)
+    {
+        var playlist = _playlists.FirstOrDefault(p => p.Id == id);
+
+        if (playlist != null)
+        {
+            playlist.Name = newName;
+            Save();
+        }
+    }
+
+
+    // --- Треки в плейлисте ---
 
     /// <summary>
     /// Добавление трека в плейлист.
@@ -114,13 +137,6 @@
     }
 
     /// <summary>
-    /// Возвращает плейлист по ID.
-    /// </summary>
-    /// <param name="id">ID плейлиста.</param>
-    /// <returns>Объект плейлиста или null.</returns>
-    public Playlist? GetPlaylistById(int id) => _playlists.FirstOrDefault(p => p.Id == id);
-
-    /// <summary>
     /// Проверка, содержится ли трек в плейлисте по указанному пути.
     /// </summary>
     /// <param name="playlistId">ID плейлиста.</param>
@@ -133,36 +149,68 @@
     }
 
     /// <summary>
-    /// Возвращает путь к обложке первого трека в плейлисте.
+    /// Обновляет путь трека во всех плейлистах после переименования файла на диске.
     /// </summary>
-    /// <param name="playlistId">ID плейлиста.</param>
-    /// <returns>Путь к обложке или null.</returns>
-    public string? GetFirstTrackCoverPath(int playlistId)
+    /// <param name="oldPath">Старый путь файла.</param>
+    /// <param name="newPath">Новый путь файла.</param>
+    public void RenameTrackPath(string oldPath, string newPath)
     {
-        var playlist = GetPlaylistById(playlistId);
-        if (playlist?.TrackPaths == null || playlist.TrackPaths.Count == 0) return null;
+        bool changed = false;
 
-        var firstTrackPath = playlist.TrackPaths[0];
-        // Ищем трек в MusicLibrary по пути
-        var track = _musicLibrary.GetAllTracks().FirstOrDefault(t => t.FilePath == firstTrackPath);
-        return track?.CoverPath;
+        foreach (var playlist in _playlists)
+        {
+            int index = playlist.TrackPaths.IndexOf(oldPath);
+            if (index >= 0)
+            {
+                playlist.TrackPaths[index] = newPath;
+                changed = true;
+            }
+        }
+
+        if (changed) Save();
+    }
+
+
+    // --- Запросы ---
+
+    /// <summary>
+    /// Возвращает плейлист по ID.
+    /// </summary>
+    /// <param name="id">ID плейлиста.</param>
+    /// <returns>Объект плейлиста или null.</returns>
+    public Playlist? GetPlaylistById(int id) => _playlists.FirstOrDefault(p => p.Id == id);
+
+    public IReadOnlyList<Playlist> GetAllPlaylists() => _playlists;
+
+    /// <summary>
+    /// Возвращает количество треков плейлиста, которые реально существуют в текущей библиотеке.
+    /// </summary>
+    /// <param name="playlist">Плейлист.</param>
+    /// <returns>Количество существующих треков.</returns>
+    private int GetActiveTrackCount(Playlist playlist)
+    {
+        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
+        return playlist.TrackPaths.Count(p => existingPaths.Contains(p));
     }
 
     /// <summary>
-    /// Сохранение нового названия плейлиста.
+    /// Возвращает список плейлистов вместе с актуальным количеством существующих треков в каждом.
     /// </summary>
-    /// <param name="id">ID плейлиста.</param>
-    /// <param name="newName">Новое название плейлиста.</param>
-    public void RenamePlaylist(int id, string newName)
+    /// <returns>Список объектов для сериализации в JSON.</returns>
+    public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
     {
-        var playlist = _playlists.FirstOrDefault(p => p.Id == id);
-
-        if (playlist != null)
+        return _playlists.Select(p => new
         {
-            playlist.Name = newName;
-            Save();
-        }
+            p.Id,
+            p.Name,
+            p.CoverPath,
+            p.TrackPaths,
+            ActiveTrackCount = GetActiveTrackCount(p)
+        }).ToList();
     }
+
+
+    // --- Обложки ---
 
     /// <summary>
     /// Удаляет с диска все файлы обложки указанного плейлиста (независимо от расширения).
@@ -226,6 +274,22 @@
     }
 
     /// <summary>
+    /// Возвращает путь к обложке первого трека в плейлисте.
+    /// </summary>
+    /// <param name="playlistId">ID плейлиста.</param>
+    /// <returns>Путь к обложке или null.</returns>
+    public string? GetFirstTrackCoverPath(int playlistId)
+    {
+        var playlist = GetPlaylistById(playlistId);
+        if (playlist?.TrackPaths == null || playlist.TrackPaths.Count == 0) return null;
+
+        var firstTrackPath = playlist.TrackPaths[0];
+        // Ищем трек в MusicLibrary по пути
+        var track = _musicLibrary.GetAllTracks().FirstOrDefault(t => t.FilePath == firstTrackPath);
+        return track?.CoverPath;
+    }
+
+    /// <summary>
     /// Удаляет файлы обложек в папке Covers, на которые не ссылается ни один плейлист.
     /// </summary>
     public void CleanupOrphanedCovers()
@@ -261,54 +325,5 @@
         {
             System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
         }
-    }
-
-    /// <summary>
-    /// Возвращает количество треков плейлиста, которые реально существуют в текущей библиотеке.
-    /// </summary>
-    /// <param name="playlist">Плейлист.</param>
-    /// <returns>Количество существующих треков.</returns>
-    private int GetActiveTrackCount(Playlist playlist)
-    {
-        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
-        return playlist.TrackPaths.Count(p => existingPaths.Contains(p));
-    }
-
-    /// <summary>
-    /// Возвращает список плейлистов вместе с актуальным количеством существующих треков в каждом.
-    /// </summary>
-    /// <returns>Список объектов для сериализации в JSON.</returns>
-    public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
-    {
-        return _playlists.Select(p => new
-        {
-            p.Id,
-            p.Name,
-            p.CoverPath,
-            p.TrackPaths,
-            ActiveTrackCount = GetActiveTrackCount(p)
-        }).ToList();
-    }
-
-    /// <summary>
-    /// Обновляет путь трека во всех плейлистах после переименования файла на диске.
-    /// </summary>
-    /// <param name="oldPath">Старый путь файла.</param>
-    /// <param name="newPath">Новый путь файла.</param>
-    public void RenameTrackPath(string oldPath, string newPath)
-    {
-        bool changed = false;
-
-        foreach (var playlist in _playlists)
-        {
-            int index = playlist.TrackPaths.IndexOf(oldPath);
-            if (index >= 0)
-            {
-                playlist.TrackPaths[index] = newPath;
-                changed = true;
-            }
-        }
-
-        if (changed) Save();
     }
 }

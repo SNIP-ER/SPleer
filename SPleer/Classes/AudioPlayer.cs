@@ -29,6 +29,8 @@ namespace SPleer
         public WaveStream? AudioFile => audioFile;
 
 
+        // --- Воспроизведение ---
+
         /// <summary>
         /// Включает или выключает автоматическую нормализацию громкости при воспроизведении.
         /// </summary>
@@ -178,6 +180,9 @@ namespace SPleer
             currentFilePath = null;
         }
 
+
+        // --- Громкость ---
+
         /// <summary>
         /// Получение громкости от 0.0 до 1.0
         /// </summary>
@@ -207,6 +212,8 @@ namespace SPleer
                 volumeProvider.Volume = _normalizedVolume * _userVolume;
         }
 
+
+        // --- Навигация по трекам ---
 
         /// <summary>
         /// Установить ссылку на MusicLibrary.
@@ -337,6 +344,19 @@ namespace SPleer
         }
 
         /// <summary>
+        /// Задаёт явный порядок треков для навигации "следующий"/"предыдущий".
+        /// Используется для плейлистов, результатов поиска и сортированного отображения.
+        /// Если null — навигация идёт по порядку самой библиотеки.
+        /// </summary>
+        public void SetActiveOrder(List<string>? orderedPaths)
+        {
+            _activeOrder = orderedPaths;
+        }
+
+
+        // --- Режим/повтор ---
+
+        /// <summary>
         /// Установить режим воспроизведения.
         /// </summary>
         /// <param name="mode">Выбранный режим воспроизведения.</param>
@@ -352,15 +372,6 @@ namespace SPleer
         public PlaybackMode GetMode()
         {
             return _currentMode;
-        }
-
-        /// <summary>
-        /// Получение индекса текущего трека.
-        /// </summary>
-        /// <returns>Индекс - целое число.</returns>
-        public int GetCurrentTrackIndex()
-        {
-            return _currentTrackIndex;
         }
 
         /// <summary>
@@ -380,6 +391,18 @@ namespace SPleer
             return _isRepeatOne;
         }
 
+
+        // --- Состояние текущего трека ---
+
+        /// <summary>
+        /// Получение индекса текущего трека.
+        /// </summary>
+        /// <returns>Индекс - целое число.</returns>
+        public int GetCurrentTrackIndex()
+        {
+            return _currentTrackIndex;
+        }
+
         /// <summary>
         /// Возвращает путь к файлу текущего воспроизводимого трека.
         /// </summary>
@@ -387,16 +410,6 @@ namespace SPleer
         public string? GetCurrentTrackPath()
         {
             return _currentTrackPath;
-        }
-
-        /// <summary>
-        /// Задаёт явный порядок треков для навигации "следующий"/"предыдущий".
-        /// Используется для плейлистов, результатов поиска и сортированного отображения.
-        /// Если null — навигация идёт по порядку самой библиотеки.
-        /// </summary>
-        public void SetActiveOrder(List<string>? orderedPaths)
-        {
-            _activeOrder = orderedPaths;
         }
 
         /// <summary>

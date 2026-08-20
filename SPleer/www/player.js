@@ -244,23 +244,26 @@ function changeVolume(value) {
 
     window.chrome.webview.hostObjects.musicLibrary.SetVolume(volume);
     slider.style.setProperty('--volume', `${value}%`);
-}
-
-/**
- * Изменяет громкость.
- * @param {number} value - Значение громкости (0–100).
- */
-function changeVolume(value) {
-    const volume = value / 100;
-    const slider = document.getElementById('player__volume-slider');
-
-    window.chrome.webview.hostObjects.musicLibrary.SetVolume(volume);
-    slider.style.setProperty('--volume', `${value}%`);
 
     clearTimeout(volumeSaveDebounceTimer);
     volumeSaveDebounceTimer = setTimeout(async () => {
         await window.chrome.webview.hostObjects.musicLibrary.SetSetting('volume', String(value));
     }, 300);
+}
+
+/**
+ * Восстанавливает сохранённую громкость плеера и применяет её.
+ * @param {Object} savedSettings - Сохранённые настройки, полученные через getSavedSettings.
+ * @async
+ */
+async function initVolume(savedSettings) {
+    const volumeSlider = document.getElementById('player__volume-slider');
+    const storedVolume = savedSettings.volume ? parseFloat(savedSettings.volume) : 40;
+
+    savedVolume = storedVolume;
+    volumeSlider.value = storedVolume;
+    volumeSlider.style.setProperty('--volume', `${storedVolume}%`);
+    await window.chrome.webview.hostObjects.musicLibrary.SetVolume(storedVolume / 100);
 }
 
 /**

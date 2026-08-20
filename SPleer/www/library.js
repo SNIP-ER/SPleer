@@ -10,6 +10,29 @@ async function loadTracks() {
 }
 
 /**
+ * Загружает библиотеку треков и отображает первый трек, если библиотека не пуста.
+ * @async
+ */
+async function initLibrary() {
+    await loadTracks();
+    showPlayButton();
+    toggleControl(0);
+
+    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+    const tracks = JSON.parse(json);
+
+    if (tracks.length > 0) {
+        await updateUIByIndex(0);
+        lastTrackIndex = 0;
+        addTrackHighlight(0);
+        showPlayButton();
+    } else {
+        document.getElementById('player__cover-img').classList.add('u-hidden');
+        document.getElementById('player__cover').classList.add('u-hidden');
+    }
+}
+
+/**
  * Общий пайплайн: получить треки → отфильтровать по поиску → отсортировать → применить порядок → отрисовать.
  * @param {'library'|'playlist'} context - Какое представление сортируется.
  * @async
@@ -36,26 +59,6 @@ async function refreshView(context) {
 }
 
 /**
- * Сортирует треки в указанном представлении (библиотека или открытый плейлист).
- * @param {'library'|'playlist'} context - Какое представление сортируется.
- * @param {string} column - Поле: title, artist, album, duration.
- * @async
- */
-async function sortByColumn(context, column) {
-    const config = sortConfigs[context];
-
-    if (config.column === column) {
-        config.ascending = !config.ascending;
-    } else {
-        config.column = column;
-        config.ascending = true;
-    }
-
-    updateSortIndicators(config);
-    await refreshView(context);
-}
-
-/**
  * Вызывается из C# при изменении состава файлов в папке с музыкой.
  * @async
  */
@@ -77,6 +80,26 @@ function searchTracks(query) {
             await refreshView('playlist');
         }
     }, 200);
+}
+
+/**
+ * Сортирует треки в указанном представлении (библиотека или открытый плейлист).
+ * @param {'library'|'playlist'} context - Какое представление сортируется.
+ * @param {string} column - Поле: title, artist, album, duration.
+ * @async
+ */
+async function sortByColumn(context, column) {
+    const config = sortConfigs[context];
+
+    if (config.column === column) {
+        config.ascending = !config.ascending;
+    } else {
+        config.column = column;
+        config.ascending = true;
+    }
+
+    updateSortIndicators(config);
+    await refreshView(context);
 }
 
 /**
