@@ -8,7 +8,6 @@ namespace SPleer
     public class MusicLibraryBridge
     {
         private readonly MusicLibrary _library;
-        private readonly MusicLibrary _musicLibrary;
         private readonly AudioPlayer _audioPlayer;
         private readonly PlaylistManager _playlistManager;
         private readonly SettingsManager _settingsManager;
@@ -20,7 +19,6 @@ namespace SPleer
         public MusicLibraryBridge(MusicLibrary library)
         {
             _library = library;
-            _musicLibrary = library;
             _playlistManager = new PlaylistManager(library);
             _settingsManager = new SettingsManager();
             _audioPlayer = new AudioPlayer();
@@ -444,7 +442,7 @@ namespace SPleer
         {
             var playlist = _playlistManager.GetPlaylistById(playlistId);
             if (playlist == null) return "[]";
-            var allTracks = _musicLibrary.GetAllTracks();
+            var allTracks = _library.GetAllTracks();
             var tracks = playlist.TrackPaths
                 .Select(path => allTracks.FirstOrDefault(t => t.FilePath == path))
                 .Where(t => t != null)
