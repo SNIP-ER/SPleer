@@ -61,10 +61,11 @@ function toggleTab(value) {
 window.addEventListener('DOMContentLoaded', async () => {
     const savedSettingsJson = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
     const savedSettings = JSON.parse(savedSettingsJson);
+
+    // Нормализация громкости
     const normalizationEnabled = savedSettings.normalization !== false && savedSettings.normalization !== 'false';
-    
     await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(normalizationEnabled);
-    await window.chrome.webview.hostObjects.musicLibrary.SetVolume(0.4);
+    
     await loadTracks();
     showPlayButton();
     toggleControl(0);
@@ -143,7 +144,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // Громкость плеера
     const volumeSlider = document.getElementById('player__volume-slider');
-    savedVolume = parseFloat(volumeSlider.value);
-    window.chrome.webview.hostObjects.musicLibrary.SetVolume(savedVolume / 100);
+    const storedVolume = savedSettings.volume ? parseFloat(savedSettings.volume) : 40;
+
+    savedVolume = storedVolume;
+    volumeSlider.value = storedVolume;
+    volumeSlider.style.setProperty('--volume', `${storedVolume}%`);
+    await window.chrome.webview.hostObjects.musicLibrary.SetVolume(storedVolume / 100);
 });

@@ -1,3 +1,5 @@
+let volumeSaveDebounceTimer = null;
+
 /**
  * Воспроизводит первый трек, если ничего не выбрано, или переключает Play/Pause.
  * @async
@@ -242,6 +244,23 @@ function changeVolume(value) {
 
     window.chrome.webview.hostObjects.musicLibrary.SetVolume(volume);
     slider.style.setProperty('--volume', `${value}%`);
+}
+
+/**
+ * Изменяет громкость.
+ * @param {number} value - Значение громкости (0–100).
+ */
+function changeVolume(value) {
+    const volume = value / 100;
+    const slider = document.getElementById('player__volume-slider');
+
+    window.chrome.webview.hostObjects.musicLibrary.SetVolume(volume);
+    slider.style.setProperty('--volume', `${value}%`);
+
+    clearTimeout(volumeSaveDebounceTimer);
+    volumeSaveDebounceTimer = setTimeout(async () => {
+        await window.chrome.webview.hostObjects.musicLibrary.SetSetting('volume', String(value));
+    }, 300);
 }
 
 /**
