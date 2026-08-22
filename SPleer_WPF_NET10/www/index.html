@@ -1,0 +1,158 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>SPleer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id='sidebar'>
+        <div id='margin'>
+            <div id='margin_title'>SPleer</div>
+            <div id='margin_version'>4.0 Beta</div>
+        </div>
+
+        <div id='nav'>
+            <div class='menu-item cursor-pointer' id='nav_library' role="button" tabindex="0" onclick="toggleControl(0)">
+                <div class='nav-icon nav-icon--library'></div>
+                <div class='nav-title'>Library</div>
+            </div>
+
+            <div class='menu-item cursor-pointer' id='nav_playlists' role="button" tabindex="0" onclick="toggleControl(1)">
+                <div class='nav-icon nav-icon--playlist'></div>
+                <div class='nav-title'>Playlists</div>
+            </div>
+        </div>
+    </div>
+
+    <div id='main'>
+        <div id='top-bar'>
+            <div id='search'>
+                <input type='text' id='search-input' placeholder='Search...' oninput="searchTracks(this.value)">
+            </div>
+
+            <div id='top-bar__actions'>
+                <div class='icon-btn cursor-pointer' id='top-bar__settings' role="button" tabindex="0" onclick="settings(0)"><img src="Image/settings.svg"></div>
+
+                <div id='top-bar__buttons'>
+                    <button class='window-btn window-btn--minimize' id="minimize-btn"></button>
+                    <button class='window-btn window-btn--maximize' id="maximize-btn"></button>
+                    <button class='window-btn window-btn--close' id="close-btn"></button>
+                </div>
+            </div>
+        </div>
+
+        <div class='placeholder' id='library'>
+            <div id='library__table'>
+                <div id='library__header'>
+                    <div id='library__header-row'>
+                        <div class='library__text library__text--header library__col--number'>#</div>
+                        <div class='cursor-pointer library__text library__text--header library__col--title sortable' data-sort='title' onclick="sortByColumn('library', 'title')">TITLE<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text library__text--header library__col--artist sortable' data-sort='artist' onclick="sortByColumn('library', 'artist')">ARTIST<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text library__text--header library__col--album sortable' data-sort='album' onclick="sortByColumn('library', 'album')">ALBUM<span class='sort-arrow'></span></div>
+                        <div class='cursor-pointer library__text--header sortable' id='library__col--time' data-sort='duration' onclick="sortByColumn('library', 'duration')"><img src="Image/time.svg"><span class='sort-arrow'></span></div>
+                    </div>
+                </div>
+
+                <div class='scrollbar-thin' id='library__body'></div>
+            </div>
+        </div>
+
+        <div class='u-hidden scrollbar-thin' id='playlists'>
+            <div id='playlists-grid'></div>
+        </div>
+
+        <div id='open-playlist'>
+            <div class='ambient-glow'></div>
+            <div id='open-playlist-content'></div>
+        </div>
+
+        <div class='u-hidden' id='player__settings'>
+            <div id='player__settings--title'>SETTINGS</div>
+            <div class='scrollbar-thin' id='player__settings--list'></div>
+            <div id='player__settings--footer'>
+                <div class='cursor-pointer' id='player__settings--footer-btn' role="button" tabindex="0" onclick="settings(1)">Close</div>
+            </div>
+        </div>
+
+        <div id='now-playing'>
+            <div id='now-playing__cover'><img id='now-playing__cover-img'></div>
+
+            <div id='now-playing__info'>
+                <div id='now-playing__title'></div>
+                <div class='text-secondary' id='now-playing__artist'></div>
+                <div id='now-playing__lyrics'></div>
+            </div>
+        </div>
+    </div>
+
+    <div id='player'>
+        <div id='player__track'>
+            <div id='player__cover' role="button" tabindex="0" onclick="toggleControl(2)"><img id='player__cover-img'/></div>
+
+            <div id='player__info'>
+                <div id='player__title'></div>
+                <div class='text-secondary' id='player__artist'></div>
+            </div>
+
+            <div class='icon-btn cursor-pointer' id='player__playlist' role="button" tabindex="0" onclick="openPlaylistsList()"><img src="Image/add.svg"></div>
+
+            <div class='u-hidden' id='player__add-popup'>
+                <div id='player__add-popup-title'>
+                    <div id='player__add-popup-header'>ADD IN PLAYLIST</div>
+
+                    <div id='player__add-popup-search'>
+                        <div id='player__add-popup-search-container'>
+                            <input type='text' id='playlist-popup-search-input' placeholder='Search...' oninput="searchPlaylistPopup(this.value)">
+                        </div>
+                    </div>
+
+                    <div class='cursor-pointer' id='player__add-popup-new' role="button" tabindex="0" onclick="createPlaylist()">
+                        <div id='player__add-popup-new-btn'><img src="Image/plus.svg"></div>
+                        <div id='player__add-popup-new-text'>Create playlist</div>
+                    </div>
+                </div>
+
+                <div class='scrollbar-thin' id='player__add-popup-list'></div>
+
+                <div id='player__add-popup-footer'>
+                    <div class='cursor-pointer' id='player__add-popup-footer-btn'  role="button" tabindex="0" onclick="closePlaylistsList()">Cancel</div>
+                </div>
+            </div>
+        </div>
+
+        <div id='player__controls'>
+            <div id='player__buttons'>
+                <div class='icon-btn cursor-pointer' id='btn-shuffle' role="button" tabindex="0" onclick="toggleMode()"><img src="Image/toggle.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-prev' role="button" tabindex="0" onclick="flipTrack(1)"><img src="Image/back.svg"/></div>
+                <div class='cursor-pointer play player-btn' id='btn-play' role="button" tabindex="0" onclick='playOrResume()'><img class='icon-white' src="Image/play.svg"/></div>
+                <div class='cursor-pointer pause player-btn' id='btn-pause' role="button" tabindex="0" onclick='pause()'><img class='icon-white' src="Image/pause.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-next' role="button" tabindex="0" onclick="flipTrack(0)"><img src="Image/next.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-repeat' role="button" tabindex="0" onclick="toggleRepeat()"><img src="Image/repeat.svg"/></div>
+            </div>
+
+            <div id='player__progress'>
+                <div class='time-label' id='player__time--elapsed'>00:00</div>
+                <div id='player__progress-bar'><input id="time-progress" type="range" min="0" max="100" value="0"></div>
+                <div class='time-label' id='player__time--total'>00:00</div>
+            </div>
+        </div>
+
+        <div id='player__volume'>
+            <div class='volume-icon icon-btn cursor-pointer' id='player__volume-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volume.svg"/></div>
+            <div class='volume-icon icon-btn cursor-pointer u-hidden' id='player__volumeNot-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volumeNot.svg"/></div>
+            <div id='player__volume-wrapper'><input id='player__volume-slider' type="range" min="0" max="100" value="40" oninput="changeVolume(this.value)"></div>
+        </div>
+    </div>
+
+    <script src="state.js"></script>
+    <script src="player.js"></script>
+    <script src="library.js"></script>
+    <script src="playlists.js"></script>
+    <script src="settings.js"></script>
+    <script src="window-ui.js"></script>
+</body>
+
+</html>
