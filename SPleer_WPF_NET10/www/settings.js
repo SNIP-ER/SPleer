@@ -18,6 +18,9 @@ async function getSavedSettings() {
 async function applySettingsOnStartup(savedSettings) {
     const normalizationEnabled = savedSettings.normalization !== false && savedSettings.normalization !== 'false';
     await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(normalizationEnabled);
+
+    const theme = savedSettings.theme || 'Dark';
+    document.documentElement.setAttribute('data-theme', theme.toLowerCase());
 }
 
 /**
@@ -103,6 +106,10 @@ function renderControl(setting, currentValue) {
  */
 async function updateSetting(key, value) {
     await window.chrome.webview.hostObjects.musicLibrary.SetSetting(key, String(value));
+
+    if (key === 'theme') {
+        document.documentElement.setAttribute('data-theme', value.toLowerCase());
+    }
 
     if (key === 'normalization') {
         await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value);

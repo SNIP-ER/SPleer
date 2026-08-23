@@ -26,7 +26,7 @@ const sortConfigs = {
 
 const settingsSchema = [
     { key: 'language', label: 'Language', type: 'select', options: ['English'], default: 'English' },
-    { key: 'theme', label: 'Theme', type: 'select', options: ['Dark'], default: 'Dark' },
+    { key: 'theme', label: 'Theme', type: 'select', options: ['Dark', 'Light'], default: 'Dark' },
     { key: 'close_btn', label: 'Close button', type: 'select', options: ['Close'], default: 'Close' },
     { key: 'musicFolder', label: 'Folder musics', type: 'folder', default: null },
     { key: 'normalization', label: 'Volume normalization', type: 'toggle', default: true },
