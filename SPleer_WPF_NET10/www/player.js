@@ -91,18 +91,24 @@ async function playByPath(filePath) {
 async function playPlaylist() {
     const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId);
     const tracks = JSON.parse(tracksJson);
-
     if (tracks.length === 0) return;
 
     const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
-    if (state === 1) {
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    const isCurrentTrackInPlaylist = tracks.some(t => t.FilePath === currentTrackPath);
+
+    if (state === 1 && isCurrentTrackInPlaylist) {
         await window.chrome.webview.hostObjects.musicLibrary.PauseTrack();
         showPlayButton();
         stopProgressUpdate();
         return;
     }
 
-    await playByPath(tracks[0].FilePath);
+    if (isCurrentTrackInPlaylist) {
+        await window.chrome.webview.hostObjects.musicLibrary.ResumeTrack();
+    } else {
+        await playByPath(tracks[0].FilePath);
+    }
 
     showPauseButton();
     startProgressUpdate();
@@ -272,6 +278,7 @@ async function initVolume(savedSettings) {
 function showPlayButton() {
     document.querySelectorAll('.play').forEach(el => el.classList.remove('u-hidden'));
     document.querySelectorAll('.pause').forEach(el => el.classList.add('u-hidden'));
+    updatePlaylistPlayButton();
 }
 
 /**
@@ -280,6 +287,7 @@ function showPlayButton() {
 function showPauseButton() {
     document.querySelectorAll('.play').forEach(el => el.classList.add('u-hidden'));
     document.querySelectorAll('.pause').forEach(el => el.classList.remove('u-hidden'));
+    updatePlaylistPlayButton();
 }
 
 /**

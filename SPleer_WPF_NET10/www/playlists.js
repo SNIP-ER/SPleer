@@ -35,8 +35,8 @@ async function openPlaylist(id, name, count, coverPath, duration) {
                 </div>
 
                 <div class='playlist__buttons'>
-                    <div class='cursor-pointer play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>Play</div>
-                    <div class='cursor-pointer pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>Stop</div>
+                    <div class='cursor-pointer playlist-play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>Play</div>
+                    <div class='cursor-pointer playlist-pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>Stop</div>
                     <div class='cursor-pointer playlist__buttons--toggle' role="button" tabindex="0" onclick="toggleMode()"><img src='Image/toggle.svg'></div>
                     <div class='cursor-pointer playlist__buttons--toggle special' role="button" tabindex="0" onclick="deletePlaylist(${id})"><img src='Image/recycleBin.svg'></div>
                 </div>
@@ -88,13 +88,31 @@ async function openPlaylist(id, name, count, coverPath, duration) {
     container.appendChild(body);
 
     await refreshView('playlist');
-    
+    await updatePlaylistPlayButton();
+}
+
+/**
+ * Обновляет кнопку Play/Pause в открытом плейлисте независимо от основного плеера.
+ * @async
+ */
+async function updatePlaylistPlayButton() {
+    if (currentPlaylistId === null) return;
+
+    const playBtn = document.querySelector('.playlist-play');
+    const pauseBtn = document.querySelector('.playlist-pause');
+    if (!playBtn || !pauseBtn) return;
+
     const state = await window.chrome.webview.hostObjects.musicLibrary.GetPlayerState();
-    if (state === 1) {
-        showPauseButton();
-    } else {
-        showPlayButton();
-    }
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+
+    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId);
+    const tracks = JSON.parse(tracksJson);
+    const isCurrentTrackInPlaylist = tracks.some(t => t.FilePath === currentTrackPath);
+
+    const isPlayingThisPlaylist = state === 1 && isCurrentTrackInPlaylist;
+
+    playBtn.classList.toggle('u-hidden', isPlayingThisPlaylist);
+    pauseBtn.classList.toggle('u-hidden', !isPlayingThisPlaylist);
 }
 
 /**

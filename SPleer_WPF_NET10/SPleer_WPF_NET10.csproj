@@ -22,7 +22,6 @@
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4129.50" />
     <PackageReference Include="NAudio" Version="3.0.1" />
     <PackageReference Include="NAudio.SoundFile" Version="3.0.1" />
-    <PackageReference Include="NVorbis" Version="0.10.5" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
