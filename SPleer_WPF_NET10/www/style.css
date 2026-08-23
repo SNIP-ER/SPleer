@@ -821,6 +821,10 @@ input, textarea {
     opacity: 1;
 }
 
+.playlist--library__text.library__number--active {
+    color: var(--accent-light);
+}
+
 .library__number--active {
     color: var(--accent-light);
 }
@@ -882,6 +886,24 @@ input, textarea {
     line-height: 24px;
     letter-spacing: 0px;
     color: var(--text-primary);
+}
+
+.playlist--library__col--number {
+    position: relative;
+}
+
+.playlist--library__col--number .library__play-icon {
+    top: 45%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+}
+
+.playlist--library__row:hover .library__number {
+    opacity: 0;
+}
+
+.playlist--library__row:hover .library__play-icon {
+    opacity: 1;
 }
 
 

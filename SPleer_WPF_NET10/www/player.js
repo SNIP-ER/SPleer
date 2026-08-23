@@ -279,6 +279,7 @@ function showPlayButton() {
     document.querySelectorAll('.play').forEach(el => el.classList.remove('u-hidden'));
     document.querySelectorAll('.pause').forEach(el => el.classList.add('u-hidden'));
     updatePlaylistPlayButton();
+    updatePlaylistTrackHighlight();
 }
 
 /**
@@ -288,6 +289,7 @@ function showPauseButton() {
     document.querySelectorAll('.play').forEach(el => el.classList.add('u-hidden'));
     document.querySelectorAll('.pause').forEach(el => el.classList.remove('u-hidden'));
     updatePlaylistPlayButton();
+    updatePlaylistTrackHighlight();
 }
 
 /**

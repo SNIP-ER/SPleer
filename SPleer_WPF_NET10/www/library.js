@@ -56,6 +56,10 @@ async function refreshView(context) {
 
     await applyActiveOrder(tracks.map(t => t.FilePath));
     config.render(tracks);
+
+    if (context === 'playlist') {
+        await updatePlaylistTrackHighlight();
+    }
 }
 
 /**

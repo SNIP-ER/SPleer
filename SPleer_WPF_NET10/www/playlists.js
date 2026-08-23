@@ -132,7 +132,10 @@ function renderPlaylistRows(tracks, playlistId) {
         const row = document.createElement('div');
         row.className = 'cursor-pointer playlist--library__row';
         row.innerHTML = `
-            <div class='playlist--library__text playlist--library__col--number'>${index + 1}</div>
+            <div class='playlist--library__text playlist--library__col--number' id='playlist-track-number-${index}'>
+                <span class='library__number'>${index + 1}</span>
+                <img class='library__play-icon' src='Image/play.svg'>
+            </div>
             <div class='playlist--library__text playlist--library__col--title'>
                     <img class='library__cover' src='${coverSrc}'>
                     ${escapeHtml(track.Title)}
@@ -171,6 +174,36 @@ function formatTotalDuration(tracks) {
         return `${hours}h ${minutes}m`;
     }
     return `${minutes}m`;
+}
+
+/**
+ * Снимает подсветку со всех треков в открытом плейлисте.
+ */
+function clearPlaylistTrackHighlight() {
+    document.querySelectorAll('#playlist__tracks-body .library__number--active')
+        .forEach(el => el.classList.remove('library__number--active'));
+}
+
+/**
+ * Подсвечивает трек в открытом плейлисте, если он сейчас играет.
+ * @async
+ */
+async function updatePlaylistTrackHighlight() {
+    if (currentPlaylistId === null) return;
+
+    clearPlaylistTrackHighlight();
+
+    const currentTrackPath = await window.chrome.webview.hostObjects.musicLibrary.GetCurrentTrackPath();
+    if (!currentTrackPath) return;
+
+    const tracksJson = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistTracksJson(currentPlaylistId);
+    const tracks = JSON.parse(tracksJson);
+    const index = tracks.findIndex(t => t.FilePath === currentTrackPath);
+
+    if (index >= 0) {
+        const el = document.getElementById(`playlist-track-number-${index}`);
+        if (el) el.classList.add('library__number--active');
+    }
 }
 
 /**
