@@ -3,6 +3,12 @@
 
 <head>
     <meta charset="utf-8" />
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <title>SPleer</title>
     <link rel="stylesheet" href="style.css">
 </head>

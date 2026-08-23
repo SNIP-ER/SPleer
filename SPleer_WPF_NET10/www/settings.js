@@ -109,6 +109,7 @@ async function updateSetting(key, value) {
 
     if (key === 'theme') {
         document.documentElement.setAttribute('data-theme', value.toLowerCase());
+        localStorage.setItem('theme', value.toLowerCase());
     }
 
     if (key === 'normalization') {

@@ -390,13 +390,20 @@ namespace SPleer
         /// <returns>Полный путь к выбранному файлу изображения или null, если пользователь отменил выбор.</returns>
         public string? PickCoverImage()
         {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
-                Title = "Select cover image"
-            };
+            string? result = null;
 
-            return dialog.ShowDialog() == true ? dialog.FileName : null;
+            _window.Dispatcher.Invoke(() =>
+            {
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Image files (*.jpg;*.jpeg;*.png)|*.jpg;*.jpeg;*.png",
+                    Title = "Select cover image"
+                };
+
+                result = dialog.ShowDialog() == true ? dialog.FileName : null;
+            });
+
+            return result;
         }
 
         /// <summary>
@@ -468,12 +475,18 @@ namespace SPleer
         /// <returns>Выбранный путь к папке, или null, если пользователь отменил выбор.</returns>
         public string? PickFolder()
         {
-            var dialog = new Microsoft.Win32.OpenFolderDialog
-            {
-                Title = "Select music folder"
-            };
+            string? result = null;
 
-            return dialog.ShowDialog() == true ? dialog.FolderName : null;
+            _window.Dispatcher.Invoke(() =>
+            {
+                var dialog = new Microsoft.Win32.OpenFolderDialog { 
+                    Title = "Select music folder" 
+                };
+
+                result = dialog.ShowDialog() == true ? dialog.FolderName : null;
+            });
+
+            return result;
         }
 
         /// <summary>
