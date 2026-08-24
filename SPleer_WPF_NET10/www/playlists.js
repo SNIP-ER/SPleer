@@ -29,14 +29,14 @@ async function openPlaylist(id, name, count, coverPath, duration) {
                 <div class='cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${escapeHtml(name)}</div>
 
                 <div class='playlist__header--info'>
-                    <div class='playlist__info--text'>${count} Tracks</div>
+                    <div class='playlist__info--text'>${t('playlist.tracks', { count })}</div>
                     <div class='separator'></div>
-                    <div class='playlist__info--text'>${totalDuration }</div>
+                    <div class='playlist__info--text'>${totalDuration}</div>
                 </div>
 
                 <div class='playlist__buttons'>
-                    <div class='cursor-pointer playlist-play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>Play</div>
-                    <div class='cursor-pointer playlist-pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>Stop</div>
+                    <div class='cursor-pointer playlist-play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>${t('playlist.play')}</div>
+                    <div class='cursor-pointer playlist-pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>${t('playlist.stop')}</div>
                     <div class='cursor-pointer playlist__buttons--toggle' role="button" tabindex="0" onclick="toggleMode()"><img src='Image/toggle.svg'></div>
                     <div class='cursor-pointer playlist__buttons--toggle special' role="button" tabindex="0" onclick="deletePlaylist(${id})"><img src='Image/recycleBin.svg'></div>
                 </div>
@@ -45,9 +45,9 @@ async function openPlaylist(id, name, count, coverPath, duration) {
 
         <div class='playlist--library__row--header'>
             <div class='playlist__col'>#</div>
-            <div class='playlist__col sortable' data-sort='title' onclick="sortByColumn('playlist', 'title')">TITLE<span class='sort-arrow'></span></div>
-            <div class='playlist__col sortable' data-sort='artist' onclick="sortByColumn('playlist', 'artist')">ARTIST<span class='sort-arrow'></span></div>
-            <div class='playlist__col sortable' data-sort='album' onclick="sortByColumn('playlist', 'album')">ALBUM<span class='sort-arrow'></span></div>
+            <div class='playlist__col sortable' data-sort='title' onclick="sortByColumn('playlist', 'title')">${t('title')}<span class='sort-arrow'></span></div>
+            <div class='playlist__col sortable' data-sort='artist' onclick="sortByColumn('playlist', 'artist')">${t('artist')}<span class='sort-arrow'></span></div>
+            <div class='playlist__col sortable' data-sort='album' onclick="sortByColumn('playlist', 'album')">${t('album')}<span class='sort-arrow'></span></div>
             <div></div>
             <div class='playlist__col sortable' data-sort='duration' onclick="sortByColumn('playlist', 'duration')"><img src="Image/time.svg"><span class='sort-arrow'></span></div>
         </div>
@@ -171,9 +171,9 @@ function formatTotalDuration(tracks) {
     const minutes = Math.floor((totalSeconds % 3600) / 60);
 
     if (hours > 0) {
-        return `${hours}h ${minutes}m`;
+        return `${hours}${t('playlist.h')} ${minutes}${t('playlist.m')}`;
     }
-    return `${minutes}m`;
+    return `${minutes}${t('playlist.m')}`;
 }
 
 /**
@@ -263,7 +263,7 @@ async function refreshPlaylistCoverUI(coverElement, playlist) {
  * @async
  */
 async function createPlaylist() {
-    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist("");
+    await window.chrome.webview.hostObjects.musicLibrary.CreatePlaylist(t('playlist.newName'));
     await loadPlaylists(); // Обновить список
     
     const popup = document.getElementById('player__add-popup');
@@ -362,7 +362,7 @@ async function loadPlaylists() {
         card.innerHTML = `
             <img class='playlist-card__cover' src='${coverSrc}'>
             <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
-            <div class='playlist-card__count'>${playlist.ActiveTrackCount} Tracks</div>
+            <div class='playlist-card__count'>${t('playlist.tracks', { count: playlist.ActiveTrackCount })}</div>
         `;
         container.appendChild(card);
 
@@ -380,7 +380,7 @@ async function loadPlaylists() {
         <div id='playlist-card__cover--create'>
             <div id='playlist-card__plus'><img src="Image/plus.svg"></div>
         </div>
-        <div id='playlist-card__title--create'>New Playlist</div>
+        <div id='playlist-card__title--create'>${t('playlist.newName')}</div>
     `;
     createCard.addEventListener('click', () => createPlaylist());
     container.appendChild(createCard);

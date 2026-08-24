@@ -21,6 +21,9 @@ async function applySettingsOnStartup(savedSettings) {
 
     const theme = savedSettings.theme || 'Dark';
     document.documentElement.setAttribute('data-theme', theme.toLowerCase());
+
+    const lang = languageCodes[savedSettings.language] || window.__cachedLang || 'en';
+    await loadLanguage(lang);
 }
 
 /**
@@ -66,7 +69,7 @@ async function renderSettings() {
         const row = document.createElement('div');
         row.className = 'settings-row';
         row.innerHTML = `
-            <div class='settings-row__label'>${setting.label}</div>
+            <div class='settings-row__label'>${t(setting.labelKey)}</div>
             <div class='settings-row__control'>${renderControl(setting, currentValue)}</div>
         `;
         container.appendChild(row);
@@ -85,14 +88,14 @@ function renderControl(setting, currentValue) {
             return `<input type='checkbox' ${currentValue ? 'checked' : ''} onchange="updateSetting('${setting.key}', this.checked)">`;
         case 'select':
             return `<select onchange="updateSetting('${setting.key}', this.value)">
-                ${setting.options.map(o => `<option ${o === currentValue ? 'selected' : ''}>${o}</option>`).join('')}
+                ${setting.options.map(o => `<option value='${o.value}' ${o.value === currentValue ? 'selected' : ''}>${t(o.labelKey)}</option>`).join('')}
             </select>`;
         case 'slider':
             return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
         case 'folder':
-            return `<button onclick="pickSettingFolder('${setting.key}')">Выбрать</button>`;
+            return `<button onclick="pickSettingFolder('${setting.key}')">${t(setting.buttonLabelKey)}</button>`;
         case 'action':
-            return `<button onclick="${setting.action}(this)">${setting.buttonLabel}</button>`;
+            return `<button onclick="${setting.action}(this)">${t(setting.buttonLabelKey)}</button>`;
         default:
             return `<input type='text' value='${escapeHtml(currentValue || '')}' onchange="updateSetting('${setting.key}', this.value)">`;
     }
@@ -111,9 +114,29 @@ async function updateSetting(key, value) {
         document.documentElement.setAttribute('data-theme', value.toLowerCase());
         localStorage.setItem('theme', value.toLowerCase());
     }
+    if (key === 'language') {
+        const code = languageCodes[value] || 'en';
+        await loadLanguage(code);
+        localStorage.setItem('language', code);
 
-    if (key === 'normalization') {
-        await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value);
+        if (settingsOpen) {
+            await renderSettings();
+        }
+
+        const playlistsTab = document.getElementById('playlists');
+        if (playlistsTab && !playlistsTab.classList.contains('u-hidden')) {
+            await loadPlaylists();
+        }
+
+        if (currentPlaylistId !== null) {
+            await openPlaylist(
+                currentPlaylistData.id,
+                currentPlaylistData.name,
+                currentPlaylistData.count,
+                currentPlaylistData.coverPath,
+                currentPlaylistData.duration
+            );
+        }
     }
 }
 

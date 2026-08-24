@@ -25,14 +25,30 @@ const sortConfigs = {
 }
 
 const settingsSchema = [
-    { key: 'language', label: 'Language', type: 'select', options: ['English'], default: 'English' },
-    { key: 'theme', label: 'Theme', type: 'select', options: ['Dark', 'Light'], default: 'Dark' },
-    { key: 'close_btn', label: 'Close button', type: 'select', options: ['Close'], default: 'Close' },
-    { key: 'musicFolder', label: 'Folder musics', type: 'folder', default: null },
-    { key: 'normalization', label: 'Volume normalization', type: 'toggle', default: true },
+    { key: 'language', labelKey: 'settings.language', type: 'select', options: [
+        { value: 'English', labelKey: 'settings.language.en' },
+        { value: 'Russian', labelKey: 'settings.language.ru' }
+    ], default: 'English' },
+
+    { key: 'theme', labelKey: 'settings.theme', type: 'select', options: [
+        { value: 'Dark', labelKey: 'settings.theme.dark' },
+        { value: 'Light', labelKey: 'settings.theme.light' }
+    ], default: 'Dark' },
+
+    { key: 'close_btn', labelKey: 'settings.closeButton', type: 'select', options: [
+        { value: 'Close', labelKey: 'settings.closeButton.close' }
+    ], default: 'Close' },
+
+    { key: 'musicFolder', labelKey: 'settings.folderMusics', type: 'folder', buttonLabelKey: 'settings.folderMusics.text', default: null },
+
+    { key: 'normalization', labelKey: 'settings.volumeNormalization', type: 'toggle', default: true },
+
     //{ key: 'notifications', label: 'Track change notifications', type: 'toggle', default: false },
-    { key: 'cache', label: 'Clear cover cache', type: 'action', action: 'clearCoverCache', buttonLabel: 'Clear' }
+
+    { key: 'cache', labelKey: 'settings.clearCover', type: 'action', action: 'clearCoverCache', buttonLabelKey: 'settings.clearCover.text' },
 ];
+
+const languageCodes = { 'English': 'en', 'Russian': 'ru' };
 
 
 let updateInterval;
