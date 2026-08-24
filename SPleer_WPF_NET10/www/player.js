@@ -174,6 +174,14 @@ async function updateUIByIndex(index) {
     document.querySelector('#player__time--total').textContent = track.DurationFormatted;
     document.querySelector('#now-playing__title').textContent = track.Title;
     document.querySelector('#now-playing__artist').textContent = track.Artist;
+    const lyricsEl = document.getElementById('now-playing__lyrics');
+    if (track.Lyrics) {
+        lyricsEl.textContent = track.Lyrics;
+        lyricsEl.classList.remove('u-hidden');
+    } else {
+        lyricsEl.textContent = '';
+        lyricsEl.classList.add('u-hidden');
+    }
 
     coverImg.src = src;
     fullCoverImg.src = src;

@@ -10,6 +10,7 @@ public class Track
     public string Title { get; }
     public string Artist { get; }
     public string Album { get; }
+    public string? Lyrics { get; }
     public TimeSpan Duration { get; }
 
     // Свойство для получения пути файла, не хранявшееся в памяти
@@ -25,7 +26,7 @@ public class Track
     /// <param name="title">Название песни.</param>
     /// <param name="artist">Автор(ы) песни.</param>
     /// <param name="duration">Продолжительность песни.</param>
-    public Track(string filePath, string coverPath, string title, string artist, string album, TimeSpan duration)
+    public Track(string filePath, string coverPath, string title, string artist, string album, TimeSpan duration, string? lyrics)
     {
         Id = _nextId++;
         FilePath = filePath;
@@ -34,5 +35,6 @@ public class Track
         Artist = artist;
         Album = album;
         Duration = duration;
+        Lyrics = lyrics;
     }
 }

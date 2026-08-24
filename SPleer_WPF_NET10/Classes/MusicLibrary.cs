@@ -114,6 +114,7 @@ public class MusicLibrary
             string tagTitle = tagFile.Tag.Title;
             string tagArtist = tagFile.Tag.FirstPerformer;
             string tagAlbum = tagFile.Tag.Album;
+            string? lyrics = string.IsNullOrWhiteSpace(tagFile.Tag.Lyrics) ? null : tagFile.Tag.Lyrics;
 
             string title;
             string artist;
@@ -176,7 +177,7 @@ public class MusicLibrary
                 coverPath = "Covers/" + safeFileName + extension;
             }
 
-            _tracks.Add(new Track(file, coverPath, title, artist, album, tagFile.Properties.Duration));
+            _tracks.Add(new Track(file, coverPath, title, artist, album, tagFile.Properties.Duration, lyrics));
 
             tagFile.Dispose();
         }
