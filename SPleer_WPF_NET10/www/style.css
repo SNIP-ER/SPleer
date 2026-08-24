@@ -240,6 +240,32 @@ input, textarea {
     user-select: text;
 }
 
+button {
+    background-color: var(--bg-content);
+    color: var(--text-primary);
+    padding: 2.5px;
+    border: 2px solid var(--border-table);
+    cursor: pointer;
+    transition: padding 0.1s;
+}
+
+button:hover {
+    padding: 0;
+}
+
+select {
+    background-color: var(--bg-content);
+    color: var(--text-primary);
+    padding: 2.5px;
+    border: 2px solid var(--border-table);
+    cursor: pointer;
+    transition: color 0.1s;
+}
+
+select:hover {
+    color: var(--text-table);
+}
+
 
 /* УТИЛИТЫ (UTILITY) */
 .u-hidden {
@@ -1259,9 +1285,9 @@ input, textarea {
     justify-content: flex-start;
     width: 426px;
     height: 352.8px;
-    margin-top: 27px;
     margin-left: 105px;
     padding-left: 24px;
+    overflow-y: auto;
 }
 
 #now-playing__title {
@@ -1274,16 +1300,24 @@ input, textarea {
 }
 
 #now-playing__lyrics {
-    margin-top: 60px;
+    margin-top: 45px;
+    padding-top: 15px;
     white-space: pre-line;
     overflow-y: auto;
     max-height: 300px;
     font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 700;
     font-size: 30px;
-    line-height: 26px;
-    letter-spacing: 0px;
+    line-height: 36px;
+    letter-spacing: 0.3px;
     color: var(--text-primary);
+    -webkit-mask-image: linear-gradient(to bottom, 
+        transparent 0%, 
+        var(--grad-black) 5%, 
+        var(--black) 10%, 
+        var(--black) 90%, 
+        var(--grad-black) 95%, 
+        transparent 100%);
 }
 
 
@@ -1486,6 +1520,7 @@ input, textarea {
     margin-bottom: 10px;
     grid-template-columns: 210px auto;
     grid-template-rows: 22px;
+    align-items: center;
 }
 
 .settings-row__label {
@@ -1499,6 +1534,7 @@ input, textarea {
 
 .settings-row__control {
     margin-left: 20%;
+    align-items: center;
 }
 
 
