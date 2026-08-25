@@ -169,11 +169,11 @@ async function updateUIByIndex(index) {
     const fullCoverImg = document.querySelector('#now-playing__cover-img');
     const src = getTrackCoverSrc(track);
 
-    document.querySelector('#player__title').textContent = track.Title;
-    document.querySelector('#player__artist').textContent = track.Artist;
+    setText(document.querySelector('#player__title'), track.Title);
+    setText(document.querySelector('#player__artist'), track.Artist);
     document.querySelector('#player__time--total').textContent = track.DurationFormatted;
-    document.querySelector('#now-playing__title').textContent = track.Title;
-    document.querySelector('#now-playing__artist').textContent = track.Artist;
+    setText(document.querySelector('#now-playing__title'), track.Title);
+    setText(document.querySelector('#now-playing__artist'), track.Artist);
     const lyricsEl = document.getElementById('now-playing__lyrics');
     if (track.Lyrics) {
         lyricsEl.textContent = track.Lyrics;

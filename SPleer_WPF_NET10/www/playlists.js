@@ -26,7 +26,7 @@ async function openPlaylist(id, name, count, coverPath, duration) {
             <div class='playlist__header--cover cursor-pointer'><img src='${coverSrc}'></div>
 
             <div class='playlist__header--title'>
-                <div class='cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${escapeHtml(name)}</div>
+                <div class='marquee cursor-pointer playlist__header--text' contenteditable='true' onblur='renamePlaylist(${id}, this.textContent)'>${escapeHtml(name)}</div>
 
                 <div class='playlist__header--info'>
                     <div class='playlist__info--text'>${t('playlist.tracks', { count })}</div>
@@ -81,6 +81,8 @@ async function openPlaylist(id, name, count, coverPath, duration) {
             }
         });
     }
+
+    activateMarquees(document.getElementById('open-playlist-content'));
 
     const body = document.createElement('div');
     body.className = 'scrollbar-thin'
@@ -138,16 +140,20 @@ function renderPlaylistRows(tracks, playlistId) {
             </div>
             <div class='playlist--library__text playlist--library__col--title'>
                     <img class='library__cover' src='${coverSrc}'>
-                    ${escapeHtml(track.Title)}
+                    <span class='marquee'>${escapeHtml(track.Title)}</span>
             </div>
-            <div class='playlist--library__text playlist--library__col--artist'>${escapeHtml(track.Artist)}</div>
-            <div class='playlist--library__text playlist--library__col--album'>${escapeHtml(track.Album) || '—'}</div>
+            <div class='playlist--library__text playlist--library__col--artist marquee'>${escapeHtml(track.Artist)}</div>
+            <div class='playlist--library__text playlist--library__col--album marquee'>${escapeHtml(track.Album) || '—'}</div>
             <div class='cursor-pointer popup-item__check' onclick='event.stopPropagation(); removeFromPlaylist(${playlistId})'><img src='Image/check.svg'></div>
             <div class='playlist--library__text playlist--library__text--time'>${track.DurationFormatted}</div>
         `;
         row.addEventListener('click', () => playByPath(track.FilePath));
         body.appendChild(row);
+
+        activateMarquees(document.getElementById('playlist__tracks-body'));
     });
+
+    activateMarquees(document.getElementById('playlist__tracks-body'));
 }
 
 /**
@@ -361,7 +367,7 @@ async function loadPlaylists() {
         card.className = 'playlist-card playlist-card--common cursor-pointer';
         card.innerHTML = `
             <img class='playlist-card__cover' src='${coverSrc}'>
-            <div class='playlist-card__title'>${escapeHtml(playlist.Name)}</div>
+            <div class='marquee playlist-card__title'>${escapeHtml(playlist.Name)}</div>
             <div class='playlist-card__count'>${t('playlist.tracks', { count: playlist.ActiveTrackCount })}</div>
         `;
         container.appendChild(card);
@@ -384,6 +390,8 @@ async function loadPlaylists() {
     `;
     createCard.addEventListener('click', () => createPlaylist());
     container.appendChild(createCard);
+
+    activateMarquees(document.getElementById('playlists-grid'));
 }
 
 /**

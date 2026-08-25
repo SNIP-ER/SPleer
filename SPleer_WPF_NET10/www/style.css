@@ -295,7 +295,6 @@ select:hover {
 .text-secondary {
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
     font-size: 16px;
     line-height: 20px;
     color: var(--text-secondary);
@@ -366,6 +365,40 @@ select:hover {
 
 .sortable.sort-desc .sort-arrow {
     transform: rotate(180deg);
+}
+
+.marquee {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+}
+
+.marquee__inner {
+    display: inline-block;
+    white-space: nowrap;
+    will-change: transform;
+}
+
+.marquee--active {
+    -webkit-mask-image: linear-gradient(to right, 
+        transparent 0%, 
+        var(--grad-black) 1%, 
+        var(--black) 3%, 
+        var(--black) 97%, 
+        var(--grad-black) 99%, 
+        transparent 100%);
+}
+
+.marquee--active .marquee__inner {
+    animation: marquee-bounce var(--marquee-duration, 12s) ease-in-out infinite;
+}
+
+@keyframes marquee-bounce {
+    0%, 15% { transform: translateX(0); }
+    40%, 60% { transform: translateX(var(--marquee-shift, 0)); }
+    90%, 100% { transform: translateX(0); }
 }
 
 
@@ -682,6 +715,7 @@ select:hover {
 
 .library__col--title {
     width: 263.95px;
+    min-width: 0;
 }
 
 .library__col--artist {
@@ -940,6 +974,7 @@ select:hover {
 
 .playlist-card__title {
     margin-left: 24px;
+    margin-right: 24px;
     margin-bottom: 2px;
     font-family: 'Hanken Grotesk';
     font-weight: 500;
@@ -1071,11 +1106,13 @@ select:hover {
 }
 
 .playlist__header--title {
-    margin-top: 24px;
+    margin-right: 24px;
     gap: 8px;
+    min-width: 0;
 }
 
 .playlist__header--text {
+    min-width: 0;
     font-family: 'Hanken Grotesk';
     font-weight: 800;
     font-size: 48px;
@@ -1097,6 +1134,11 @@ select:hover {
 .playlist__header--text::selection {
     background-color: var(--text-secondary);
     color: var(--text-muted);
+}
+
+.playlist__header--text:focus .marquee__inner {
+    animation: none !important;
+    transform: none !important;
 }
 
 .playlist__header--info {
@@ -1419,8 +1461,7 @@ select:hover {
 
 #player__title {
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    overflow: hidden;    
     font-size: 16px;
     line-height: 24px;
     color: var(--text-primary);

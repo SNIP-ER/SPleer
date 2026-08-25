@@ -50,6 +50,14 @@ const settingsSchema = [
 
 const languageCodes = { 'English': 'en', 'Russian': 'ru' };
 
+const marqueeResizeObserver = new ResizeObserver(entries => {
+    for (const entry of entries) {
+        checkMarqueeOverflow(entry.target);
+    }
+});
+
+const marqueeObserved = new WeakSet();
+
 
 let updateInterval;
 let lastClickTime = 0;
@@ -97,6 +105,82 @@ function formatTime(seconds) {
 }
 
 /**
+ * Устанавливает текст элемента. Если элемент помечен классом 'marquee',
+ * автоматически включает бегущую строку при переполнении и следит за изменением размера.
+ * Используйте вместо el.textContent = text везде, где текст может не поместиться.
+ * @param {HTMLElement} el - Целевой элемент.
+ * @param {string} text - Текст для отображения.
+ */
+function setText(el, text) {
+    if (!el) return;
+
+    if (!el.classList.contains('marquee')) {
+        el.textContent = text;
+        return;
+    }
+
+    let inner = el.querySelector('.marquee__inner');
+    if (!inner) {
+        inner = document.createElement('span');
+        inner.className = 'marquee__inner';
+        el.appendChild(inner);
+    }
+    inner.textContent = text;
+
+    if (!marqueeObserved.has(el)) {
+        marqueeObserved.add(el);
+        marqueeResizeObserver.observe(el);
+    }
+
+    checkMarqueeOverflow(el);
+}
+
+function checkMarqueeOverflow(el) {
+    const inner = el.querySelector('.marquee__inner');
+    if (!inner) return;
+
+    el.classList.remove('marquee--active');
+    el.style.removeProperty('--marquee-shift');
+    el.style.removeProperty('--marquee-duration');
+
+    requestAnimationFrame(() => {
+        const overflow = inner.scrollWidth - el.clientWidth;
+        if (overflow > 2) {
+            el.style.setProperty('--marquee-shift', `-${overflow}px`);
+            
+            const pixelsPerSecond = 15;
+            const duration = Math.max(4, (overflow / pixelsPerSecond) * 2 + 2);
+            el.style.setProperty('--marquee-duration', `${duration}s`);
+            
+            el.classList.add('marquee--active');
+        }
+    });
+}
+
+/**
+ * Активирует бегущую строку для всех элементов с классом 'marquee' внутри контейнера,
+ * ещё не обёрнутых в .marquee__inner. Вызывайте после вставки HTML через innerHTML.
+ * @param {HTMLElement} [root=document] - Контейнер для поиска.
+ */
+function activateMarquees(root = document) {
+    root.querySelectorAll('.marquee').forEach(el => {
+        if (el.querySelector('.marquee__inner')) return;
+
+        const inner = document.createElement('span');
+        inner.className = 'marquee__inner';
+        inner.append(...el.childNodes);
+        el.appendChild(inner);
+
+        if (!marqueeObserved.has(el)) {
+            marqueeObserved.add(el);
+            marqueeResizeObserver.observe(el);
+        }
+
+        checkMarqueeOverflow(el);
+    });
+}
+
+/**
  * Задаёт активный порядок/подмножество треков для кнопок "следующий"/"предыдущий".
  * @param {string[]|null} orderedPaths - Пути треков в нужном порядке, или null для сброса к порядку всей библиотеки.
  * @async
@@ -127,10 +211,10 @@ function renderLibraryRows(tracks) {
             </div>
             <div class='library__text library__text--cell library__col--title'>
                 <img class='library__cover' src='${coverSrc}'>
-                ${escapeHtml(track.Title)}
+                <span class='marquee'>${escapeHtml(track.Title)}</span>
             </div>
-            <div class='library__text library__text--cell library__col--artist'>${escapeHtml(track.Artist)}</div>
-            <div class='library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
+            <div class='marquee library__text library__text--cell library__col--artist'>${escapeHtml(track.Artist)}</div>
+            <div class='marquee library__text library__text--cell library__col--album'>${escapeHtml(track.Album) || '—'}</div>
             <div class='library__text library__text--time'>${track.DurationFormatted}</div>
         `;
         row.addEventListener('click', () => playByPath(track.FilePath));
@@ -141,6 +225,8 @@ function renderLibraryRows(tracks) {
         document.getElementById('player__cover-img').classList.add('u-hidden');
         document.getElementById('player__cover').classList.add('u-hidden');
     }
+
+    activateMarquees(document.getElementById('library__body'));
 }
 
 // Обработчик перемотки трека
