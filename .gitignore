@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Folder with musics for tests
-SPleer/Music
+SPleer_WPF_NET10/Music/
