@@ -14,7 +14,14 @@ namespace SPleer
         public MainWindow()
         {
             InitializeComponent();
+            this.StateChanged += MainWindow_StateChanged;
             this.Loaded += MainWindow_Loaded;
+        }
+
+        private void MainWindow_StateChanged(object? sender, EventArgs e)
+        {
+            bool isMax = this.WindowState == WindowState.Maximized;
+            WebView?.CoreWebView2?.ExecuteScriptAsync($"updateMaximizeIcon({isMax.ToString().ToLower()})");
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)

@@ -100,16 +100,19 @@ function initWindowControls() {
     });
 
     document.getElementById('maximize-btn').addEventListener('click', () => {
-        isMaximized = !isMaximized;
-        const btn = document.getElementById('maximize-btn');
-        btn.classList.toggle('window-btn--maximize', !isMaximized);
-        btn.classList.toggle('window-btn--restore', isMaximized);
         window.chrome.webview.hostObjects.musicLibrary.MaximizeRestoreWindow();
     });
 
     document.getElementById('close-btn').addEventListener('click', () => {
         window.chrome.webview.hostObjects.musicLibrary.CloseWindow();
     });
+}
+
+function updateMaximizeIcon(maximized) {
+    isMaximized = maximized;
+    const btn = document.getElementById('maximize-btn');
+    btn.classList.toggle('window-btn--maximize', !maximized);
+    btn.classList.toggle('window-btn--restore', maximized);
 }
 
 /**
