@@ -35,8 +35,8 @@ async function openPlaylist(id, name, count, coverPath, duration) {
                 </div>
 
                 <div class='playlist__buttons'>
-                    <div class='cursor-pointer playlist-play playlist__buttons--play' role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div>${t('playlist.play')}</div>
-                    <div class='cursor-pointer playlist-pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div>${t('playlist.stop')}</div>
+                    <div class='cursor-pointer playlist-play playlist__buttons--play'role="button" tabindex="0" onclick="playPlaylist()"><div class='playlist__icon playlist__play'></div><span class='playlist__buttons--label'>${t('playlist.play')}</span></div>
+                    <div class='cursor-pointer playlist-pause playlist__buttons--play' role="button" tabindex="0" onclick="pause()"><div class='playlist__icon playlist__pause'></div><span class='playlist__buttons--label'>${t('playlist.stop')}</span></div>
                     <div class='cursor-pointer playlist__buttons--toggle' role="button" tabindex="0" onclick="toggleMode()"><img src='Image/toggle.svg'></div>
                     <div class='cursor-pointer playlist__buttons--toggle special' role="button" tabindex="0" onclick="deletePlaylist(${id})"><img src='Image/recycleBin.svg'></div>
                 </div>
@@ -436,12 +436,14 @@ async function renderPlaylistPopupItems(playlists) {
         item.innerHTML = `
             <div class='popup-item__container'>
                 <div class='popup-item__cover'><img src='${coverSrc}'></div>
-                <div class='popup-item__name'>${escapeHtml(playlist.Name)}</div>
+                <div class='marquee popup-item__name'>${escapeHtml(playlist.Name)}</div>
             </div>
             ${actionDiv}
         `;
         listContainer.appendChild(item);
     }
+
+    activateMarquees(document.getElementById('player__add-popup-list'));
 }
 
 /**

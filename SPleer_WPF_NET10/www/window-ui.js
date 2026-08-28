@@ -113,6 +113,13 @@ function initWindowControls() {
 }
 
 /**
+ * Растягивание окна.
+ */
+function startResize(direction) {
+    window.chrome.webview.hostObjects.musicLibrary.StartResize(direction);
+}
+
+/**
  * Закрывает всплывающие панели (попап плейлистов, панель настроек) при клике вне их области.
  */
 function initOutsideClickHandlers() {

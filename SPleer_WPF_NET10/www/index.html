@@ -17,7 +17,7 @@
 <body>
     <div id='sidebar'>
         <div id='margin'>
-            <div id='margin_title'>SPleer</div>
+            <div id='margin_title'>SP<span>leer</span></div>
             <div id='margin_version'>1.0</div>
         </div>
 
@@ -153,6 +153,15 @@
             <div id='player__volume-wrapper'><input id='player__volume-slider' type="range" min="0" max="100" value="40" oninput="changeVolume(this.value)"></div>
         </div>
     </div>
+
+    <div class='resize-handle resize-handle--left' onmousedown="startResize('left')"></div>
+    <div class='resize-handle resize-handle--right' onmousedown="startResize('right')"></div>
+    <div class='resize-handle resize-handle--top' onmousedown="startResize('top')"></div>
+    <div class='resize-handle resize-handle--bottom' onmousedown="startResize('bottom')"></div>
+    <div class='resize-handle resize-handle--topleft' onmousedown="startResize('topleft')"></div>
+    <div class='resize-handle resize-handle--topright' onmousedown="startResize('topright')"></div>
+    <div class='resize-handle resize-handle--bottomleft' onmousedown="startResize('bottomleft')"></div>
+    <div class='resize-handle resize-handle--bottomright' onmousedown="startResize('bottomright')"></div>
 
     <script src="i18n.js"></script>
     <script src="state.js"></script>

@@ -65,9 +65,40 @@ namespace SPleer
 
         public void StartDrag()
         {
-            var hwnd = new System.Windows.Interop.WindowInteropHelper(_window).Handle;
-            ReleaseCapture();
-            SendMessage(hwnd, 0xA1, (IntPtr)0x2, IntPtr.Zero);
+            _window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var hwnd = new WindowInteropHelper(_window).Handle;
+                ReleaseCapture();
+                SendMessage(hwnd, 0xA1, (IntPtr)0x2, IntPtr.Zero);
+            }));
+        }
+
+        /// <summary>
+        /// Запускает изменение размера окна в указанном направлении.
+        /// </summary>
+        /// <param name="direction">Направление: "left", "right", "top", "bottom", "topleft", "topright", "bottomleft", "bottomright".</param>
+        public void StartResize(string direction)
+        {
+            int hitTest = direction switch
+            {
+                "left" => 1,
+                "right" => 2,
+                "top" => 3,
+                "topleft" => 4,
+                "topright" => 5,
+                "bottom" => 6,
+                "bottomleft" => 7,
+                "bottomright" => 8,
+                _ => 0
+            };
+            if (hitTest == 0) return;
+
+            _window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                var hwnd = new WindowInteropHelper(_window).Handle;
+                ReleaseCapture();
+                SendMessage(hwnd, 0x112, (IntPtr)(0xF000 + hitTest), IntPtr.Zero);
+            }));
         }
 
         /// <summary>

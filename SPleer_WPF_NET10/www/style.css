@@ -312,6 +312,10 @@ select:hover {
     color: var(--accent-light);
 }
 
+.scrollbar-thin {
+    margin-right: 6px;
+}
+
 .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
 }
@@ -402,11 +406,41 @@ select:hover {
 }
 
 
+/* ИЗМЕНЕНИЯ РАЗМЕРОВ ОКНА */
+.resize-handle {
+    position: fixed;
+    z-index: 9999;
+}
+
+.resize-handle--left, .resize-handle--right {
+    top: 6px; bottom: 6px; width: 6px;
+    cursor: ew-resize;
+}
+.resize-handle--left { left: 0; }
+.resize-handle--right { right: 0; }
+
+.resize-handle--top, .resize-handle--bottom {
+    left: 6px; right: 6px; height: 6px;
+    cursor: ns-resize;
+}
+.resize-handle--top { top: 0; }
+.resize-handle--bottom { bottom: 0; }
+
+.resize-handle--topleft, .resize-handle--topright,
+.resize-handle--bottomleft, .resize-handle--bottomright {
+    width: 6px; height: 6px;
+}
+.resize-handle--topleft { top: 0; left: 0; cursor: nwse-resize; }
+.resize-handle--bottomright { bottom: 0; right: 0; cursor: nwse-resize; }
+.resize-handle--topright { top: 0; right: 0; cursor: nesw-resize; }
+.resize-handle--bottomleft { bottom: 0; left: 0; cursor: nesw-resize; }
+
+
 /* БОКОВАЯ ПАНЕЛЬ (SIDEBAR) */
 #sidebar {
     top: 0;
     left: 0;
-    width: 256px;
+    width: 250px;
     height: 100vh;
     flex-shrink: 0;
     padding: 8px;
@@ -423,13 +457,22 @@ select:hover {
 }
 
 #margin_title {
-    margin: 0 24px 0 24px;
+    margin: 0 24px;
     font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 700;
     font-size: 32px;
     line-height: 40px;
     letter-spacing: -1.6px;
     color: var(--accent);
+}
+
+#margin_title span {
+    display: inline-flex;
+    align-items: baseline;
+    max-width: 100px;
+    opacity: 1;
+    overflow: hidden;
+    transition: max-width 0.15s, opacity 0.15s;
 }
 
 #margin_version {
@@ -551,8 +594,10 @@ select:hover {
     display: flex;
     width: 364px;
     height: 30px;
-    gap: 40px;
+    max-width: 364px;
+    margin-right: 24px;
     padding: 4px 24px;
+    gap: 40px;
     text-align: left;
     background-color: var(--bg-search);
     border-left: 1px solid var(--border-table);
@@ -700,6 +745,7 @@ select:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex: 0 0 97.56px;
     width: 97.56px;
     height: 52.5px;
 }
@@ -710,20 +756,26 @@ select:hover {
 
 .library__col--number {
     position: relative;
+    flex: 0 0 58.97px;
     width: 58.97px;
 }
 
 .library__col--title {
+    flex: 3 1 263.95px;
     width: 263.95px;
     min-width: 0;
 }
 
 .library__col--artist {
+    flex: 2 1 181.36px;
     width: 181.36px;
+    min-width: 0;
 }
 
 .library__col--album {
+    flex: 2 1 204.28px;
     width: 204.28px;
+    min-width: 0;
 }
 
 .library__text {
@@ -766,6 +818,8 @@ select:hover {
 .library__row {
     display: flex;
     align-items: center;
+    min-height: 52.5px;
+    min-width: 90px;
     width: 100%;
     height: 52.5px;
     cursor: pointer;
@@ -834,7 +888,7 @@ select:hover {
     display: grid;
     margin-left: 48px;
     margin-right: 48px;
-    grid-template-columns: 48px 210px repeat(2, 158px) 105px 80px;
+    grid-template-columns: 40px minmax(120px, 3fr) minmax(80px, 2fr) minmax(80px, 2fr) 32px 60px;
     grid-template-rows: 22px;
     column-gap: 24px;
     margin-bottom: 8px;
@@ -852,7 +906,7 @@ select:hover {
 
 .playlist--library__row {
     display: grid;
-    grid-template-columns: 48px 210px repeat(2, 158px) 105px 80px;
+    grid-template-columns: 40px minmax(120px, 3fr) minmax(80px, 2fr) minmax(80px, 2fr) 32px 60px;
     grid-template-rows: 44px;
     column-gap: 24px;
     margin-bottom: 12px;
@@ -896,6 +950,12 @@ select:hover {
 
 .playlist--library__row:hover .library__play-icon {
     opacity: 1;
+}
+
+.playlist--library__col--title,
+.playlist--library__col--artist,
+.playlist--library__col--album {
+    min-width: 0;
 }
 
 
@@ -1265,6 +1325,7 @@ select:hover {
     z-index: 5;
     display: flex;
     align-items: center;
+    justify-content: center;
     height: calc(100vh - 96px - 48px);
     background: linear-gradient(to bottom right, var(--grad-blue), var(--grad-dark) 50%, var(--grad-green), var(--grad-light));
     transition: bottom 0.2s ease;
@@ -1326,13 +1387,13 @@ select:hover {
     flex-direction: column;
     justify-content: flex-start;
     width: 426px;
-    height: 352.8px;
     margin-left: 105px;
     padding-left: 24px;
     overflow-y: auto;
 }
 
 #now-playing__title {
+    min-height: 40px;
     font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     font-size: 32px;
@@ -1341,8 +1402,12 @@ select:hover {
     color: var(--accent-light);
 }
 
+#now-playing__artist {
+    min-height: 20px;
+}
+
 #now-playing__lyrics {
-    margin-top: 45px;
+    margin-top: 15px;
     padding-top: 15px;
     white-space: pre-line;
     overflow-y: auto;
@@ -1351,6 +1416,7 @@ select:hover {
     font-weight: 700;
     font-size: 30px;
     line-height: 36px;
+    line-height: 1.3;
     letter-spacing: 0.3px;
     color: var(--text-primary);
     -webkit-mask-image: linear-gradient(to bottom, 
@@ -1371,6 +1437,7 @@ select:hover {
     right: 0;
     z-index: 10;
     display: flex;
+    justify-content: center;
     height: 96px;
     background-color: var(--bg-player);
     border: 1px solid var(--border-dark);
@@ -1382,10 +1449,10 @@ select:hover {
     position: relative;
     display: flex;
     align-items: center;
-    width: 280px;
+    max-width: 280px;
     flex-shrink: 0;
     gap: 16px;
-    margin: 19.5px 24px;
+    margin: auto auto auto 24px;
     background: transparent;
     border-radius: 50%;
 }
@@ -1491,10 +1558,11 @@ select:hover {
 #player__settings {
     display: flex;
     flex-direction: column;
-    position: absolute;
-    bottom: 30%;
-    right: 30%;
-    width: 500px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
     height: 300px;
     background-color: var(--bg-window);
     border-radius: 12px;
@@ -1732,6 +1800,8 @@ select:hover {
 .popup-item__container {
     display: flex;
     align-items: center;
+    min-width: 0;
+    max-width: 208px;
     gap: 12px;
 }
 
@@ -1750,6 +1820,7 @@ select:hover {
 }
 
 .popup-item__name {
+    min-width: 0;
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     font-size: 16px;
@@ -1965,4 +2036,211 @@ select:hover {
 
 .volume-icon:hover {
     scale: 105%;
+}
+
+
+/* ИЗМЕНЕНИЯ ПОД ПАРАМЕТРЫ ОКНА */
+#now-playing__info {
+    transition: margin-left 0.15s, padding-left 0.15s, width 0.15s, height 0.15s;
+}
+
+#now-playing__cover {
+    transition: margin-left 0.15s, width 0.15s, height 0.15s;
+}
+
+#margin_version {
+    transition: margin 0.15s;
+}
+
+#margin_title {
+    transition: margin-left 0.15s, opacity 0.15s, max-width 0.15s;
+}
+
+.library__text--cell,
+.playlist__header {
+    transition: padding 0.15s, padding-left 0.15s, padding-right 0.15s;
+}
+
+#player__settings {
+    transition: top 0.15s, width 0.15s, height 0.15s;
+}
+
+#now-playing__cover-img,
+#sidebar,
+.playlist__header--cover img {
+    transition: width 0.15s, height 0.15s;
+}
+
+#now-playing__lyrics{
+    transition: font-size 0.15s;
+}
+
+.settings-row,
+.playlist--library__row--header,
+.playlist--library__row {
+    transition: grid-template-columns 0.15s;
+}
+
+#player__track,
+#player__buttons,
+.playlist__buttons {
+    transition: gap 0.15s;
+}
+
+#player__progress,
+#sidebar .nav-title,
+#player__info,
+.library__col--album {
+    transition: opacity 0.15s, max-width 0.15s;
+}
+
+
+@media (max-width: 1240px) {
+    #now-playing__info {
+        margin-left: 20px;
+    }
+}
+
+@media (max-width: 1155px) {
+    #now-playing__cover {
+        width: 200px;
+        height: 200px;
+    }
+    #now-playing__cover-img {
+        width: 200px;
+        height: 200px;
+    }
+    #now-playing__lyrics {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 1025px) {
+    #player__settings {
+        width: 300px;
+    }
+    #now-playing__info {
+        width: 326px;
+    }
+    .settings-row {
+        grid-template-columns: 170px auto;
+    }
+}
+
+@media (max-width: 945px) {
+    #player__progress {
+        opacity: 0;
+        max-width: 0;
+        min-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    .playlist__buttons--label {
+        display: none;
+    }
+    .playlist__buttons--play::before {
+        width: 76.83px;
+    }
+}
+
+@media (max-width: 900px) {
+    #sidebar {
+        width: 48px;
+    }
+    #sidebar .nav-title {
+        opacity: 0;
+        max-width: 0;
+        min-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    #margin_version {
+        margin: 0 0 24px 6px;
+    }
+    #margin_title {
+        margin-left: 6px;
+    }
+    #margin_title span {
+        max-width: 0;
+        opacity: 0;
+    }
+}
+
+@media (max-width: 745px) {
+    #now-playing__cover {
+        margin-left: 20px;
+    }
+    .playlist__header--cover img {
+        width: 174px;
+        height: 174px;
+    }
+}
+
+@media (max-width: 700px) {
+    #player__track {
+        gap: 0;
+    }
+    #player__buttons {
+        gap: 24px;
+    }
+    #player__info {
+        opacity: 0;
+        max-width: 0;
+        min-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    #now-playing__info {
+        width: 276px;
+        padding-left: 0;
+    }
+    .library__col--album {
+        opacity: 0;
+        max-width: 0;
+        min-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+    .library__text--cell {
+        padding-right: 14px;
+        padding-left: 20px;
+    }
+    .playlist__buttons {
+        gap: 12px;
+    }
+    .playlist--library__col--album,
+    .playlist--library__row--header [data-sort='album'] {
+        display: none;
+    }
+    .playlist--library__row--header,
+    .playlist--library__row {
+        grid-template-columns: 40px minmax(120px, 3fr) minmax(80px, 2fr) 32px 60px;
+    }
+}
+
+@media (max-height: 570px) {
+    #now-playing__lyrics {
+        font-size: 28px;
+    }
+    #now-playing__cover {
+        width: 200px;
+        height: 200px;
+    }
+    #now-playing__cover-img {
+        width: 200px;
+        height: 200px;
+    }
+    #now-playing__info {
+        height: 260px;
+    }
+    #player__settings {
+        top: 45%;
+    }
+    .playlist__header--cover img {
+        width: 174px;
+        height: 174px;
+    }
+    .playlist__header {
+        padding: 20px 48px;
+    }
 }
