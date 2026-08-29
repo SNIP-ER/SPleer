@@ -253,19 +253,6 @@ button:hover {
     padding: 0;
 }
 
-select {
-    background-color: var(--bg-content);
-    color: var(--text-primary);
-    padding: 2.5px;
-    border: 2px solid var(--border-table);
-    cursor: pointer;
-    transition: color 0.1s;
-}
-
-select:hover {
-    color: var(--text-table);
-}
-
 
 /* УТИЛИТЫ (UTILITY) */
 .u-hidden {
@@ -774,7 +761,6 @@ select:hover {
 
 .library__col--album {
     flex: 2 1 204.28px;
-    width: 204.28px;
     min-width: 0;
 }
 
@@ -1644,6 +1630,14 @@ select:hover {
 .settings-row__control {
     margin-left: 20%;
     align-items: center;
+}
+
+.settings-row__control select {
+    border: 2px solid var(--border-table);
+    padding: 2.5px;
+    background-color: var(--bg-content);
+    color: var(--text-primary);
+    cursor: pointer;
 }
 
 
