@@ -1647,6 +1647,10 @@ button:hover {
     transform: rotate(90deg);
 }
 
+[data-theme="light"] .custom-select__trigger img {
+    filter: invert(1);
+}
+
 .custom-select__list {
     position: absolute;
     top: calc(100% + 4px);

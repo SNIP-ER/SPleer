@@ -41,12 +41,14 @@ function toggleTab(value) {
         nowPlaying.classList.remove('visible');
         cover.classList.remove('open');
         playlist.classList.remove('visible');
+        refreshView('library');
     } else if (value === 1) {
         currentPlaylistId = null;
         playlists.classList.remove('u-hidden');
         library.classList.add('u-hidden');
         nowPlaying.classList.remove('visible');
         playlist.classList.remove('visible');
+        refreshView('library');
         loadPlaylists();
     } else if (value === 2) {
         nowPlaying.classList.toggle('visible');
