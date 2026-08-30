@@ -145,5 +145,11 @@ function initOutsideClickHandlers() {
             !settingsBtn.contains(e.target)) {
             settings(1);
         }
+
+        document.querySelectorAll('.custom-select').forEach(select => {
+            if (!select.contains(e.target)) {
+                select.querySelector('.custom-select__list')?.classList.add('u-hidden');
+            }
+        });
     });
 }

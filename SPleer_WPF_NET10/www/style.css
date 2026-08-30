@@ -1137,8 +1137,7 @@ button:hover {
     background-size: 16px;
     background-position: center;
     background-repeat: no-repeat;
-    /*filter: brightness(0) saturate(100%) invert(93%) sepia(18%) saturate(455%) hue-rotate(179deg) brightness(102%) contrast(101%);
-    */opacity: 0;
+    opacity: 0;
     transition: opacity 0.2s, background-color 0.2s;
     cursor: pointer;
 }
@@ -1627,17 +1626,48 @@ button:hover {
     color: var(--text-primary);
 }
 
-.settings-row__control {
-    margin-left: 20%;
-    align-items: center;
-}
-
-.settings-row__control select {
+.custom-select {
+    position: relative;
+    display: inline-block;
     border: 2px solid var(--border-table);
     padding: 2.5px;
     background-color: var(--bg-content);
     color: var(--text-primary);
-    cursor: pointer;
+}
+
+.custom-select__trigger {
+    white-space: nowrap;
+}
+
+.custom-select__trigger img {
+    width: 8px;
+    height: 8px;
+    margin-left: 4px;
+    margin-right: 2.5px;
+    transform: rotate(90deg);
+}
+
+.custom-select__list {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 100%;
+    width: max-content;
+    background-color: var(--bg-window);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px var(--shadow-medium);
+    z-index: 10;
+    overflow: hidden;
+}
+
+.custom-select__item {
+    padding: 8px 12px;
+    white-space: nowrap;
+}
+
+.custom-select__item:hover {
+    background-color: var(--bg-row-hover);
 }
 
 

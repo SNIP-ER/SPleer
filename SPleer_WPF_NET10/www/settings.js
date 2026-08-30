@@ -77,6 +77,30 @@ async function renderSettings() {
 }
 
 /**
+ * Открывает/закрывает кастомный выпадающий список настройки.
+ * @param {string} key - Ключ настройки.
+ */
+function toggleCustomSelect(key) {
+    document.querySelectorAll('.custom-select__list').forEach(list => {
+        if (list.closest('.custom-select').id !== `select-${key}`) {
+            list.classList.add('u-hidden');
+        }
+    });
+    document.getElementById(`select-${key}`)?.querySelector('.custom-select__list').classList.toggle('u-hidden');
+}
+
+/**
+ * Выбирает значение в кастомном select и сохраняет настройку.
+ * @param {string} key - Ключ настройки.
+ * @param {string} value - Выбранное значение.
+ * @async
+ */
+async function selectCustomOption(key, value) {
+    await updateSetting(key, value);
+    if (settingsOpen) await renderSettings();
+}
+
+/**
  * Возвращает HTML для конкретного типа контрола настройки.
  * @param {Object} setting - Описание настройки из settingsSchema.
  * @param {*} currentValue - Текущее значение настройки.
@@ -86,10 +110,15 @@ function renderControl(setting, currentValue) {
     switch (setting.type) {
         case 'toggle':
             return `<input type='checkbox' ${currentValue ? 'checked' : ''} onchange="updateSetting('${setting.key}', this.checked)">`;
-        case 'select':
-            return `<select onchange="updateSetting('${setting.key}', this.value)">
-                ${setting.options.map(o => `<option value='${o.value}' ${o.value === currentValue ? 'selected' : ''}>${t(o.labelKey)}</option>`).join('')}
-            </select>`;
+        case 'select': {
+            const activeOption = setting.options.find(o => o.value === currentValue) || setting.options[0];
+            return `<div class='custom-select' id='select-${setting.key}'>
+                <div class='custom-select__trigger cursor-pointer' onclick='toggleCustomSelect("${setting.key}")'>${t(activeOption.labelKey)} <img src='Image/play.svg'></div>
+                <div class='custom-select__list u-hidden'>
+                    ${setting.options.map(o => `<div class='custom-select__item cursor-pointer' onclick='selectCustomOption("${setting.key}", "${o.value}")'>${t(o.labelKey)}</div>`).join('')}
+                </div>
+            </div>`;
+        }
         case 'slider':
             return `<input type='range' min='${setting.min}' max='${setting.max}' value='${currentValue}' oninput="updateSetting('${setting.key}', this.value)">`;
         case 'folder':
