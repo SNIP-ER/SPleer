@@ -1416,12 +1416,14 @@ button:hover {
 
 /* НИЖНИЙ ПЛЕЕР (PLAYER) */
 #player {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     z-index: 10;
-    display: flex;
     justify-content: center;
     height: 96px;
     background-color: var(--bg-player);
@@ -1434,8 +1436,9 @@ button:hover {
     position: relative;
     display: flex;
     align-items: center;
+    justify-self: start;
+    min-width: 0;
     max-width: 280px;
-    flex-shrink: 0;
     gap: 16px;
     margin: auto auto auto 24px;
     background: transparent;
@@ -1893,6 +1896,7 @@ button:hover {
 #player__controls {
     display: flex;
     flex-direction: column;
+    justify-self: center;
     justify-content: center;
     margin: 11.5px auto;
 }
@@ -1998,6 +2002,7 @@ button:hover {
 /* ГРОМКОСТЬ (VOLUME) */
 #player__volume {
     display: flex;
+    justify-self: end;
     align-items: center;
     margin: auto 24px auto auto;
 }
@@ -2144,6 +2149,13 @@ button:hover {
 }
 
 @media (max-width: 1025px) {
+    #player__progress {
+        opacity: 0;
+        max-width: 0;
+        min-width: 0;
+        padding: 0;
+        overflow: hidden;
+    }
     #player__settings {
         width: 300px;
     }
@@ -2156,13 +2168,6 @@ button:hover {
 }
 
 @media (max-width: 945px) {
-    #player__progress {
-        opacity: 0;
-        max-width: 0;
-        min-width: 0;
-        padding: 0;
-        overflow: hidden;
-    }
     .playlist__buttons--label {
         display: none;
     }
@@ -2195,16 +2200,6 @@ button:hover {
 }
 
 @media (max-width: 745px) {
-    #now-playing__cover {
-        margin-left: 20px;
-    }
-    .playlist__header--cover img {
-        width: 174px;
-        height: 174px;
-    }
-}
-
-@media (max-width: 700px) {
     #player__track {
         gap: 0;
     }
@@ -2222,6 +2217,16 @@ button:hover {
         width: 276px;
         padding-left: 0;
     }
+    #now-playing__cover {
+        margin-left: 20px;
+    }
+    .playlist__header--cover img {
+        width: 174px;
+        height: 174px;
+    }
+}
+
+@media (max-width: 700px) {
     .library__col--album {
         opacity: 0;
         max-width: 0;
