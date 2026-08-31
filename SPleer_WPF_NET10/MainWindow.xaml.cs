@@ -30,7 +30,10 @@ namespace SPleer
             {
                 var options = new CoreWebView2EnvironmentOptions
                 {
-                    AdditionalBrowserArguments = "--no-proxy-server"
+                    AdditionalBrowserArguments = "--no-proxy-server" +
+                        "--disable-background-networking --disable-component-update --disable-domain-reliability " +
+                        "--disable-sync --disable-client-side-phishing-detection " +
+                        "--renderer-process-limit=1"
                 };
 
                 var environment = await CoreWebView2Environment.CreateAsync(

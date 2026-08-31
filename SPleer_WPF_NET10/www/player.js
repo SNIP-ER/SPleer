@@ -274,10 +274,20 @@ async function initVolume(savedSettings) {
     const volumeSlider = document.getElementById('player__volume-slider');
     const storedVolume = savedSettings.volume ? parseFloat(savedSettings.volume) : 40;
 
-    savedVolume = storedVolume;
+    savedVolume = storedVolume > 0 ? storedVolume : 40;
     volumeSlider.value = storedVolume;
     volumeSlider.style.setProperty('--volume', `${storedVolume}%`);
     await window.chrome.webview.hostObjects.musicLibrary.SetVolume(storedVolume / 100);
+
+    const volumeIcon = document.getElementById('player__volume-icon');
+    const volumeNotIcon = document.getElementById('player__volumeNot-icon');
+    if (storedVolume > 0) {
+        volumeIcon.classList.remove('u-hidden');
+        volumeNotIcon.classList.add('u-hidden');
+    } else {
+        volumeIcon.classList.add('u-hidden');
+        volumeNotIcon.classList.remove('u-hidden');
+    }
 }
 
 /**
