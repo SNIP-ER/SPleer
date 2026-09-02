@@ -23,9 +23,9 @@
 </div>
 
 <div align="center">
-  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/library.png" alt="Library" width="500">
-  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/playlist.png" alt="Playlist" width="500">
-  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/track.png" alt="Track" width="500">
+  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/library.png" alt="Library" width="390">
+  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/playlist.png" alt="Playlist" width="390">
+  <img src="https://github.com/SNIP-ER/SPleer/blob/master/Images/track.png" alt="Track" width="390">
 </div>
 
 
