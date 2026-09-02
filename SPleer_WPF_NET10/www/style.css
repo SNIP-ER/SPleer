@@ -2074,7 +2074,7 @@ button:hover {
 
 /* ИЗМЕНЕНИЯ ПОД ПАРАМЕТРЫ ОКНА */
 #now-playing__info {
-    transition: margin-left 0.15s, padding-left 0.15s, width 0.15s, height 0.15s;
+    transition: transform 0.15s, padding-left 0.15s, width 0.15s, height 0.15s;
 }
 
 #now-playing__cover {
@@ -2130,7 +2130,7 @@ button:hover {
 
 @media (max-width: 1240px) {
     #now-playing__info {
-        margin-left: 20px;
+        transform: translateX(20px);
     }
 }
 
