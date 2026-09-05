@@ -34,7 +34,7 @@
 - [Функционал](#функционал)
 - [Добавление языков](#добавление-языков)
 - [Установка](#установка)
-- [Используемые библиотеки](#используемые-библиотеки)
+- [Сторонние библиотеки](#сторонние-библиотеки)
 
 ## Что такое
 
@@ -69,12 +69,13 @@
 - ```www/Image``` - папка со всеми системными изображениями
 - ```www/lang``` - папка со словарями языков
 
-## Используемые библиотеки
+## Сторонние библиотеки
 
 | Библиотека | Назначение | Лицензия |
 |---|---|---|
 | [NAudio](https://github.com/naudio/NAudio) | Воспроизведение аудио | MIT |
-| [NAudio.SoundFile](https://github.com/naudio/NAudio) | Декодирование FLAC / OGG / Opus / AIFF | MIT |
-| [libsndfile](https://github.com/libsndfile/libsndfile) | Нативный декодер аудиоформатов (используется NAudio.SoundFile) | LGPL |
-| [TagLib#](https://github.com/mono/taglib-sharp) | Чтение метаданных (название, исполнитель, обложка) | LGPL-2.1 |
-| [Microsoft.Web.WebView2](https://www.nuget.org/packages/Microsoft.Web.WebView2/) | Отображение интерфейса (HTML/CSS/JS) | Microsoft |
+| [libsndfile](https://github.com/libsndfile/libsndfile) | Декодирование FLAC / OGG / Opus / AIFF | LGPL v2.1 или v3 (см. [THIRD-PARTY-LICENSES/](./THIRD-PARTY-LICENSES/)) |
+| [TagLib#](https://github.com/mono/taglib-sharp) | Чтение метаданных и обложек | LGPL-2.1 |
+| [Microsoft.Web.WebView2](https://www.nuget.org/packages/Microsoft.Web.WebView2/) | Отображение интерфейса | Microsoft |
+
+SPleer использует **libsndfile**, распространяемую под GNU Lesser General Public License (версия 2.1 или, по выбору, версия 3). Полные тексты лицензий — в папке [`THIRD-PARTY-LICENSES/`](./THIRD-PARTY-LICENSES/).
