@@ -7,7 +7,7 @@
   <br>
 </h1>
 
-<h4 align="center">Оффлайн плеер на WPF + Chromium.</h4>
+<h4 align="center">Оффлайн плеер на WPF + Chromium</h4>
 
 <p align="center">
   <img src="https://img.shields.io/badge/.NET-8.0%2C%2010.0-512BD4" alt=".NET">
@@ -18,7 +18,7 @@
 
 <div align="center">
   
-**🇷🇺 Русский • [🇬🇧 English](./EN/README.md)**
+**🇷🇺 Русский • [🇬🇧 English](EnREADME.md)**
 
 </div>
 
@@ -68,7 +68,7 @@
 ## Требования
 
 - **Windows 10** *(версия 1709+)* или **Windows 11**
-- Ничего дополнительно устанавливать не нужно — WebView2 Runtime уже предустановлен в актуальных версиях Windows.
+- Ничего дополнительно устанавливать не нужно — WebView2 Runtime уже предустановлен в актуальных версиях Windows
 
 <br>
 
