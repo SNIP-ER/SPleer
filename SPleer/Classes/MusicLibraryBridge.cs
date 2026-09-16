@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using System.Xml.Linq;
 
 namespace SPleer
 {
@@ -15,7 +14,7 @@ namespace SPleer
         /// <summary>
         /// Создаёт экземпляр класса <see cref="MusicLibraryBridge"/>.
         /// </summary>
-        /// <param name="library"></param>
+        /// <param name="library">Библиотека.</param>
         public MusicLibraryBridge(MusicLibrary library)
         {
             _library = library;
@@ -460,11 +459,14 @@ namespace SPleer
         {
             var playlist = _playlistManager.GetPlaylistById(playlistId);
             if (playlist == null) return "[]";
-            var allTracks = _library.GetAllTracks();
+
+            var trackByPath = _library.GetAllTracks().ToDictionary(t => t.FilePath);
+
             var tracks = playlist.TrackPaths
-                .Select(path => allTracks.FirstOrDefault(t => t.FilePath == path))
-                .Where(t => t != null)
+                .Where(path => trackByPath.ContainsKey(path))
+                .Select(path => trackByPath[path])
                 .ToList();
+
             return System.Text.Json.JsonSerializer.Serialize(tracks);
         }
 

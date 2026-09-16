@@ -1,6 +1,4 @@
-﻿using TagLib;
-
-public class MusicLibrary
+﻿public class MusicLibrary
 {
     private List<Track> _tracks;
     private string _musicFolderPath;
@@ -71,7 +69,7 @@ public class MusicLibrary
     private void OnFolderChanged(object sender, FileSystemEventArgs e)
     {
         // Небольшая задержка
-        System.Threading.Thread.Sleep(300);
+        Thread.Sleep(300);
 
         ScanFolder();
         LibraryChanged?.Invoke();
@@ -84,7 +82,7 @@ public class MusicLibrary
     /// <param name="e"></param>
     private void OnFileRenamed(object sender, RenamedEventArgs e)
     {
-        System.Threading.Thread.Sleep(300);
+        Thread.Sleep(300);
         ScanFolder();
         TrackRenamed?.Invoke(e.OldFullPath, e.FullPath);
         LibraryChanged?.Invoke();

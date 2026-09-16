@@ -199,13 +199,15 @@
     /// <returns>Список объектов для сериализации в JSON.</returns>
     public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
     {
+        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
+
         return _playlists.Select(p => new
         {
             p.Id,
             p.Name,
             p.CoverPath,
             p.TrackPaths,
-            ActiveTrackCount = GetActiveTrackCount(p)
+            ActiveTrackCount = p.TrackPaths.Count(path => existingPaths.Contains(path))
         }).ToList();
     }
 
@@ -223,7 +225,7 @@
 
         foreach (var file in Directory.GetFiles(coversFolder, $"playlist_{id}.*"))
         {
-            try { System.IO.File.Delete(file); }
+            try { File.Delete(file); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
         }
     }
@@ -248,7 +250,7 @@
 
             string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
             string destPath = Path.Combine(coversFolder, fileName);
-            System.IO.File.Copy(sourcePath, destPath, true);
+            File.Copy(sourcePath, destPath, true);
 
             playlist.CoverPath = "Covers/" + fileName;
             Save();

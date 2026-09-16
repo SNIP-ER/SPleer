@@ -67,7 +67,7 @@ namespace SPleer
             currentFilePath = null;
 
             // Проверка на существование файла
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
                 System.Diagnostics.Debug.WriteLine($"Файл не найден! Путь: {filePath}");
                 return;
@@ -218,7 +218,7 @@ namespace SPleer
         /// <summary>
         /// Установить ссылку на MusicLibrary.
         /// </summary>
-        /// <param name="library"></param>
+        /// <param name="library">Библиотека.</param>
         public void SetMusicLibrary(MusicLibrary library)
         {
             _musicLibrary = library;
@@ -294,7 +294,16 @@ namespace SPleer
                 nextPath = orderPaths[nextOrderIndex];
             }
 
-            int nextLibraryIndex = allTracks.ToList().FindIndex(t => t.FilePath == nextPath);
+            int nextLibraryIndex = -1;
+            for (int i = 0; i < allTracks.Count; i++)
+            {
+                if (allTracks[i].FilePath == nextPath)
+                {
+                    nextLibraryIndex = i;
+                    break;
+                }
+            }
+
             if (nextLibraryIndex == -1) return;
 
             PlayByIndex(nextLibraryIndex);
@@ -325,7 +334,16 @@ namespace SPleer
             int currentOrderIndex = currentPath != null ? orderPaths.IndexOf(currentPath) : 0;
             int prevOrderIndex = currentOrderIndex <= 0 ? orderPaths.Count - 1 : currentOrderIndex - 1;
 
-            int prevLibraryIndex = allTracks.ToList().FindIndex(t => t.FilePath == orderPaths[prevOrderIndex]);
+            string targetPath = orderPaths[prevOrderIndex];
+            int prevLibraryIndex = -1;
+            for (int i = 0; i < allTracks.Count; i++)
+            {
+                if (allTracks[i].FilePath == targetPath)
+                {
+                    prevLibraryIndex = i;
+                    break;
+                }
+            }
             if (prevLibraryIndex == -1) return;
 
             _currentTrackIndex = prevLibraryIndex;
@@ -428,8 +446,18 @@ namespace SPleer
         {
             if (_currentTrackPath == null || _musicLibrary == null) return;
 
-            var tracks = _musicLibrary.GetAllTracks().ToList();
-            var newIndex = tracks.FindIndex(t => t.FilePath == _currentTrackPath);
+            var tracks = _musicLibrary.GetAllTracks();
+
+            var newIndex = -1;
+            for (int i = 0; i < tracks.Count; i++)
+            {
+                if (tracks[i].FilePath == _currentTrackPath)
+                {
+                    newIndex = i;
+                    break;
+                }
+            }
+
             _currentTrackIndex = newIndex; // будет -1, если трек реально удалён
         }
 
