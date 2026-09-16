@@ -1,4 +1,6 @@
-﻿public class PlaylistManager
+﻿using System.Diagnostics;
+
+public class PlaylistManager
 {
     private List<Playlist> _playlists;
     private readonly MusicLibrary _musicLibrary;
@@ -13,7 +15,9 @@
     public PlaylistManager(MusicLibrary musicLibrary)
     {
         _musicLibrary = musicLibrary;
-        _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Playlists.json");
+        _filePath = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory,
+            "Playlists.json");
         _playlists = new List<Playlist>();
 
         Load();
@@ -35,7 +39,9 @@
 
             try
             {
-                _playlists = System.Text.Json.JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
+                _playlists = System.Text.Json.JsonSerializer
+                    .Deserialize<List<Playlist>>(json)
+                    ?? new List<Playlist>();
 
                 foreach (var playlist in _playlists)
                 {
@@ -149,7 +155,8 @@
     }
 
     /// <summary>
-    /// Обновляет путь трека во всех плейлистах после переименования файла на диске.
+    /// Обновляет путь трека во всех плейлистах
+    /// после переименования файла на диске.
     /// </summary>
     /// <param name="oldPath">Старый путь файла.</param>
     /// <param name="newPath">Новый путь файла.</param>
@@ -178,12 +185,14 @@
     /// </summary>
     /// <param name="id">ID плейлиста.</param>
     /// <returns>Объект плейлиста или null.</returns>
-    public Playlist? GetPlaylistById(int id) => _playlists.FirstOrDefault(p => p.Id == id);
+    public Playlist? GetPlaylistById(int id) => 
+        _playlists.FirstOrDefault(p => p.Id == id);
 
     public IReadOnlyList<Playlist> GetAllPlaylists() => _playlists;
 
     /// <summary>
-    /// Возвращает количество треков плейлиста, которые реально существуют в текущей библиотеке.
+    /// Возвращает количество треков плейлиста,
+    /// которые реально существуют в текущей библиотеке.
     /// </summary>
     /// <param name="playlist">Плейлист.</param>
     /// <returns>Количество существующих треков.</returns>
@@ -194,12 +203,15 @@
     }
 
     /// <summary>
-    /// Возвращает список плейлистов вместе с актуальным количеством существующих треков в каждом.
+    /// Возвращает список плейлистов вместе с актуальным количеством
+    /// существующих треков в каждом.
     /// </summary>
     /// <returns>Список объектов для сериализации в JSON.</returns>
     public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
     {
-        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
+        var existingPaths = _musicLibrary.GetAllTracks()
+            .Select(t => t.FilePath)
+            .ToHashSet();
 
         return _playlists.Select(p => new
         {
@@ -207,7 +219,8 @@
             p.Name,
             p.CoverPath,
             p.TrackPaths,
-            ActiveTrackCount = p.TrackPaths.Count(path => existingPaths.Contains(path))
+            ActiveTrackCount = p.TrackPaths
+                .Count(path => existingPaths.Contains(path))
         }).ToList();
     }
 
@@ -215,18 +228,23 @@
     // --- Обложки ---
 
     /// <summary>
-    /// Удаляет с диска все файлы обложки указанного плейлиста (независимо от расширения).
+    /// Удаляет с диска все файлы обложки указанного плейлиста
+    /// (независимо от расширения).
     /// </summary>
     /// <param name="id">ID плейлиста.</param>
     private void DeleteCoverFiles(int id)
     {
-        string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+        string coversFolder = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "Covers");
         if (!Directory.Exists(coversFolder)) return;
 
-        foreach (var file in Directory.GetFiles(coversFolder, $"playlist_{id}.*"))
+        foreach (var file in Directory.GetFiles(coversFolder,
+            $"playlist_{id}.*"))
         {
             try { File.Delete(file); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+            catch (Exception ex) {
+                Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}");
+            }
         }
     }
 
@@ -242,11 +260,13 @@
 
         try
         {
-            string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+            string coversFolder = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "Covers");
             if (!Directory.Exists(coversFolder))
                 Directory.CreateDirectory(coversFolder);
 
-            DeleteCoverFiles(id); // убираем старую обложку перед сохранением новой
+            // убираем старую обложку перед сохранением новой
+            DeleteCoverFiles(id);
 
             string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
             string destPath = Path.Combine(coversFolder, fileName);
@@ -257,18 +277,22 @@
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
+            Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
         }
     }
 
     /// <summary>
-    /// Удаляет обложку плейлиста. После этого будет показываться обложка первого трека.
+    /// Удаляет обложку плейлиста.
+    /// После этого будет показываться обложка первого трека.
     /// </summary>
     /// <param name="id">ID плейлиста.</param>
     public void RemovePlaylistCover(int id)
     {
         var playlist = _playlists.FirstOrDefault(p => p.Id == id);
-        if (playlist == null || string.IsNullOrEmpty(playlist.CoverPath)) return;
+        if (playlist == null || string.IsNullOrEmpty(playlist.CoverPath))
+        {
+            return;
+        }
 
         DeleteCoverFiles(id);
         playlist.CoverPath = null;
@@ -283,28 +307,36 @@
     public string? GetFirstTrackCoverPath(int playlistId)
     {
         var playlist = GetPlaylistById(playlistId);
-        if (playlist?.TrackPaths == null || playlist.TrackPaths.Count == 0) return null;
+        if (playlist?.TrackPaths == null || playlist.TrackPaths.Count == 0)
+        {
+            return null;
+        }
 
         var firstTrackPath = playlist.TrackPaths[0];
         // Ищем трек в MusicLibrary по пути
-        var track = _musicLibrary.GetAllTracks().FirstOrDefault(t => t.FilePath == firstTrackPath);
+        var track = _musicLibrary.GetAllTracks()
+            .FirstOrDefault(t => t.FilePath == firstTrackPath);
         return track?.CoverPath;
     }
 
     /// <summary>
-    /// Удаляет файлы обложек в папке Covers, на которые не ссылается ни один плейлист.
+    /// Удаляет файлы обложек в папке Covers,
+    /// на которые не ссылается ни один плейлист.
     /// </summary>
     public void CleanupOrphanedCovers()
     {
         try
         {
-            string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+            string coversFolder = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, "Covers");
             if (!Directory.Exists(coversFolder)) return;
 
             // Собираем все пути обложек, которые реально используются:
             // и плейлистами, и треками в библиотеке
             var usedCoverPaths = new HashSet<string>(
-                _playlists.Where(p => !string.IsNullOrEmpty(p.CoverPath)).Select(p => p.CoverPath),
+                _playlists
+                    .Where(p => !string.IsNullOrEmpty(p.CoverPath))
+                    .Select(p => p.CoverPath),
                 StringComparer.OrdinalIgnoreCase);
 
             foreach (var track in _musicLibrary.GetAllTracks())
@@ -318,14 +350,17 @@
                 string relativePath = "Covers/" + Path.GetFileName(file);
                 if (!usedCoverPaths.Contains(relativePath))
                 {
-                    try { System.IO.File.Delete(file); }
-                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+                    try { File.Delete(file); }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}");
+                    }
                 }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
+            Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
         }
     }
 }

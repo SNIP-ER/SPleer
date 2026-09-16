@@ -23,7 +23,13 @@
     /// <param name="title">Название песни.</param>
     /// <param name="artist">Автор(ы) песни.</param>
     /// <param name="duration">Продолжительность песни.</param>
-    public Track(string filePath, string coverPath, string title, string artist, string album, TimeSpan duration)
+    public Track(
+        string filePath,
+        string coverPath,
+        string title,
+        string artist,
+        string album,
+        TimeSpan duration)
     {
         Id = _nextId++;
         FilePath = filePath;

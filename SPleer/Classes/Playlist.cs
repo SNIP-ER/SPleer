@@ -23,9 +23,11 @@
     }
 
     /// <summary>
-    /// Гарантирует, что следующий сгенерированный Id не пересечётся с уже существующим.
+    /// Гарантирует, что следующий сгенерированный Id
+    /// не пересечётся с уже существующим.
     /// </summary>
-    /// <param name="existingId">Id, который уже занят загруженным плейлистом.</param>
+    /// <param name="existingId">Id,
+    /// который уже занят загруженным плейлистом.</param>
     public static void EnsureNextIdAtLeast(int existingId)
     {
         if (existingId >= _nextId)

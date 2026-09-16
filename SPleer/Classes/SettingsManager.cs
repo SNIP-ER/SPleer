@@ -1,11 +1,14 @@
-﻿public class SettingsManager
+﻿using System.Text.Json;
+
+public class SettingsManager
 {
     private Dictionary<string, string> _settings;
     private readonly string _filePath;
 
     public SettingsManager()
     {
-        _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
+        _filePath = Path.Combine(
+            AppDomain.CurrentDomain.BaseDirectory, "Settings.json");
         Load();
     }
 
@@ -16,7 +19,8 @@
             var json = File.ReadAllText(_filePath);
             _settings = string.IsNullOrWhiteSpace(json)
                 ? new Dictionary<string, string>()
-                : System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
+                : JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+                ?? new();
         }
         else
         {
@@ -29,7 +33,7 @@
     /// </summary>
     private void Save()
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(_settings);
+        var json = JsonSerializer.Serialize(_settings);
         File.WriteAllText(_filePath, json);
     }
 
@@ -44,7 +48,10 @@
         Save();
     }
 
-    public string? Get(string key) => _settings.TryGetValue(key, out var value) ? value : null;
+    public string? Get(string key) =>
+        _settings.TryGetValue(key, out var value)
+            ? value
+            : null;
 
     public IReadOnlyDictionary<string, string> GetAll() => _settings;
 }

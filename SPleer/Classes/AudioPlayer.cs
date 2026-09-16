@@ -1,38 +1,57 @@
 ﻿using NAudio.Vorbis;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+using System.Diagnostics;
 
 namespace SPleer
 {
     public class AudioPlayer
     {
-        private const float TargetNormalizedLevel = 0.6f; // Целевой уровень громкости после нормализации 
+        // Целевой уровень громкости после нормализации 
+        private const float TargetNormalizedLevel = 0.6f;
 
-        private WaveOutEvent? outputDevice; // Устройство вывода
-        private WaveStream? audioFile; // Читатель аудиофайла
+        // Устройство вывода
+        private WaveOutEvent? outputDevice;
+        // Читатель аудиофайла
+        private WaveStream? audioFile;
         private VolumeSampleProvider? volumeProvider;
-        private MusicLibrary? _musicLibrary;    // Ссылка на библиотеку треков (НЕ копия списка)
-        private Stack<int> _history = new Stack<int>(); // История треков
-        private List<string>? _activeOrder = null; // явный порядок путей
-        private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
-        private string? currentFilePath;    // Путь к текущему файлу
+        // Ссылка на библиотеку треков (НЕ копия списка)
+        private MusicLibrary? _musicLibrary;
+        // История треков
+        private Stack<int> _history = new Stack<int>();
+        // явный порядок путей
+        private List<string>? _activeOrder = null;
+        // Текущий режим воспроизведения
+        private PlaybackMode _currentMode = PlaybackMode.Sequential;
+        // Путь к текущему файлу
+        private string? currentFilePath;
         private string? _currentTrackPath = null;
-        private float _userVolume = 0.4f;   // Громкость, установленная пользователем
+        // Громкость, установленная пользователем
+        private float _userVolume = 0.4f;
         private float _normalizedVolume = 1.0f;
-        private int _currentTrackIndex = -1;    // Индекс текущего трека
-        private bool _isRepeatOne = false;  // Флаг для кнопки repeat
-        private bool _normalizationEnabled = true;  // Флаг для включения/выключения нормализации громкости
+        // Индекс текущего трека
+        private int _currentTrackIndex = -1;
+        // Флаг для кнопки repeat
+        private bool _isRepeatOne = false;
+        // Флаг для включения/выключения нормализации громкости
+        private bool _normalizationEnabled = true;
 
-        public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
-        public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
-        public double TotalDuration => audioFile?.TotalTime.TotalSeconds ?? 0; // Длительность трека в секундах
+        public bool IsPlaying =>
+            outputDevice?.PlaybackState == PlaybackState.Playing;
+        // Текущая позиция в секундах
+        public double CurrentPosition =>
+            audioFile?.CurrentTime.TotalSeconds ?? 0;
+        // Длительность трека в секундах
+        public double TotalDuration =>
+            audioFile?.TotalTime.TotalSeconds ?? 0;
         public WaveStream? AudioFile => audioFile;
 
 
         // --- Воспроизведение ---
 
         /// <summary>
-        /// Включает или выключает автоматическую нормализацию громкости при воспроизведении.
+        /// Включает или выключает автоматическую нормализацию громкости
+        /// при воспроизведении.
         /// </summary>
         /// <param name="enabled">true — нормализация включена.</param>
         public void SetNormalizationEnabled(bool enabled)
@@ -46,7 +65,8 @@ namespace SPleer
         /// <remarks>
         /// Суть:
         /// Находится самый громкий пик в файле, и громкость подгоняется так,
-        /// чтобы этот пик был на уровне 80% от технического максимума формата файла.
+        /// чтобы этот пик был на уровне 80% от технического максимума
+        /// формата файла.
         /// </remarks>
         public void PlayWithNormalization(string filePath)
         {
@@ -69,7 +89,7 @@ namespace SPleer
             // Проверка на существование файла
             if (!File.Exists(filePath))
             {
-                System.Diagnostics.Debug.WriteLine($"Файл не найден! Путь: {filePath}");
+                Debug.WriteLine($"Файл не найден! Путь: {filePath}");
                 return;
             }
 
@@ -83,11 +103,13 @@ namespace SPleer
                     using (var reader = CreateReader(filePath))
                     {
                         var sampleProvider = reader.ToSampleProvider();
-                        float[] buffer = new float[reader.WaveFormat.SampleRate];
+                        float[] buffer =
+                            new float[reader.WaveFormat.SampleRate];
                         int samplesRead;
                         do
                         {
-                            samplesRead = sampleProvider.Read(buffer, 0, buffer.Length);
+                            samplesRead = sampleProvider.Read(
+                                buffer, 0, buffer.Length);
                             for (int i = 0; i < samplesRead; i++)
                             {
                                 float sampleAbs = Math.Abs(buffer[i]);
@@ -96,7 +118,9 @@ namespace SPleer
                         }
                         while (samplesRead > 0);
                     }
-                    normalizedVolume = maxPeak > 0 ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak) : 1.0f;
+                    normalizedVolume = maxPeak > 0
+                        ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak)
+                        : 1.0f;
                 }
 
                 audioFile = CreateReader(filePath);
@@ -104,7 +128,8 @@ namespace SPleer
 
                 _normalizedVolume = normalizedVolume;
 
-                volumeProvider = new VolumeSampleProvider(audioFile.ToSampleProvider())
+                volumeProvider =
+                    new VolumeSampleProvider(audioFile.ToSampleProvider())
                 {
                     Volume = normalizedVolume * _userVolume
                 };
@@ -115,12 +140,13 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка воспроизведения: {ex.Message}");
+                Debug.WriteLine($"Ошибка воспроизведения: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Создаёт подходящий для формата файла аудио-ридер. Для .ogg используется VorbisWaveReader,
+        /// Создаёт подходящий для формата файла аудио-ридер.
+        /// Для .ogg используется VorbisWaveReader,
         /// для остальных поддерживаемых форматов — AudioFileReader.
         /// </summary>
         /// <param name="filePath">Путь к аудиофайлу.</param>
@@ -231,7 +257,10 @@ namespace SPleer
         public void PlayByIndex(int index)
         {
             var tracks = _musicLibrary.GetAllTracks();
-            if (tracks.Count == 0 || index < 0 || index >= tracks.Count) return;
+            if (tracks.Count == 0 || index < 0 || index >= tracks.Count)
+            {
+                return;
+            }
 
             if (_currentTrackIndex >= 0 && _currentTrackIndex != index)
             {
@@ -239,7 +268,8 @@ namespace SPleer
             }
 
             _currentTrackIndex = index;
-            _currentTrackPath = tracks[index].FilePath; // запоминаем путь, а не только индекс
+            // запоминаем путь, а не только индекс
+            _currentTrackPath = tracks[index].FilePath;
             PlayWithNormalization(tracks[index].FilePath);
         }
 
@@ -253,14 +283,19 @@ namespace SPleer
             var allTracks = _musicLibrary.GetAllTracks();
             if (allTracks.Count == 0) return;
 
-            // Порядок для навигации: явный (сортировка/поиск/плейлист) или порядок библиотеки
-            List<string> orderPaths = _activeOrder ?? allTracks.Select(t => t.FilePath).ToList();
+            // Порядок для навигации: явный (сортировка/поиск/плейлист)
+            // или порядок библиотеки
+            List<string> orderPaths = _activeOrder
+                ?? allTracks.Select(t => t.FilePath).ToList();
             if (orderPaths.Count == 0) return;
 
-            string? currentPath = _currentTrackIndex >= 0 ? allTracks[_currentTrackIndex].FilePath : null;
+            string? currentPath = _currentTrackIndex >= 0
+                ? allTracks[_currentTrackIndex].FilePath : null;
 
             // Повтор трека
-            if (_isRepeatOne && currentPath != null && orderPaths.Contains(currentPath))
+            if (_isRepeatOne
+                && currentPath != null
+                && orderPaths.Contains(currentPath))
             {
                 PlayByIndex(_currentTrackIndex);
                 return;
@@ -282,15 +317,18 @@ namespace SPleer
                 {
                     do
                     {
-                        nextPath = orderPaths[Random.Shared.Next(orderPaths.Count)];
+                        nextPath =
+                            orderPaths[Random.Shared.Next(orderPaths.Count)];
                     }
                     while (nextPath == currentPath);
                 }
             }
             else
             {
-                int currentOrderIndex = currentPath != null ? orderPaths.IndexOf(currentPath) : -1;
-                int nextOrderIndex = (currentOrderIndex + 1) % orderPaths.Count;
+                int currentOrderIndex = currentPath != null
+                    ? orderPaths.IndexOf(currentPath) : -1;
+                int nextOrderIndex = (currentOrderIndex + 1)
+                    % orderPaths.Count;
                 nextPath = orderPaths[nextOrderIndex];
             }
 
@@ -322,17 +360,25 @@ namespace SPleer
             if (_history.Count > 0)
             {
                 int prevIndex = _history.Pop();
-                _currentTrackIndex = prevIndex;     // Текущий не сохраняется в истории при возврате
+                // Текущий не сохраняется в истории при возврате
+                _currentTrackIndex = prevIndex;
                 PlayWithNormalization(allTracks[prevIndex].FilePath);
                 return;
             }
 
-            List<string> orderPaths = _activeOrder ?? allTracks.Select(t => t.FilePath).ToList();
+            List<string> orderPaths = _activeOrder
+                ?? allTracks.Select(t => t.FilePath).ToList();
             if (orderPaths.Count == 0) return;
 
-            string? currentPath = _currentTrackIndex >= 0 ? allTracks[_currentTrackIndex].FilePath : null;
-            int currentOrderIndex = currentPath != null ? orderPaths.IndexOf(currentPath) : 0;
-            int prevOrderIndex = currentOrderIndex <= 0 ? orderPaths.Count - 1 : currentOrderIndex - 1;
+            string? currentPath = _currentTrackIndex >= 0
+                ? allTracks[_currentTrackIndex].FilePath
+                : null;
+            int currentOrderIndex = currentPath != null
+                ? orderPaths.IndexOf(currentPath)
+                : 0;
+            int prevOrderIndex = currentOrderIndex <= 0
+                ? orderPaths.Count - 1
+                : currentOrderIndex - 1;
 
             string targetPath = orderPaths[prevOrderIndex];
             int prevLibraryIndex = -1;
@@ -363,7 +409,8 @@ namespace SPleer
 
         /// <summary>
         /// Задаёт явный порядок треков для навигации "следующий"/"предыдущий".
-        /// Используется для плейлистов, результатов поиска и сортированного отображения.
+        /// Используется для плейлистов,
+        /// результатов поиска и сортированного отображения.
         /// Если null — навигация идёт по порядку самой библиотеки.
         /// </summary>
         public void SetActiveOrder(List<string>? orderedPaths)
@@ -386,7 +433,8 @@ namespace SPleer
         /// <summary>
         /// Получить текущий режим.
         /// </summary>
-        /// <returns>Текущий режим воспроизведения, тип - PlaybackMode.</returns>
+        /// <returns>Текущий режим воспроизведения,
+        /// тип - PlaybackMode.</returns>
         public PlaybackMode GetMode()
         {
             return _currentMode;
@@ -458,11 +506,13 @@ namespace SPleer
                 }
             }
 
-            _currentTrackIndex = newIndex; // будет -1, если трек реально удалён
+            // будет -1, если трек реально удалён
+            _currentTrackIndex = newIndex;
         }
 
         /// <summary>
-        /// Обновляет путь текущего трека после переименования файла на диске, если играл именно он.
+        /// Обновляет путь текущего трека после переименования файла на диске,
+        /// если играл именно он.
         /// </summary>
         /// <param name="oldPath">Старый путь файла.</param>
         /// <param name="newPath">Новый путь файла.</param>

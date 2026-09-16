@@ -1,4 +1,6 @@
 ﻿using System.Runtime.InteropServices;
+using System.Diagnostics;
+using System.Text.Json;
 
 namespace SPleer
 {
@@ -21,13 +23,15 @@ namespace SPleer
             _playlistManager = new PlaylistManager(library);
             _settingsManager = new SettingsManager();
             _audioPlayer = new AudioPlayer();
-            _audioPlayer.SetMusicLibrary(_library); // Ссылка на библиотеку треков в аудиоплеер
+            // Ссылка на библиотеку треков в аудиоплеер
+            _audioPlayer.SetMusicLibrary(_library);
 
             _library.LibraryChanged += () =>
             {
                 MainForm.WebView?.Invoke(new Action(() =>
                 {
-                    MainForm.WebView.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
+                    MainForm.WebView.CoreWebView2?
+                        .ExecuteScriptAsync("onLibraryChanged()");
                 }));
             };
 
@@ -38,7 +42,8 @@ namespace SPleer
 
                 MainForm.WebView?.Invoke(new Action(() =>
                 {
-                    MainForm.WebView.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
+                    MainForm.WebView.CoreWebView2?
+                        .ExecuteScriptAsync("onLibraryChanged()");
                 }));
             };
         }
@@ -47,7 +52,12 @@ namespace SPleer
         // --- УПРАВЛЕНИЕ ОКНОМ ---
 
         [DllImport("user32.dll")]
-        private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        private static extern int SendMessage(
+            IntPtr hWnd,
+            int Msg,
+            int wParam,
+            int lParam
+        );
 
         [DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
@@ -84,13 +94,15 @@ namespace SPleer
             if (Application.OpenForms.Count > 0)
             {
                 var form = Application.OpenForms[0] as MainForm;
-                if (form != null && form.WindowState == FormWindowState.Minimized)
+                if (form != null
+                    && form.WindowState == FormWindowState.Minimized)
                 {
                     form.AnimateRestore();
                 }
                 else
                 {
-                    form.WindowState = form.WindowState == FormWindowState.Maximized
+                    form.WindowState = form.WindowState ==
+                        FormWindowState.Maximized
                         ? FormWindowState.Normal
                         : FormWindowState.Maximized;
                 }
@@ -120,11 +132,11 @@ namespace SPleer
             try
             {
                 var tracks = _library.GetAllTracks();
-                return System.Text.Json.JsonSerializer.Serialize(tracks);
+                return JsonSerializer.Serialize(tracks);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка GetTracksJson: {ex.Message}");
+                Debug.WriteLine($"Ошибка GetTracksJson: {ex.Message}");
                 return "[]";
             }
         }
@@ -144,7 +156,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PlayTrack: {ex.Message}");
+                Debug.WriteLine($"Ошибка PlayTrack: {ex.Message}");
             }
         }
 
@@ -159,7 +171,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PauseTrack: {ex.Message}");
+                Debug.WriteLine($"Ошибка PauseTrack: {ex.Message}");
             }
         }
 
@@ -174,14 +186,15 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка ResumeTrack: {ex.Message}");
+                Debug.WriteLine($"Ошибка ResumeTrack: {ex.Message}");
             }
         }
 
         /// <summary>
         /// Определение текущего состояния плеера.
         /// </summary>
-        /// <returns>Состояние плеера (1 - играет, 0 - пауза/остановлен).</returns>
+        /// <returns>Состояние плеера
+        /// (1 - играет, 0 - пауза/остановлен).</returns>
         public int GetPlayerState()
         {
             return _audioPlayer.IsPlaying ? 1 : 0;
@@ -199,7 +212,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PlayByIndex: {ex.Message}");
+                Debug.WriteLine($"Ошибка PlayByIndex: {ex.Message}");
             }
         }
 
@@ -214,7 +227,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PlayNext: {ex.Message}");
+                Debug.WriteLine($"Ошибка PlayNext: {ex.Message}");
             }
         }
 
@@ -229,7 +242,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PlayPrevious: {ex.Message}");
+                Debug.WriteLine($"Ошибка PlayPrevious: {ex.Message}");
             }
         }
 
@@ -244,7 +257,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка PlayFirstIfNotPlaying: {ex.Message}");
+                Debug.WriteLine($"Ошибка PlayFirstIfNotPlaying: {ex.Message}");
             }
         }
 
@@ -258,14 +271,16 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Задаёт активный порядок треков для навигации (сортировка, поиск или плейлист).
+        /// Задаёт активный порядок треков для навигации
+        /// (сортировка, поиск или плейлист).
         /// </summary>
-        /// <param name="json">JSON-строка с массивом путей к файлам треков.</param>
+        /// <param name="json">JSON-строка
+        ///  с массивом путей к файлам треков.</param>
         public void SetActiveOrderJson(string? json)
         {
             var orderedPaths = string.IsNullOrEmpty(json)
                 ? null
-                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+                : JsonSerializer.Deserialize<List<string>>(json);
             _audioPlayer.SetActiveOrder(orderedPaths);
         }
 
@@ -293,7 +308,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка SetVolume: {ex.Message}");
+                Debug.WriteLine($"Ошибка SetVolume: {ex.Message}");
             }
         }
 
@@ -344,7 +359,8 @@ namespace SPleer
         {
             if (_audioPlayer.AudioFile != null)
             {
-                _audioPlayer.AudioFile.CurrentTime = TimeSpan.FromSeconds(seconds);
+                _audioPlayer.AudioFile.CurrentTime =
+                    TimeSpan.FromSeconds(seconds);
             }
         }
 
@@ -359,11 +375,13 @@ namespace SPleer
         {
             try
             {
-                _audioPlayer.SetMode(mode == "shuffle" ? PlaybackMode.Shuffle : PlaybackMode.Sequential);
+                _audioPlayer.SetMode(mode == "shuffle"
+                    ? PlaybackMode.Shuffle
+                    : PlaybackMode.Sequential);
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка SetMode: {ex.Message}");
+                Debug.WriteLine($"Ошибка SetMode: {ex.Message}");
             }
         }
 
@@ -396,7 +414,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}");
+                Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}");
             }
         }
 
@@ -409,7 +427,7 @@ namespace SPleer
         public string GetPlaylistsJson()
         {
             var playlists = _playlistManager.GetAllPlaylistsWithActiveCount();
-            return System.Text.Json.JsonSerializer.Serialize(playlists);
+            return JsonSerializer.Serialize(playlists);
         }
 
         /// <summary>
@@ -454,20 +472,22 @@ namespace SPleer
         /// Возвращает JSON-строку со списком треков указанного плейлиста.
         /// </summary>
         /// <param name="playlistId">ID плейлиста.</param>
-        /// <returns>JSON-строка с треками или "[]", если плейлист не найден.</returns>
+        /// <returns>JSON-строка с треками или "[]",
+        ///  если плейлист не найден.</returns>
         public string GetPlaylistTracksJson(int playlistId)
         {
             var playlist = _playlistManager.GetPlaylistById(playlistId);
             if (playlist == null) return "[]";
 
-            var trackByPath = _library.GetAllTracks().ToDictionary(t => t.FilePath);
+            var trackByPath = _library.GetAllTracks().ToDictionary(t =>
+                t.FilePath);
 
             var tracks = playlist.TrackPaths
                 .Where(path => trackByPath.ContainsKey(path))
                 .Select(path => trackByPath[path])
                 .ToList();
 
-            return System.Text.Json.JsonSerializer.Serialize(tracks);
+            return JsonSerializer.Serialize(tracks);
         }
 
         /// <summary>
@@ -504,7 +524,8 @@ namespace SPleer
         /// <summary>
         /// Открывает системный диалог выбора файла для обложки плейлиста.
         /// </summary>
-        /// <returns>Полный путь к выбранному файлу изображения или null, если пользователь отменил выбор.</returns>
+        /// <returns>Полный путь к выбранному файлу изображения или null,
+        ///  если пользователь отменил выбор.</returns>
         public string? PickCoverImage()
         {
             using var dialog = new OpenFileDialog
@@ -521,10 +542,12 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Устанавливает обложку плейлиста, копируя изображение в папку Covers.
+        /// Устанавливает обложку плейлиста,
+        /// копируя изображение в папку Covers.
         /// </summary>
         /// <param name="id">ID плейлиста.</param>
-        /// <param name="sourcePath">Путь к исходному файлу изображения на диске пользователя.</param>
+        /// <param name="sourcePath">Путь к исходному файлу изображения
+        /// на диске пользователя.</param>
         public void SetPlaylistCover(int id, string sourcePath)
         {
             _playlistManager.SetPlaylistCover(id, sourcePath);
@@ -542,7 +565,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
+                Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}");
             }
         }
 
@@ -557,7 +580,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
+                Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
             }
         }
 
@@ -572,17 +595,22 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Возвращает время последнего изменения файла в виде Unix-таймстампа (миллисекунды).
-        /// Используется для сброса кэша картинок в браузере при изменении файла.
+        /// Возвращает время последнего изменения файла
+        /// в виде Unix-таймстампа (миллисекунды).
+        /// Используется для сброса кэша картинок в браузере
+        /// при изменении файла.
         /// </summary>
         /// <param name="path">Путь к файлу.</param>
-        /// <returns>Unix-таймстамп в миллисекундах или 0, если файл не найден.</returns>
+        /// <returns>Unix-таймстамп в миллисекундах или 0,
+        /// если файл не найден.</returns>
         public long GetFileLastModified(string path)
         {
-            var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, path);
+            var fullPath = Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, path);
             if (!File.Exists(fullPath)) return 0;
 
-            return new DateTimeOffset(File.GetLastWriteTimeUtc(fullPath)).ToUnixTimeMilliseconds();
+            return new DateTimeOffset(File.GetLastWriteTimeUtc(fullPath))
+                .ToUnixTimeMilliseconds();
         }
 
 
@@ -591,10 +619,11 @@ namespace SPleer
         /// <summary>
         /// Возвращает все сохранённые настройки приложения в виде JSON.
         /// </summary>
-        /// <returns>JSON-объект вида "ключ": "значение" со всеми настройками.</returns>
+        /// <returns>JSON-объект вида "ключ": "значение"
+        /// со всеми настройками.</returns>
         public string GetSettingsJson()
         {
-            return System.Text.Json.JsonSerializer.Serialize(_settingsManager.GetAll());
+            return JsonSerializer.Serialize(_settingsManager.GetAll());
         }
 
         /// <summary>
@@ -610,7 +639,8 @@ namespace SPleer
         /// <summary>
         /// Открывает системный диалог выбора папки.
         /// </summary>
-        /// <returns>Выбранный путь к папке, или null, если пользователь отменил выбор.</returns>
+        /// <returns>Выбранный путь к папке,
+        /// или null, если пользователь отменил выбор.</returns>
         public string? PickFolder()
         {
             using var dialog = new FolderBrowserDialog
@@ -619,11 +649,14 @@ namespace SPleer
                 UseDescriptionForTitle = true
             };
 
-            return dialog.ShowDialog() == DialogResult.OK ? dialog.SelectedPath : null;
+            return dialog.ShowDialog() == DialogResult.OK
+                ? dialog.SelectedPath
+                : null;
         }
 
         /// <summary>
-        /// Устанавливает новую папку с музыкой: сохраняет в настройках и применяет к библиотеке.
+        /// Устанавливает новую папку с музыкой:
+        /// сохраняет в настройках и применяет к библиотеке.
         /// </summary>
         /// <param name="path">Путь к папке.</param>
         public void SetMusicFolderPath(string path)
@@ -635,7 +668,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка SetMusicFolderPath: {ex.Message}");
+                Debug.WriteLine($"Ошибка SetMusicFolderPath: {ex.Message}");
             }
         }
     }

@@ -3,7 +3,14 @@
     private List<Track> _tracks;
     private string _musicFolderPath;
     private FileSystemWatcher? _watcher;
-    private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma", ".ogg" };
+    private static readonly string[] SupportedExtensions =
+    {
+        ".mp3",
+        ".wav",
+        ".m4a",
+        ".wma",
+        ".ogg"
+    };
 
     /// <summary>
     /// Событие, вызываемое при изменении состава файлов в папке с музыкой.
@@ -11,17 +18,20 @@
     public event Action? LibraryChanged;
 
     /// <summary>
-    /// Событие, вызываемое при переименовании файла в папке с музыкой. Параметры: старый путь, новый путь.
+    /// Событие, вызываемое при переименовании файла в папке с музыкой.
+    /// Параметры: старый путь, новый путь.
     /// </summary>
     public event Action<string, string>? TrackRenamed;
 
     /// <summary>
     /// Создаёт экземпляр класса <see cref="MusicLibrary"/>.
     /// </summary>
-    /// <param name="customFolderPath">Пользовательский путь к папке с музыкой, или null для пути по умолчанию.</param>
+    /// <param name="customFolderPath">Пользовательский путь к папке с музыкой,
+    /// или null для пути по умолчанию.</param>
     public MusicLibrary(string? customFolderPath = null)
     {
-        _musicFolderPath = Path.GetFullPath(customFolderPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Music"));
+        _musicFolderPath = Path.GetFullPath(customFolderPath
+            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Music"));
         _tracks = new List<Track>();
 
         ScanFolder();
@@ -29,7 +39,8 @@
     }
 
     /// <summary>
-    /// Меняет папку с музыкой на новую, пересканирует её и перезапускает отслеживание изменений.
+    /// Меняет папку с музыкой на новую,
+    /// пересканирует её и перезапускает отслеживание изменений.
     /// </summary>
     /// <param name="newPath">Новый путь к папке с музыкой.</param>
     public void SetMusicFolder(string newPath)
@@ -42,7 +53,8 @@
     }
 
     /// <summary>
-    /// Запускает отслеживание изменений в папке с музыкой (добавление/удаление/переименование mp3-файлов).
+    /// Запускает отслеживание изменений в папке с музыкой
+    /// (добавление/удаление/переименование mp3-файлов).
     /// </summary>
     private void StartWatching()
     {
@@ -101,7 +113,8 @@
         }
 
         string[] files = Directory.GetFiles(_musicFolderPath, ".")
-            .Where(f => SupportedExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
+            .Where(f => SupportedExtensions.Contains(
+                Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
             .ToArray();
 
         foreach (string file in files)
@@ -149,12 +162,14 @@
                 var picture = tagFile.Tag.Pictures[0];
 
                 // Создаybt папки Covers, если её нет
-                string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+                string coversFolder = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory, "Covers");
                 if (!Directory.Exists(coversFolder))
                     Directory.CreateDirectory(coversFolder);
 
                 // Уникальное имя файла на основе названия трека
-                string safeFileName = string.Join("_", title.Split(Path.GetInvalidFileNameChars()));
+                string safeFileName = string.Join(
+                    "_", title.Split(Path.GetInvalidFileNameChars()));
                 string extension = picture.MimeType switch
                 {
                     "image/jpeg" => ".jpg",
@@ -162,17 +177,24 @@
                     _ => ".jpg"
                 };
 
-                string absolutePath = Path.Combine(coversFolder, safeFileName + extension);
+                string absolutePath = Path.Combine(
+                    coversFolder, safeFileName + extension);
 
-                if (!System.IO.File.Exists(absolutePath))
+                if (!File.Exists(absolutePath))
                 {
-                    System.IO.File.WriteAllBytes(absolutePath, picture.Data.Data);
+                    File.WriteAllBytes(absolutePath, picture.Data.Data);
                 }
 
                 coverPath = "Covers/" + safeFileName + extension;
             }
 
-            _tracks.Add(new Track(file, coverPath, title, artist, album, tagFile.Properties.Duration));
+            _tracks.Add(new Track(
+                file,
+                coverPath,
+                title,
+                artist,
+                album,
+                tagFile.Properties.Duration));
 
             tagFile.Dispose();
         }

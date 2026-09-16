@@ -6,28 +6,43 @@ namespace SPleer
     public partial class MainForm : Form
     {
         /// <summary>
-        /// Отправляет сообщение указанному окну. Используется для вызова системных команд (сворачивание, разворачивание).
+        /// Отправляет сообщение указанному окну.
+        /// Используется для вызова системных команд
+        /// (сворачивание, разворачивание).
         /// </summary>
         [DllImport("user32.dll")]
-        private static extern bool SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+        private static extern bool SendMessage(
+            IntPtr hWnd,
+            int Msg,
+            int wParam,
+            int lParam);
         /// <summary>
-        /// Возвращает значение атрибута окна по указанному индексу (например, стили окна).
+        /// Возвращает значение атрибута окна по указанному индексу
+        /// (например, стили окна).
         /// </summary>
         [DllImport("user32.dll")]
-        private static extern int GetWindowLong(IntPtr hWnd, int nIndex);
+        private static extern int GetWindowLong(
+            IntPtr hWnd,
+            int nIndex);
         /// <summary>
-        /// Устанавливает значение атрибута окна по указанному индексу (например, изменение стилей окна).
+        /// Устанавливает значение атрибута окна по указанному индексу
+        /// (например, изменение стилей окна).
         /// </summary>
         [DllImport("user32.dll")]
-        private static extern int SetWindowLong(IntPtr hWnd, int nIndex, int dwNewLong);
+        private static extern int SetWindowLong(
+            IntPtr hWnd,
+            int nIndex,
+            int dwNewLong);
 
         /// <summary>
-        /// Индекс для получения/установки стилей окна через GetWindowLong/SetWindowLong.
+        /// Индекс для получения/установки стилей окна
+        /// через GetWindowLong/SetWindowLong.
         /// </summary>
         private const int GWL_STYLE = -16;
         /// <summary>
         /// Стандартный стиль окна с рамкой, заголовком и системными кнопками.
-        /// Временно добавляется для запуска системных анимаций сворачивания/разворачивания.
+        /// Временно добавляется для запуска
+        /// системных анимаций сворачивания/разворачивания.
         /// </summary>
         private const int WS_OVERLAPPEDWINDOW = 0x00CF0000;
 
@@ -35,7 +50,8 @@ namespace SPleer
         private MusicLibraryBridge? _bridge;
 
         /// <summary>
-        /// Добавление возможности сворачивать и разворачивать приложение при нажатии по нему на панеле задач.
+        /// Добавление возможности сворачивать и разворачивать приложение
+        /// при нажатии по нему на панеле задач.
         /// </summary>
         protected override CreateParams CreateParams
         {
@@ -43,8 +59,10 @@ namespace SPleer
             {
                 var cp = base.CreateParams;
 
-                cp.Style |= 0x00020000; // WS_MINIMIZEBOX — разрешить сворачивание
-                cp.Style |= 0x00010000; // WS_MAXIMIZEBOX — разрешить разворачивание
+                // WS_MINIMIZEBOX — разрешить сворачивание
+                cp.Style |= 0x00020000;
+                // WS_MAXIMIZEBOX — разрешить разворачивание
+                cp.Style |= 0x00010000;
 
                 return cp;
             }
@@ -91,7 +109,8 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Перехватывает сообщения Windows для добавления анимации при разворачивании окна из панели задач.
+        /// Перехватывает сообщения Windows для добавления анимации
+        /// при разворачивании окна из панели задач.
         /// </summary>
         /// <param name="m">Сообщение Windows.</param>
         protected override void WndProc(ref Message m)
@@ -146,13 +165,17 @@ namespace SPleer
         settings.AreDevToolsEnabled = false;
 #endif
 
-                string wwwRootFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "www");
+                string wwwRootFolder = Path.Combine(
+                    AppDomain.CurrentDomain.BaseDirectory,
+                    "www");
                 string appRootFolder = AppDomain.CurrentDomain.BaseDirectory;
 
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "splayer.web", wwwRootFolder, CoreWebView2HostResourceAccessKind.Allow);
+                    "splayer.web", wwwRootFolder,
+                    CoreWebView2HostResourceAccessKind.Allow);
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
-                    "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
+                    "appfiles.local", appRootFolder,
+                    CoreWebView2HostResourceAccessKind.Allow);
 
                 var startupSettings = new SettingsManager();
                 string? savedMusicFolder = startupSettings.Get("musicFolder");
@@ -165,12 +188,16 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка запуска: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Ошибка запуска: {ex.Message}",
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
             }
         }
 
         /// <summary>
-        /// Вызывается перед закрытием окна приложения. Очищает неиспользуемые файлы обложек.
+        /// Вызывается перед закрытием окна приложения.
+        /// Очищает неиспользуемые файлы обложек.
         /// </summary>
         /// <param name="e"></param>
         protected override void OnFormClosing(FormClosingEventArgs e)
