@@ -15,7 +15,7 @@
   "playlist.h": "h",
   "playlist.m": "m",
   "addPlaylist.title": "ADD IN PLAYLISTS",
-  "addPlaylist.cancel": "Cancrel",
+  "addPlaylist.cancel": "Cancel",
   "settings.language": "Language",
   "settings.language.en": "English",
   "settings.language.ru": "Russian",
@@ -26,7 +26,11 @@
   "settings.closeButton.close": "Close",
   "settings.folderMusics": "Folder musics",
   "settings.folderMusics.text": "Select",
-  "settings.volumeNormalization": "Voume normalization",
+  "settings.volumeNormalization": "Volume normalization",
   "settings.clearCover": "Clear cover cache",
-  "settings.clearCover.text": "Clear"
+  "settings.clearCover.text": "Clear",
+  "settings.playbackMode": "Playback mode",
+  "settings.playbackMode.loud": "Loud",
+  "settings.playbackMode.normal": "Normal",
+  "settings.playbackMode.quiet": "Quiet"
 }

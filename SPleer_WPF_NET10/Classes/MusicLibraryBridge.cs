@@ -13,6 +13,7 @@ namespace SPleer
     {
         private readonly MusicLibrary _library;
         private readonly AudioPlayer _audioPlayer;
+        private readonly LoudnessCache _loudness;
         private readonly PlaylistManager _playlistManager;
         private readonly SettingsManager _settingsManager;
         private readonly Window _window;
@@ -32,9 +33,16 @@ namespace SPleer
             _settingsManager = new SettingsManager();
             _audioPlayer = new AudioPlayer();
             _audioPlayer.SetMusicLibrary(_library);
+            _loudness = new LoudnessCache();
+            _audioPlayer.SetLoudnessCache(_loudness);
+
+            var savedMode = _settingsManager.Get("playbackMode");
+            if (savedMode != null) _audioPlayer.SetLoudnessMode(savedMode);
 
             _library.LibraryChanged += () =>
             {
+                _ = _loudness.AnalyzeLibraryAsync(_library.GetAllTracks().Select(t => t.FilePath).ToList());
+
                 _window.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     MainWindow.WebView?.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
@@ -484,6 +492,22 @@ namespace SPleer
 
 
         // --- НАСТРОЙКИ ---
+
+        /// <summary>
+        /// Режим громкости: "loud", "normal", "quiet".
+        /// </summary>
+        /// <param name="mode">Выбранный режим.</param>
+        public void SetLoudnessMode(string mode)
+        {
+            try
+            {
+                _audioPlayer.SetLoudnessMode(mode);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Ошибка SetLoudnessMode: {ex.Message}");
+            }
+        }
 
         /// <summary>
         /// Возвращает все сохранённые настройки приложения в виде JSON.

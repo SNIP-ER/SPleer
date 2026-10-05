@@ -167,6 +167,12 @@ async function updateSetting(key, value) {
             );
         }
     }
+    if (key === 'playbackMode') {
+        await window.chrome.webview.hostObjects.musicLibrary.SetLoudnessMode(String(value));
+    }
+    if (key === 'normalization') {
+        await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value === true || value === 'true');
+    }
 }
 
 /**

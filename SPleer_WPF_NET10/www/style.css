@@ -437,6 +437,10 @@ button:hover {
     backdrop-filter: blur(24px);
 }
 
+#sidebar .nav-title {
+    transition: opacity 0.15s, max-width 0.15s, color 0.1s;
+}
+
 #margin {
     width: 255px;
     height: 88px;
@@ -527,15 +531,6 @@ button:hover {
     transition: background-color 0.1s;
 }
 
-/**
-.menu-item.control_blue .nav-title {
-    color: var(--accent);
-}
-
-.menu-item.control_blue:hover .nav-title {
-    color: var(--accent-light);
-}
-
 .menu-item .nav-title {
     color: var(--text-secondary);
 }
@@ -543,7 +538,14 @@ button:hover {
 .menu-item:hover .nav-title {
     color: var(--text-muted);
 }
-**/
+
+.menu-item.control_blue .nav-title {
+    color: var(--accent);
+}
+
+.menu-item.control_blue:hover .nav-title {
+    color: var(--accent-light);
+}
 
 .nav-title {
     font-family: 'Inter', sans-serif;

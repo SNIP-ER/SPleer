@@ -226,7 +226,7 @@ public class PlaylistManager
 
         foreach (var file in Directory.GetFiles(coversFolder, $"playlist_{id}.*"))
         {
-            try { System.IO.File.Delete(file); }
+            try { File.Delete(file); }
             catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
         }
     }
@@ -251,7 +251,7 @@ public class PlaylistManager
 
             string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
             string destPath = Path.Combine(coversFolder, fileName);
-            System.IO.File.Copy(sourcePath, destPath, true);
+            File.Copy(sourcePath, destPath, true);
 
             playlist.CoverPath = "Covers/" + fileName;
             Save();
@@ -321,7 +321,7 @@ public class PlaylistManager
                 string relativePath = "Covers/" + Path.GetFileName(file);
                 if (!usedCoverPaths.Contains(relativePath))
                 {
-                    try { System.IO.File.Delete(file); }
+                    try { File.Delete(file); }
                     catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
                 }
             }

@@ -1,24 +1,28 @@
-﻿using NAudio.SoundFile;
+﻿using NAudio.CoreAudioApi;
+using NAudio.SoundFile;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
+using System.Diagnostics;
 
 namespace SPleer
 {
     public class AudioPlayer
     {
-        private const float TargetNormalizedLevel = 0.6f; // Целевой уровень громкости после нормализации 
-
-        private WaveOut? outputDevice; // Устройство вывода
+        private IWavePlayer? outputDevice; // Устройство вывода
         private WaveStream? audioFile; // Читатель аудиофайла
         private VolumeSampleProvider? volumeProvider;
+        private VolumeSampleProvider? gainProvider;   // нормализация
+        private LoudnessCache? _loudness;
+        private double _targetRmsDb = -16.0;          // режим «Нормально»
+        private double? _currentRmsDb;
         private MusicLibrary? _musicLibrary;    // Ссылка на библиотеку треков (НЕ копия списка)
         private Stack<int> _history = new Stack<int>(); // История треков
         private List<string>? _activeOrder = null; // явный порядок путей
         private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
         private string? currentFilePath;    // Путь к текущему файлу
         private string? _currentTrackPath = null;
-        private float _userVolume = 0.4f;   // Громкость, установленная пользователем
+        private float _userVolume = 0.6f;   // Громкость, установленная пользователем
         private float _normalizedVolume = 1.0f;
         private int _currentTrackIndex = -1;    // Индекс текущего трека
         private bool _isRepeatOne = false;  // Флаг для кнопки repeat
@@ -41,6 +45,7 @@ namespace SPleer
         public void SetNormalizationEnabled(bool enabled)
         {
             _normalizationEnabled = enabled;
+            RecalcGain();
         }
 
         /// <summary>
@@ -70,55 +75,31 @@ namespace SPleer
             currentFilePath = null;
 
             // Проверка на существование файла
-            if (!System.IO.File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
-                System.Diagnostics.Debug.WriteLine($"Файл не найден! Путь: {filePath}");
+                Debug.WriteLine($"Файл не найден! Путь: {filePath}");
                 return;
             }
 
             try
             {
-                float normalizedVolume = 1.0f;
-
-                if (_normalizationEnabled)
-                {
-                    float maxPeak = 0;
-                    using (var reader = CreateReader(filePath))
-                    {
-                        var sampleProvider = reader.ToSampleProvider();
-                        float[] buffer = new float[reader.WaveFormat.SampleRate];
-                        int samplesRead;
-                        do
-                        {
-                            samplesRead = sampleProvider.Read(buffer.AsSpan(0, buffer.Length));
-                            for (int i = 0; i < samplesRead; i++)
-                            {
-                                float sampleAbs = Math.Abs(buffer[i]);
-                                if (sampleAbs > maxPeak) maxPeak = sampleAbs;
-                            }
-                        }
-                        while (samplesRead > 0);
-                    }
-                    normalizedVolume = maxPeak > 0 ? Math.Min(1.0f, TargetNormalizedLevel / maxPeak) : 1.0f;
-                }
-
                 audioFile = CreateReader(filePath);
-                outputDevice = new WaveOut();
+                _currentRmsDb = _loudness?.GetOrAnalyze(filePath);   // из кэша, обычно мгновенно
+                _normalizedVolume = CalcGain();
 
-                _normalizedVolume = normalizedVolume;
+                // Цепочка: файл → под формат устройства → нормализация → лимитер → громкость пользователя
+                ISampleProvider source = audioFile.ToSampleProvider();
+                gainProvider = new VolumeSampleProvider(source) { Volume = _normalizedVolume };
+                var limiter = new LimiterSampleProvider(gainProvider);
+                volumeProvider = new VolumeSampleProvider(limiter) { Volume = _userVolume };
 
-                volumeProvider = new VolumeSampleProvider(audioFile.ToSampleProvider())
-                {
-                    Volume = normalizedVolume * _userVolume
-                };
-
-                outputDevice.Init(volumeProvider);
+                outputDevice = CreateOutputDevice(volumeProvider);
                 outputDevice.Play();
                 currentFilePath = filePath;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка воспроизведения: {ex.Message}");
+                Debug.WriteLine($"Ошибка воспроизведения: {ex.Message}");
             }
         }
 
@@ -128,7 +109,7 @@ namespace SPleer
         /// </summary>
         /// <param name="filePath">Путь к аудиофайлу.</param>
         /// <returns>Готовый к воспроизведению WaveStream.</returns>
-        private WaveStream CreateReader(string filePath)
+        public static WaveStream CreateReader(string filePath)
         {
             string ext = Path.GetExtension(filePath).ToLowerInvariant();
 
@@ -138,7 +119,7 @@ namespace SPleer
             }
 
             return new AudioFileReader(filePath);
-        }   
+        }
 
         /// <summary>
         /// Остановка воспроизведения без сброса позиции.
@@ -212,7 +193,78 @@ namespace SPleer
         public void ApplyUserVolume()
         {
             if (volumeProvider != null)
-                volumeProvider.Volume = _normalizedVolume * _userVolume;
+                volumeProvider.Volume = _userVolume;
+        }
+
+
+        // --- Нормализация, режимы громкости, вывод ---
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cache"></param>
+        public void SetLoudnessCache(LoudnessCache cache) => _loudness = cache;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private float CalcGain()
+        {
+            if (!_normalizationEnabled || _currentRmsDb == null) return 1f;
+            double db = Math.Clamp(_targetRmsDb - _currentRmsDb.Value, -12.0, 9.0);
+
+            return (float)Math.Pow(10, db / 20.0);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void RecalcGain()
+        {
+            _normalizedVolume = CalcGain();
+            if (gainProvider != null) gainProvider.Volume = _normalizedVolume;
+        }
+
+        /// <summary>
+        /// Режим громкости: "loud", "normal" или "quiet". Применяется сразу к играющему треку.
+        /// </summary>
+        /// <param name="mode"></param>
+        public void SetLoudnessMode(string mode)
+        {
+            _targetRmsDb = mode.ToLowerInvariant() switch
+            {
+                "loud" => -12.0,
+                "quiet" => -20.0,
+                _ => -16.0
+            };
+
+            RecalcGain();
+        }
+
+        /// <summary>
+        /// Создаёт WASAPI-вывод, при ошибке откатывается на WaveOut.
+        /// </summary>
+        /// <param name="provider"></param>
+        /// <returns></returns>
+        private static IWavePlayer CreateOutputDevice(ISampleProvider provider)
+        {
+            try
+            {
+                var player = new WasapiPlayerBuilder().Build();
+                player.Init(provider.ToWaveProvider());
+
+                return player;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"WASAPI недоступен, используем WaveOut: {ex.Message}");
+
+                var waveOut = new WaveOut();
+                waveOut.Init(provider);
+
+                return waveOut;
+            }
         }
 
 

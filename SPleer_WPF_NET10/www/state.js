@@ -41,11 +41,17 @@ const settingsSchema = [
 
     { key: 'musicFolder', labelKey: 'settings.folderMusics', type: 'folder', buttonLabelKey: 'settings.folderMusics.text', default: null },
 
+    { key: 'playbackMode', labelKey: 'settings.playbackMode', type: 'select', options: [
+        { value: 'Loud', labelKey: 'settings.playbackMode.loud' },
+        { value: 'Normal', labelKey: 'settings.playbackMode.normal' },
+        { value: 'Quiet', labelKey: 'settings.playbackMode.quiet' }
+    ], default: 'Normal' },
+    
     { key: 'normalization', labelKey: 'settings.volumeNormalization', type: 'toggle', default: true },
 
     //{ key: 'notifications', label: 'Track change notifications', type: 'toggle', default: false },
 
-    { key: 'cache', labelKey: 'settings.clearCover', type: 'action', action: 'clearCoverCache', buttonLabelKey: 'settings.clearCover.text' },
+    { key: 'cache', labelKey: 'settings.clearCover', type: 'action', action: 'clearCoverCache', buttonLabelKey: 'settings.clearCover.text' }
 ];
 
 const languageCodes = { 'English': 'en', 'Russian': 'ru' };

@@ -22,11 +22,15 @@
   "settings.theme": "Тема",
   "settings.theme.dark": "Темная",
   "settings.theme.light": "Светлая",
-  "settings.closeButton": "Кнопка закртыть",
+  "settings.closeButton": "Кнопка закрыть",
   "settings.closeButton.close": "Закрыть",
   "settings.folderMusics": "Папка с музыкой",
   "settings.folderMusics.text": "Выбрать",
   "settings.volumeNormalization": "Нормализация звука",
   "settings.clearCover": "Очистить кэш обложек",
-  "settings.clearCover.text": "Очистить"
+  "settings.clearCover.text": "Очистить",
+  "settings.playbackMode": "Режим громкости",
+  "settings.playbackMode.loud": "Громкий",
+  "settings.playbackMode.normal": "Нормальный",
+  "settings.playbackMode.quiet": "Тихий"
 }
