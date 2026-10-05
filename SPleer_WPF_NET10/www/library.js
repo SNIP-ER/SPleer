@@ -1,3 +1,5 @@
+const LOADING_DELAY_MS = 400;
+
 let searchDebounceTimer = null;
 let globalSearchQuery = '';
 
@@ -10,10 +12,49 @@ async function loadTracks() {
 }
 
 /**
+ * 
+ */
+function beginLoading() {
+    clearTimeout(loadingIndicatorTimer);
+    loadingIndicatorTimer = setTimeout(async () => {
+        // Скан мог закончиться, пока шла задержка
+        if (!await window.chrome.webview.hostObjects.musicLibrary.IsScanning()) {
+            endLoading();
+            return;
+        }
+
+        loadingIndicatorVisible = true;
+        showLoadingIndicator();
+    }, LOADING_DELAY_MS);
+}
+
+/**
+ * 
+ */
+function endLoading() {
+    clearTimeout(loadingIndicatorTimer);
+    loadingIndicatorTimer = null;
+    loadingIndicatorVisible = false;
+    document.getElementById('library-loading')?.remove();
+}
+
+/**
+ * 
+ */
+function showLoadingIndicator() {
+    document.querySelector('#library__body').innerHTML =
+        `<div class='library__loading' id='library-loading' data-i18n='library.loading'>${t('library.loading')}</div>`;
+}
+
+/**
  * Загружает библиотеку треков и отображает первый трек, если библиотека не пуста.
  * @async
  */
 async function initLibrary() {
+    if (await window.chrome.webview.hostObjects.musicLibrary.IsScanning()) {
+        beginLoading();
+    }
+    
     await loadTracks();
     showPlayButton();
     toggleControl(0);
@@ -67,7 +108,33 @@ async function refreshView(context) {
  * @async
  */
 async function onLibraryChanged() {
+    endLoading();
     await refreshView('library');
+    await showFirstTrackIfIdle();
+
+    const playlistsTab = document.getElementById('playlists');
+    if (playlistsTab && !playlistsTab.classList.contains('u-hidden')) {
+        await loadPlaylists();
+    }
+    if (currentPlaylistId !== null) {
+        await refreshView('playlist');
+    }
+}
+
+/**
+ * Если плеер ещё пуст (библиотека была пустой), показывает первый трек.
+ * @async
+ */
+async function showFirstTrackIfIdle() {
+    if (!document.getElementById('player__cover-img').classList.contains('u-hidden')) return;
+
+    const tracks = JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson());
+    if (tracks.length === 0) return;
+
+    await updateUIByIndex(0);
+    lastTrackIndex = 0;
+    addTrackHighlight(0);
+    showPlayButton();
 }
 
 /**

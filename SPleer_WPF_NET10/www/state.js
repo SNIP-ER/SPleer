@@ -59,6 +59,8 @@ const marqueeResizeObserver = new ResizeObserver(entries => {
 const marqueeObserved = new WeakSet();
 
 
+let loadingIndicatorTimer = null;
+let loadingIndicatorVisible = false;
 let updateInterval;
 let lastClickTime = 0;
 let playlistSearchDebounceTimer = null;
@@ -197,6 +199,11 @@ async function applyActiveOrder(orderedPaths) {
 function renderLibraryRows(tracks) {
     const container = document.querySelector('#library__body');
     container.innerHTML = '';
+
+    if (loadingIndicatorVisible) {
+        showLoadingIndicator();
+        return;
+    }
 
     tracks.forEach((track, index) => {
         const row = document.createElement('div');

@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Diagnostics;
 
 namespace SPleer
 {
@@ -15,6 +16,8 @@ namespace SPleer
         private readonly PlaylistManager _playlistManager;
         private readonly SettingsManager _settingsManager;
         private readonly Window _window;
+
+        public bool IsScanning() => _library.IsScanning;
 
         /// <summary>
         /// Создаёт экземпляр класса <see cref="MusicLibraryBridge"/>.
@@ -32,21 +35,16 @@ namespace SPleer
 
             _library.LibraryChanged += () =>
             {
-                _window.Dispatcher.Invoke(() =>
+                _window.Dispatcher.BeginInvoke(new Action(() =>
                 {
                     MainWindow.WebView?.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
-                });
+                }));
             };
 
             _library.TrackRenamed += (oldPath, newPath) =>
             {
                 _playlistManager.RenameTrackPath(oldPath, newPath);
                 _audioPlayer.RenameCurrentTrackPath(oldPath, newPath);
-
-                _window.Dispatcher.Invoke(() =>
-                {
-                    MainWindow.WebView?.CoreWebView2?.ExecuteScriptAsync("onLibraryChanged()");
-                });
             };
         }
 
@@ -149,7 +147,7 @@ namespace SPleer
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка GetTracksJson: {ex.Message}");
+                Debug.WriteLine($"Ошибка GetTracksJson: {ex.Message}");
                 return "[]";
             }
         }
@@ -164,7 +162,7 @@ namespace SPleer
         public void PlayTrack(string filePath)
         {
             try { _audioPlayer.PlayWithNormalization(filePath); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PlayTrack: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PlayTrack: {ex.Message}"); }
         }
 
         /// <summary>
@@ -173,7 +171,7 @@ namespace SPleer
         public void PauseTrack()
         {
             try { _audioPlayer.Pause(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PauseTrack: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PauseTrack: {ex.Message}"); }
         }
 
         /// <summary>
@@ -182,7 +180,7 @@ namespace SPleer
         public void ResumeTrack()
         {
             try { _audioPlayer.Resume(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка ResumeTrack: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка ResumeTrack: {ex.Message}"); }
         }
 
         /// <summary>
@@ -198,7 +196,7 @@ namespace SPleer
         public void PlayByIndex(int index)
         {
             try { _audioPlayer.PlayByIndex(index); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PlayByIndex: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PlayByIndex: {ex.Message}"); }
         }
 
         /// <summary>
@@ -207,7 +205,7 @@ namespace SPleer
         public void PlayNext()
         {
             try { _audioPlayer.PlayNext(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PlayNext: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PlayNext: {ex.Message}"); }
         }
 
         /// <summary>
@@ -216,7 +214,7 @@ namespace SPleer
         public void PlayPrevious()
         {
             try { _audioPlayer.PlayPrevious(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PlayPrevious: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PlayPrevious: {ex.Message}"); }
         }
 
         /// <summary>
@@ -225,7 +223,7 @@ namespace SPleer
         public void PlayFirstIfNotPlaying()
         {
             try { _audioPlayer.PlayFirstIfNotPlaying(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка PlayFirstIfNotPlaying: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка PlayFirstIfNotPlaying: {ex.Message}"); }
         }
 
         /// <summary>
@@ -268,7 +266,7 @@ namespace SPleer
         public void SetVolume(float volume)
         {
             try { _audioPlayer.SetVolume(volume); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка SetVolume: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка SetVolume: {ex.Message}"); }
         }
 
         /// <summary>
@@ -314,7 +312,7 @@ namespace SPleer
         public void SetMode(string mode)
         {
             try { _audioPlayer.SetMode(mode == "shuffle" ? PlaybackMode.Shuffle : PlaybackMode.Sequential); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка SetMode: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка SetMode: {ex.Message}"); }
         }
 
         /// <summary>
@@ -335,7 +333,7 @@ namespace SPleer
         public void ToggleRepeatOne()
         {
             try { _audioPlayer.ToggleRepeatOne(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка ToggleRepeatOne: {ex.Message}"); }
         }
 
 
@@ -451,7 +449,7 @@ namespace SPleer
         public void RemovePlaylistCover(int id)
         {
             try { _playlistManager.RemovePlaylistCover(id); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка RemovePlaylistCover: {ex.Message}"); }
         }
 
         /// <summary>
@@ -460,7 +458,7 @@ namespace SPleer
         public void CleanupOrphanedCovers()
         {
             try { _playlistManager.CleanupOrphanedCovers(); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}"); }
         }
 
         /// <summary>
@@ -524,16 +522,19 @@ namespace SPleer
         /// Устанавливает новую папку с музыкой: сохраняет в настройках и применяет к библиотеке.
         /// </summary>
         /// <param name="path">Путь к папке.</param>
-        public void SetMusicFolderPath(string path)
+        public bool SetMusicFolderPath(string path)
         {
             try
             {
                 _settingsManager.Set("musicFolder", path);
-                _library.SetMusicFolder(path);
+                _library.SetMusicFolder(path); // возвращается сразу
+
+                return true;
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка SetMusicFolderPath: {ex.Message}");
+                Debug.WriteLine($"Ошибка SetMusicFolderPath: {ex.Message}");
+                return false;
             }
         }
     }

@@ -296,6 +296,8 @@ public class PlaylistManager
     /// </summary>
     public void CleanupOrphanedCovers()
     {
+        if (_musicLibrary.IsScanning) return; // список треков ещё неполный
+
         try
         {
             string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");

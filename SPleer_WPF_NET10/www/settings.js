@@ -175,10 +175,18 @@ async function updateSetting(key, value) {
  * @async
  */
 async function pickSettingFolder(key) {
-    const path = await window.chrome.webview.hostObjects.musicLibrary.PickFolder();
-    if (path) {
-        await window.chrome.webview.hostObjects.musicLibrary.SetMusicFolderPath(path);
-        document.getElementById(`${key}-path`).textContent = path;
+    const lib = window.chrome.webview.hostObjects.musicLibrary;
+    const path = await lib.PickFolder();
+    if (!path) return;
+
+    beginLoading();
+    try {
+        const ok = await lib.SetMusicFolderPath(path);
+        if (!ok) endLoading(); // скан не стартовал, события не будет
+    }
+    catch (e) {
+        endLoading();
+        console.error('Ошибка смены папки:', e);
     }
 }
 

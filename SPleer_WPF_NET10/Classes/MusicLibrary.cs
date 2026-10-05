@@ -1,13 +1,19 @@
-﻿using TagLib;
-using System.IO;
+﻿using System.IO;
+using System.Collections.Concurrent;
 
 public class MusicLibrary
 {
-    private List<Track> _tracks;
+    private volatile IReadOnlyList<Track> _tracks = Array.Empty<Track>();
+    private readonly object _scanLock = new();
+    private readonly ConcurrentQueue<(string Old, string New)> _pendingRenames = new();
+    private int _scanVersion;
+    private volatile bool _isScanning;
+    private string? _watchedFolder;
     private string _musicFolderPath;
     private FileSystemWatcher? _watcher;
-    //private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma", ".ogg" };
     private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma", ".ogg", ".flac", ".aiff", ".aif", ".opus" };
+
+    public bool IsScanning => _isScanning;
 
     /// <summary>
     /// Событие, вызываемое при изменении состава файлов в папке с музыкой.
@@ -25,11 +31,56 @@ public class MusicLibrary
     /// <param name="customFolderPath">Пользовательский путь к папке с музыкой, или null для пути по умолчанию.</param>
     public MusicLibrary(string? customFolderPath = null)
     {
-        _musicFolderPath = Path.GetFullPath(customFolderPath ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Music"));
-        _tracks = new List<Track>();
+        _musicFolderPath = Path.GetFullPath(customFolderPath
+            ?? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Music"));
+    }
 
-        ScanFolder();
-        StartWatching();
+    /// <summary>
+    /// Сканирует папку в фоне. По завершении вызывает LibraryChanged.
+    /// Если во время скана стартовал новый, результат старого отбрасывается.
+    /// </summary>
+    public Task StartScanAsync()
+    {
+        int version;
+        string folder;
+        lock (_scanLock)
+        {
+            version = ++_scanVersion;
+            _isScanning = true;
+            folder = _musicFolderPath;
+        }
+
+        return Task.Run(() =>
+        {
+            List<Track>? result = null;
+            try
+            {
+                result = ScanFolder(folder, version);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка сканирования: {ex.Message}");
+            }
+
+            lock (_scanLock)
+            {
+                if (version != _scanVersion) return; // уже идёт более новый скан
+
+                if (result != null)
+                {
+                    _tracks = result;
+                    StartWatching(folder);
+                }
+                _isScanning = false; // строго до события
+            }
+
+            while (_pendingRenames.TryDequeue(out var rename))
+            {
+                TrackRenamed?.Invoke(rename.Old, rename.New);
+            }
+
+            LibraryChanged?.Invoke(); // и при ошибке тоже, чтобы индикатор не завис
+        });
     }
 
     /// <summary>
@@ -38,19 +89,27 @@ public class MusicLibrary
     /// <param name="newPath">Новый путь к папке с музыкой.</param>
     public void SetMusicFolder(string newPath)
     {
-        _watcher?.Dispose();
-        _musicFolderPath = Path.GetFullPath(newPath);
-        ScanFolder();
-        StartWatching();
-        LibraryChanged?.Invoke();
+        lock (_scanLock)
+        {
+            _watcher?.Dispose();
+            _watcher = null;
+            _watchedFolder = null;
+            _musicFolderPath = Path.GetFullPath(newPath);
+        }
+        _ = StartScanAsync(); // не блокирует вызывающий поток
     }
 
     /// <summary>
     /// Запускает отслеживание изменений в папке с музыкой (добавление/удаление/переименование mp3-файлов).
     /// </summary>
-    private void StartWatching()
+    /// <param name="folder">Папка с музыкой.</param>
+    private void StartWatching(string folder)
     {
-        _watcher = new FileSystemWatcher(_musicFolderPath)
+        if (_watcher != null && _watchedFolder == folder) return;
+
+        _watcher?.Dispose();
+        _watchedFolder = folder;
+        _watcher = new FileSystemWatcher(folder)
         {
             NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite,
             EnableRaisingEvents = true
@@ -72,11 +131,8 @@ public class MusicLibrary
     /// <param name="e"></param>
     private void OnFolderChanged(object sender, FileSystemEventArgs e)
     {
-        // Небольшая задержка
-        System.Threading.Thread.Sleep(300);
-
-        ScanFolder();
-        LibraryChanged?.Invoke();
+        Thread.Sleep(300);
+        _ = StartScanAsync();
     }
 
     /// <summary>
@@ -86,101 +142,113 @@ public class MusicLibrary
     /// <param name="e"></param>
     private void OnFileRenamed(object sender, RenamedEventArgs e)
     {
-        System.Threading.Thread.Sleep(300);
-        ScanFolder();
-        TrackRenamed?.Invoke(e.OldFullPath, e.FullPath);
-        LibraryChanged?.Invoke();
+        Thread.Sleep(300);
+        _pendingRenames.Enqueue((e.OldFullPath, e.FullPath));
+        _ = StartScanAsync();
     }
 
     /// <summary>
     /// Получение данных из файлов из папки.
     /// </summary>
-    private void ScanFolder()
+    /// <param name="folder">Папка с музыкой.</param>
+    /// <param name="version"></param>
+    private List<Track>? ScanFolder(string folder, int version)
     {
-        _tracks.Clear();
+        var result = new List<Track>();
 
-        if (!Directory.Exists(_musicFolderPath))
+        if (!Directory.Exists(folder))
         {
-            Directory.CreateDirectory(_musicFolderPath);
+            Directory.CreateDirectory(folder);
         }
 
-        string[] files = Directory.GetFiles(_musicFolderPath, ".")
+        string[] files = Directory.GetFiles(folder, ".")
             .Where(f => SupportedExtensions.Contains(Path.GetExtension(f), StringComparer.OrdinalIgnoreCase))
             .ToArray();
 
         foreach (string file in files)
         {
-            var tagFile = TagLib.File.Create(file);
-            string tagTitle = tagFile.Tag.Title;
-            string tagArtist = tagFile.Tag.FirstPerformer;
-            string tagAlbum = tagFile.Tag.Album;
-            string? lyrics = string.IsNullOrWhiteSpace(tagFile.Tag.Lyrics) ? null : tagFile.Tag.Lyrics;
+            // Запущен более новый скан, выходим раньше
+            if (version != Volatile.Read(ref _scanVersion)) return null;
 
-            string title;
-            string artist;
-            string album;
-            string coverPath = null;
+            try
+            {
+                using var tagFile = TagLib.File.Create(file);
+                string tagTitle = tagFile.Tag.Title;
+                string tagArtist = tagFile.Tag.FirstPerformer;
+                string tagAlbum = tagFile.Tag.Album;
+                string? lyrics = string.IsNullOrWhiteSpace(tagFile.Tag.Lyrics) ? null : tagFile.Tag.Lyrics;
 
-            if (!string.IsNullOrEmpty(tagTitle))
-            {
-                title = tagTitle;
-            }
-            else
-            {
-                title = Path.GetFileNameWithoutExtension(file);
-            }
+                string title;
+                string artist;
+                string album;
+                string coverPath = null;
 
-            if (!string.IsNullOrEmpty(tagArtist))
-            {
-                artist = tagArtist;
-            }
-            else
-            {
-                artist = "Неизвестный исполнитель";
-            }
-
-            if (!string.IsNullOrEmpty(tagAlbum))
-            {
-                album = tagAlbum;
-            }
-            else
-            {
-                album = string.Empty;
-            }
-
-            // Извлечение обложки
-            if (tagFile.Tag.Pictures.Length > 0)
-            {
-                var picture = tagFile.Tag.Pictures[0];
-
-                // Создаybt папки Covers, если её нет
-                string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
-                if (!Directory.Exists(coversFolder))
-                    Directory.CreateDirectory(coversFolder);
-
-                // Уникальное имя файла на основе названия трека
-                string safeFileName = string.Join("_", title.Split(Path.GetInvalidFileNameChars()));
-                string extension = picture.MimeType switch
+                if (!string.IsNullOrEmpty(tagTitle))
                 {
-                    "image/jpeg" => ".jpg",
-                    "image/png" => ".png",
-                    _ => ".jpg"
-                };
-
-                string absolutePath = Path.Combine(coversFolder, safeFileName + extension);
-
-                if (!System.IO.File.Exists(absolutePath))
+                    title = tagTitle;
+                }
+                else
                 {
-                    System.IO.File.WriteAllBytes(absolutePath, picture.Data.Data);
+                    title = Path.GetFileNameWithoutExtension(file);
                 }
 
-                coverPath = "Covers/" + safeFileName + extension;
+                if (!string.IsNullOrEmpty(tagArtist))
+                {
+                    artist = tagArtist;
+                }
+                else
+                {
+                    artist = "Неизвестный исполнитель";
+                }
+
+                if (!string.IsNullOrEmpty(tagAlbum))
+                {
+                    album = tagAlbum;
+                }
+                else
+                {
+                    album = string.Empty;
+                }
+
+                // Извлечение обложки
+                if (tagFile.Tag.Pictures.Length > 0)
+                {
+                    var picture = tagFile.Tag.Pictures[0];
+
+                    // Создаybt папки Covers, если её нет
+                    string coversFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Covers");
+                    if (!Directory.Exists(coversFolder))
+                        Directory.CreateDirectory(coversFolder);
+
+                    // Уникальное имя файла на основе названия трека
+                    string safeFileName = string.Join("_", title.Split(Path.GetInvalidFileNameChars()));
+                    string extension = picture.MimeType switch
+                    {
+                        "image/jpeg" => ".jpg",
+                        "image/png" => ".png",
+                        _ => ".jpg"
+                    };
+
+                    string absolutePath = Path.Combine(coversFolder, safeFileName + extension);
+
+                    if (!System.IO.File.Exists(absolutePath))
+                    {
+                        System.IO.File.WriteAllBytes(absolutePath, picture.Data.Data);
+                    }
+
+                    coverPath = "Covers/" + safeFileName + extension;
+                }
+
+                result.Add(new Track(file, coverPath, title, artist, album,
+                    tagFile.Properties.Duration, lyrics));
             }
-
-            _tracks.Add(new Track(file, coverPath, title, artist, album, tagFile.Properties.Duration, lyrics));
-
-            tagFile.Dispose();
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Пропущен файл {file}: {ex.Message}");
+            }
         }
+
+        return result;
     }
 
     /// <summary>

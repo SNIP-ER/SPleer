@@ -1,7 +1,5 @@
 ﻿using Microsoft.Web.WebView2.Core;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Interop;
 
 namespace SPleer
 {
@@ -30,7 +28,7 @@ namespace SPleer
             {
                 var options = new CoreWebView2EnvironmentOptions
                 {
-                    AdditionalBrowserArguments = "--no-proxy-server" +
+                    AdditionalBrowserArguments = "--no-proxy-server " +
                         "--disable-background-networking --disable-component-update --disable-domain-reliability " +
                         "--disable-sync --disable-client-side-phishing-detection " +
                         "--renderer-process-limit=1"
@@ -56,11 +54,15 @@ namespace SPleer
                 webView21.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
 
-                var musicLibrary = new MusicLibrary();
+                var startupSettings = new SettingsManager();
+                string? savedMusicFolder = startupSettings.Get("musicFolder");
+
+                var musicLibrary = new MusicLibrary(savedMusicFolder);
                 _bridge = new MusicLibraryBridge(musicLibrary, this);
                 webView21.CoreWebView2.AddHostObjectToScript("musicLibrary", _bridge);
 
                 webView21.CoreWebView2.Navigate("https://splayer.web/index.html");
+                _ = musicLibrary.StartScanAsync();
             }
             catch (Exception ex)
             {
