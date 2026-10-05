@@ -527,6 +527,24 @@ button:hover {
     transition: background-color 0.1s;
 }
 
+/**
+.menu-item.control_blue .nav-title {
+    color: var(--accent);
+}
+
+.menu-item.control_blue:hover .nav-title {
+    color: var(--accent-light);
+}
+
+.menu-item .nav-title {
+    color: var(--text-secondary);
+}
+
+.menu-item:hover .nav-title {
+    color: var(--text-muted);
+}
+**/
+
 .nav-title {
     font-family: 'Inter', sans-serif;
     font-weight: 400;

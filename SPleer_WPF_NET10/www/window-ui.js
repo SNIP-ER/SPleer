@@ -1,4 +1,13 @@
 /**
+ * Откладывает функцию до момента, когда браузер уже отрисовал кадр.
+ * Нужно, чтобы реакция интерфейса (подсветка меню) не ждала тяжёлой работы.
+ * @param {Function} fn - Функция, которую нужно вызвать после отрисовки.
+ */
+function afterPaint(fn) {
+    requestAnimationFrame(() => setTimeout(fn, 0));
+}
+
+/**
  * Обрабатывает нажатие на пункты бокового меню (Library / Playlists / Now Playing).
  * @param {number} value - 0 = Library, 1 = Playlists, 2 = Now Playing.
  * @async
@@ -12,12 +21,12 @@ async function toggleControl(value) {
         lib.classList.add('control_blue');
         pl.classList.remove('control_blue');
         cover.classList.remove('open');
-        toggleTab(0);
+        afterPaint(() => toggleTab(0));
     } else if (value === 1) {
         lib.classList.remove('control_blue');
         pl.classList.add('control_blue');
         cover.classList.remove('open');
-        toggleTab(1);
+        afterPaint(() => toggleTab(1));
     } else if (value === 2) {
         toggleTab(2);
     }

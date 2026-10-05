@@ -12,7 +12,7 @@ const sortConfigs = {
         headerContainer: '#library__header-row',
         column: null,
         ascending: true,
-        fetch: async () => JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson()),
+        fetch: getCachedTracks,
         render: renderLibraryRows,
     },
     playlist: {
@@ -51,9 +51,7 @@ const settingsSchema = [
 const languageCodes = { 'English': 'en', 'Russian': 'ru' };
 
 const marqueeResizeObserver = new ResizeObserver(entries => {
-    for (const entry of entries) {
-        checkMarqueeOverflow(entry.target);
-    }
+    checkMarqueeOverflowBatch(entries.map(e => e.target));
 });
 
 const marqueeObserved = new WeakSet();
@@ -61,6 +59,12 @@ const marqueeObserved = new WeakSet();
 
 let loadingIndicatorTimer = null;
 let loadingIndicatorVisible = false;
+let cachedTracks = null;
+let tracksVersion = 0;
+let libraryView = { key: null, paths: [] };
+let lastActiveOrderJson;
+let tracksFetchSeq = 0;
+let tracksFetchPromise = null;
 let updateInterval;
 let lastClickTime = 0;
 let playlistSearchDebounceTimer = null;
@@ -73,6 +77,43 @@ let savedVolume = 40;
 let cachedPopupPlaylists = [];
 let cachedPopupCurrentTrackPath = null;
 
+
+/**
+ * Запрашивает у C# свежий список треков и кладёт его в кэш.
+ * В кэш попадает только результат самого последнего запроса.
+ * @returns {Promise<Array<Object>>}
+ */
+function refreshTracksCache() {
+    const seq = ++tracksFetchSeq;
+    const request = (async () => {
+        const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
+        const tracks = JSON.parse(json);
+
+        if (seq === tracksFetchSeq) {
+            cachedTracks = tracks;
+            tracksVersion++;
+        }
+
+        return tracks;
+    })();
+
+    tracksFetchPromise = request;
+    request.catch(() => {}).finally(() => {
+        if (tracksFetchPromise === request) tracksFetchPromise = null;
+    });
+
+    return request;
+}
+
+/**
+ * Возвращает список треков из кэша; при первом обращении загружает его из C#.
+ * Массив нельзя изменять: сортировка и фильтры в refreshView делают копии.
+ * @returns {Promise<Array<Object>>}
+ */
+async function getCachedTracks() {
+    if (cachedTracks) return cachedTracks;
+    return tracksFetchPromise ?? refreshTracksCache();
+}
 
 /**
  * Экранирует HTML-спецсимволы, чтобы текст нельзя было интерпретировать как разметку.
@@ -138,26 +179,41 @@ function setText(el, text) {
 }
 
 function checkMarqueeOverflow(el) {
-    const inner = el.querySelector('.marquee__inner');
-    if (!inner) return;
+    checkMarqueeOverflowBatch([el]);
+}
 
-    el.classList.remove('marquee--active');
-    el.style.removeProperty('--marquee-shift');
-    el.style.removeProperty('--marquee-duration');
-
+function checkMarqueeOverflowBatch(elements) {
     requestAnimationFrame(() => {
-        const overflow = inner.scrollWidth - el.clientWidth;
-        if (overflow > 2) {
-            el.style.setProperty('--marquee-shift', `-${overflow}px`);
-            
-            const pixelsPerSecond = 15;
-            const duration = Math.max(4, (overflow / pixelsPerSecond) * 2 + 2);
-            el.style.setProperty('--marquee-duration', `${duration}s`);
-            
-            el.classList.add('marquee--active');
+        const items = [];
+
+        // 1) сброс: только запись
+        for (const el of elements) {
+            const inner = el.querySelector('.marquee__inner');
+            if (!inner) continue;
+            el.classList.remove('marquee--active');
+            el.style.removeProperty('--marquee-shift');
+            el.style.removeProperty('--marquee-duration');
+            items.push({ el, inner, overflow: 0 });
+        }
+
+        // 2) измерение: только чтение (один пересчёт раскладки)
+        for (const item of items) {
+            item.overflow = item.inner.scrollWidth - item.el.clientWidth;
+        }
+
+        // 3) применение: только запись
+        for (const { el, overflow } of items) {
+            if (overflow > 2) {
+                el.style.setProperty('--marquee-shift', `-${overflow}px`);
+                const pixelsPerSecond = 15;
+                const duration = Math.max(4, (overflow / pixelsPerSecond) * 2 + 2);
+                el.style.setProperty('--marquee-duration', `${duration}s`);
+                el.classList.add('marquee--active');
+            }
         }
     });
 }
+
 
 /**
  * Активирует бегущую строку для всех элементов с классом 'marquee' внутри контейнера,
@@ -165,6 +221,8 @@ function checkMarqueeOverflow(el) {
  * @param {HTMLElement} [root=document] - Контейнер для поиска.
  */
 function activateMarquees(root = document) {
+    const fresh = [];
+
     root.querySelectorAll('.marquee').forEach(el => {
         if (el.querySelector('.marquee__inner')) return;
 
@@ -178,8 +236,10 @@ function activateMarquees(root = document) {
             marqueeResizeObserver.observe(el);
         }
 
-        checkMarqueeOverflow(el);
+        fresh.push(el);
     });
+
+    if (fresh.length) checkMarqueeOverflowBatch(fresh);
 }
 
 /**
@@ -189,7 +249,9 @@ function activateMarquees(root = document) {
  */
 async function applyActiveOrder(orderedPaths) {
     const json = orderedPaths ? JSON.stringify(orderedPaths) : null;
+    if (json === lastActiveOrderJson) return;
     await window.chrome.webview.hostObjects.musicLibrary.SetActiveOrderJson(json);
+    lastActiveOrderJson = json;
 }
 
 /**

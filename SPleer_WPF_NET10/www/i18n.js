@@ -29,7 +29,17 @@ function t(key, params = {}) {
  */
 function applyTranslations() {
     document.querySelectorAll('[data-i18n]').forEach(el => {
-        el.textContent = t(el.getAttribute('data-i18n'));
+        const text = t(el.getAttribute('data-i18n'));
+
+        if (el.children.length === 0) {
+            el.textContent = text;
+            return;
+        }
+
+        // внутри есть вложенные элементы (например, .sort-arrow): меняем только текст
+        const node = [...el.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+        if (node) node.textContent = text;
+        else el.prepend(text);
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         el.placeholder = t(el.getAttribute('data-i18n-placeholder'));

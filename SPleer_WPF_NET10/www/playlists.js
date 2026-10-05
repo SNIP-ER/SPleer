@@ -149,8 +149,6 @@ function renderPlaylistRows(tracks, playlistId) {
         `;
         row.addEventListener('click', () => playByPath(track.FilePath));
         body.appendChild(row);
-
-        activateMarquees(document.getElementById('playlist__tracks-body'));
     });
 
     activateMarquees(document.getElementById('playlist__tracks-body'));
@@ -353,15 +351,17 @@ async function removeFromPlaylist(playlistId, trackPath) {
  */
 async function loadPlaylists() {
     const container = document.getElementById('playlists-grid');
-    container.innerHTML = '';
 
     // Получение плейлистов
     const json = await window.chrome.webview.hostObjects.musicLibrary.GetPlaylistsJson();
     const playlists = JSON.parse(json);
+    const covers = await Promise.all(playlists.map(p => getPlaylistCoverSrc(p)));
+
+    container.innerHTML = '';
 
     // Обычные плейлисты
-    for (const playlist of playlists) {
-        const coverSrc = await getPlaylistCoverSrc(playlist);
+    playlists.forEach((playlist, i) => {
+        const coverSrc = covers[i];
         
         const card = document.createElement('div');
         card.className = 'playlist-card playlist-card--common cursor-pointer';
@@ -376,7 +376,7 @@ async function loadPlaylists() {
             openPlaylist(playlist.Id, playlist.Name, playlist.ActiveTrackCount, playlist.CoverPath, '')
             toggleTab(3);
         });
-    }
+    });
 
     // "Создать" плейлисты
     const createCard = document.createElement('div');

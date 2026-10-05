@@ -34,6 +34,7 @@ function beginLoading() {
 function endLoading() {
     clearTimeout(loadingIndicatorTimer);
     loadingIndicatorTimer = null;
+    libraryView.key = null;
     loadingIndicatorVisible = false;
     document.getElementById('library-loading')?.remove();
 }
@@ -42,6 +43,7 @@ function endLoading() {
  * 
  */
 function showLoadingIndicator() {
+    libraryView.key = null;
     document.querySelector('#library__body').innerHTML =
         `<div class='library__loading' id='library-loading' data-i18n='library.loading'>${t('library.loading')}</div>`;
 }
@@ -60,7 +62,7 @@ async function initLibrary() {
     toggleControl(0);
 
     const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
+    const tracks = await getCachedTracks();
 
     if (tracks.length > 0) {
         await updateUIByIndex(0);
@@ -80,7 +82,18 @@ async function initLibrary() {
  */
 async function refreshView(context) {
     const config = sortConfigs[context];
-    let tracks = await config.fetch();
+    const allTracks = await config.fetch();
+
+    let key = null;
+    if (context === 'library') {
+        key = `${tracksVersion}|${globalSearchQuery}|${config.column}|${config.ascending}`;
+        if (key === libraryView.key) {
+            await applyActiveOrder(libraryView.paths);
+            return; // список на экране уже актуален
+        }
+    }
+
+    let tracks = allTracks;
 
     if (globalSearchQuery) {
         const q = globalSearchQuery.toLowerCase();
@@ -95,7 +108,11 @@ async function refreshView(context) {
         tracks = sortTracksArray(tracks, config.column, config.ascending);
     }
 
-    await applyActiveOrder(tracks.map(t => t.FilePath));
+    const paths = tracks.map(t => t.FilePath);
+    await applyActiveOrder(paths);
+
+    if (context === 'library') libraryView = { key, paths };
+
     config.render(tracks);
 
     if (context === 'playlist') {
@@ -108,7 +125,13 @@ async function refreshView(context) {
  * @async
  */
 async function onLibraryChanged() {
-    endLoading();
+    try {
+        await refreshTracksCache();   // до любой отрисовки
+    } 
+    finally {
+        endLoading();                 // индикатор снимается даже при ошибке запроса
+    }
+
     await refreshView('library');
     await showFirstTrackIfIdle();
 
@@ -128,7 +151,7 @@ async function onLibraryChanged() {
 async function showFirstTrackIfIdle() {
     if (!document.getElementById('player__cover-img').classList.contains('u-hidden')) return;
 
-    const tracks = JSON.parse(await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson());
+    const tracks = await getCachedTracks();
     if (tracks.length === 0) return;
 
     await updateUIByIndex(0);

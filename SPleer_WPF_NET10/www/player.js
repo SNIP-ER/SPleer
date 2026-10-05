@@ -6,8 +6,7 @@ let volumeSaveDebounceTimer = null;
  */
 async function playOrResume() {
     try {
-        const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-        const tracks = JSON.parse(json);
+        const tracks = await getCachedTracks();
 
         if (tracks.length === 0) return;
 
@@ -47,8 +46,7 @@ async function pause() {
  * @async
  */
 async function playByPath(filePath) {
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
+    const tracks = await getCachedTracks();
     if (tracks.length === 0) return;
 
     if (currentPlayingPath === filePath) {
@@ -120,8 +118,7 @@ async function playPlaylist() {
  * @async
  */
 async function flipTrack(param) {
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
+    const tracks = await getCachedTracks();
 
     if (tracks.length === 0) return;
 
@@ -156,8 +153,7 @@ async function updateUIForCurrentTrack() {
  * @async
  */
 async function updateUIByIndex(index) {
-    const json = await window.chrome.webview.hostObjects.musicLibrary.GetTracksJson();
-    const tracks = JSON.parse(json);
+    const tracks = await getCachedTracks();
 
     if (index < 0 || index >= tracks.length) return;
 

@@ -201,13 +201,14 @@ public class PlaylistManager
     /// <returns>Список объектов для сериализации в JSON.</returns>
     public IReadOnlyList<object> GetAllPlaylistsWithActiveCount()
     {
+        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
         return _playlists.Select(p => new
         {
             p.Id,
             p.Name,
             p.CoverPath,
             p.TrackPaths,
-            ActiveTrackCount = GetActiveTrackCount(p)
+            ActiveTrackCount = p.TrackPaths.Count(existingPaths.Contains)
         }).ToList();
     }
 
