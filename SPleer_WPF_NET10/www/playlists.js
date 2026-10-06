@@ -415,8 +415,10 @@ async function openPlaylistsList() {
  * @async
  */
 async function renderPlaylistPopupItems(playlists) {
-    const listContainer = document.getElementById('player__add-popup-list');
-    listContainer.innerHTML = '';
+    const listContainerAdded = document.getElementById('player__add-popup-list-added');
+    const listContainerOptions = document.getElementById('player__add-popup-list-options');
+    listContainerAdded.innerHTML = '';
+    listContainerOptions.innerHTML = '';
 
     for (const playlist of playlists) {
         const coverSrc = await getPlaylistCoverSrc(playlist);
@@ -440,7 +442,13 @@ async function renderPlaylistPopupItems(playlists) {
             </div>
             ${actionDiv}
         `;
-        listContainer.appendChild(item);
+
+        if (isAdded == true) {
+            listContainerAdded.appendChild(item);
+        } 
+        else {
+            listContainerOptions.appendChild(item);
+        }
     }
 
     activateMarquees(document.getElementById('player__add-popup-list'));

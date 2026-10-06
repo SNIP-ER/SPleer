@@ -111,7 +111,7 @@
 
             <div class='u-hidden' id='player__add-popup'>
                 <div id='player__add-popup-title'>
-                    <div id='player__add-popup-header' data-i18n="addPlaylist.title">ADD IN PLAYLISTS</div>
+                    <div class='player__add-popup-list-text' data-i18n="addPlaylist.title">ADD IN PLAYLISTS</div>
 
                     <div id='player__add-popup-search'>
                         <div id='player__add-popup-search-container'>
@@ -125,7 +125,12 @@
                     </div>
                 </div>
 
-                <div class='scrollbar-thin' id='player__add-popup-list'></div>
+                <div class='scrollbar-thin' id='player__add-popup-list'>
+                    <div class='player__add-popup-list-text' data-i18n="addPlaylist.playlists.added">Added</div>
+                    <div id='player__add-popup-list-added'></div>
+                    <div class='player__add-popup-list-text' data-i18n="addPlaylist.playlists.options">Options</div>
+                    <div id='player__add-popup-list-options'></div>
+                </div>
 
                 <div id='player__add-popup-footer'>
                     <div class='cursor-pointer' id='player__add-popup-footer-btn'  role="button" tabindex="0" onclick="closePlaylistsList()" data-i18n="addPlaylist.cancel">Cancel</div>

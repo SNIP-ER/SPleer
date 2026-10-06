@@ -1721,14 +1721,9 @@ button:hover {
     box-shadow: 0 25px 50px -12px var(--shadow-medium);
 }
 
-#player__add-popup-header {
-    padding: 12px 12px 4px 12px;
-    font-family: 'Geist', sans-serif;
-    font-weight: 600;
-    font-size: 12px;
-    line-height: 16px;
-    letter-spacing: 1.2px;
-    color: var(--text-add-header);
+#player__add-popup-title {
+    border-bottom: 1px solid var(--border-window);
+    border-radius: 12px;
 }
 
 #player__add-popup-search {
@@ -1840,6 +1835,16 @@ button:hover {
 #player__add-popup-footer-btn:hover {
     scale: 1.05;
     opacity: 100%;
+}
+
+.player__add-popup-list-text {
+    padding: 12px 12px 4px 12px;
+    font-family: 'Geist', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 1.2px;
+    color: var(--text-add-header);
 }
 
 .popup-item {
