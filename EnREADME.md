@@ -78,6 +78,8 @@ You can translate the interface into any language you need. To do this:
 2) Extract all files into any folder
 
 - `.exe` — the executable file used to launch the application
+- `Playlists.json` - file that stores playlists
+- `Settings.json` - file that stores application settings
 - ```Music``` — the default folder where you can place your music files
 - ```Covers``` — the folder containing cover images extracted from audio files in the music folder
 - ```www``` — the folder containing the web files
