@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 public class MusicLibrary
 {
@@ -11,7 +12,8 @@ public class MusicLibrary
     private string? _watchedFolder;
     private string _musicFolderPath;
     private FileSystemWatcher? _watcher;
-    private static readonly string[] SupportedExtensions = { ".mp3", ".wav", ".m4a", ".wma", ".ogg", ".flac", ".aiff", ".aif", ".opus" };
+    private static readonly string[] SupportedExtensions =
+        { ".mp3", ".wav", ".m4a", ".wma", ".ogg", ".flac", ".aiff", ".aif", ".opus" };
 
     public bool IsScanning => _isScanning;
 
@@ -21,14 +23,16 @@ public class MusicLibrary
     public event Action? LibraryChanged;
 
     /// <summary>
-    /// Событие, вызываемое при переименовании файла в папке с музыкой. Параметры: старый путь, новый путь.
+    /// Событие, вызываемое при переименовании файла в папке с музыкой.
+    /// Параметры: старый путь, новый путь.
     /// </summary>
     public event Action<string, string>? TrackRenamed;
 
     /// <summary>
     /// Создаёт экземпляр класса <see cref="MusicLibrary"/>.
     /// </summary>
-    /// <param name="customFolderPath">Пользовательский путь к папке с музыкой, или null для пути по умолчанию.</param>
+    /// <param name="customFolderPath">Пользовательский путь к папке с музыкой,
+    /// или null для пути по умолчанию.</param>
     public MusicLibrary(string? customFolderPath = null)
     {
         _musicFolderPath = Path.GetFullPath(customFolderPath
@@ -59,19 +63,20 @@ public class MusicLibrary
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка сканирования: {ex.Message}");
+                Debug.WriteLine($"Ошибка сканирования: {ex.Message}");
             }
 
             lock (_scanLock)
             {
-                if (version != _scanVersion) return; // уже идёт более новый скан
+                // уже идёт более новый скан
+                if (version != _scanVersion) return;
 
                 if (result != null)
                 {
                     _tracks = result;
                     StartWatching(folder);
                 }
-                _isScanning = false; // строго до события
+                _isScanning = false;
             }
 
             while (_pendingRenames.TryDequeue(out var rename))
@@ -79,7 +84,7 @@ public class MusicLibrary
                 TrackRenamed?.Invoke(rename.Old, rename.New);
             }
 
-            LibraryChanged?.Invoke(); // и при ошибке тоже, чтобы индикатор не завис
+            LibraryChanged?.Invoke();
         });
     }
 
@@ -96,11 +101,13 @@ public class MusicLibrary
             _watchedFolder = null;
             _musicFolderPath = Path.GetFullPath(newPath);
         }
-        _ = StartScanAsync(); // не блокирует вызывающий поток
+        // не блокирует вызывающий поток
+        _ = StartScanAsync();
     }
 
     /// <summary>
-    /// Запускает отслеживание изменений в папке с музыкой (добавление/удаление/переименование mp3-файлов).
+    /// Запускает отслеживание изменений в папке с музыкой
+    /// (добавление/удаление/переименование mp3-файлов).
     /// </summary>
     /// <param name="folder">Папка с музыкой.</param>
     private void StartWatching(string folder)
@@ -127,8 +134,6 @@ public class MusicLibrary
     /// <summary>
     /// Ответ на уведомление об добавлении/удалении трека из папки.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void OnFolderChanged(object sender, FileSystemEventArgs e)
     {
         Thread.Sleep(300);
@@ -138,8 +143,6 @@ public class MusicLibrary
     /// <summary>
     /// Ответ на уведомление об переименовании трека в папке.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void OnFileRenamed(object sender, RenamedEventArgs e)
     {
         Thread.Sleep(300);
@@ -148,10 +151,13 @@ public class MusicLibrary
     }
 
     /// <summary>
-    /// Получение данных из файлов из папки.
+    /// Читает теги и обложки файлов из папки и формирует список треков.
     /// </summary>
     /// <param name="folder">Папка с музыкой.</param>
-    /// <param name="version"></param>
+    /// <param name="version">
+    /// Номер версии скана, присвоенный при запуске. Если во время работы счётчик
+    /// <c>_scanVersion</c> изменился (то есть стартовал более новый скан), метод прекращает работу.
+    /// </param>
     private List<Track>? ScanFolder(string folder, int version)
     {
         var result = new List<Track>();
@@ -231,9 +237,9 @@ public class MusicLibrary
 
                     string absolutePath = Path.Combine(coversFolder, safeFileName + extension);
 
-                    if (!System.IO.File.Exists(absolutePath))
+                    if (!File.Exists(absolutePath))
                     {
-                        System.IO.File.WriteAllBytes(absolutePath, picture.Data.Data);
+                        File.WriteAllBytes(absolutePath, picture.Data.Data);
                     }
 
                     coverPath = "Covers/" + safeFileName + extension;
@@ -244,7 +250,7 @@ public class MusicLibrary
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Пропущен файл {file}: {ex.Message}");
+                Debug.WriteLine($"Пропущен файл {file}: {ex.Message}");
             }
         }
 

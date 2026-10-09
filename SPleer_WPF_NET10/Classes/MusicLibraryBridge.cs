@@ -1,9 +1,9 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Interop;
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace SPleer
 {
@@ -82,7 +82,9 @@ namespace SPleer
         /// <summary>
         /// Запускает изменение размера окна в указанном направлении.
         /// </summary>
-        /// <param name="direction">Направление: "left", "right", "top", "bottom", "topleft", "topright", "bottomleft", "bottomright".</param>
+        /// <param name="direction">
+        /// Направление: "left", "right", "top", "bottom", "topleft", "topright", "bottomleft", "bottomright".
+        /// </param>
         public void StartResize(string direction)
         {
             int hitTest = direction switch
@@ -151,7 +153,7 @@ namespace SPleer
             try
             {
                 var tracks = _library.GetAllTracks();
-                return System.Text.Json.JsonSerializer.Serialize(tracks);
+                return JsonSerializer.Serialize(tracks);
             }
             catch (Exception ex)
             {
@@ -260,7 +262,7 @@ namespace SPleer
         {
             var orderedPaths = string.IsNullOrEmpty(json)
                 ? null
-                : System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+                : JsonSerializer.Deserialize<List<string>>(json);
             _audioPlayer.SetActiveOrder(orderedPaths);
         }
 
@@ -353,7 +355,7 @@ namespace SPleer
         public string GetPlaylistsJson()
         {
             var playlists = _playlistManager.GetAllPlaylistsWithActiveCount();
-            return System.Text.Json.JsonSerializer.Serialize(playlists);
+            return JsonSerializer.Serialize(playlists);
         }
 
         /// <summary>
@@ -370,7 +372,7 @@ namespace SPleer
                 .Select(path => allTracks.FirstOrDefault(t => t.FilePath == path))
                 .Where(t => t != null)
                 .ToList();
-            return System.Text.Json.JsonSerializer.Serialize(tracks);
+            return JsonSerializer.Serialize(tracks);
         }
 
         /// <summary>
@@ -390,21 +392,24 @@ namespace SPleer
         /// </summary>
         /// <param name="id">ID плейлиста.</param>
         /// <param name="newName">Новое название плейлиста.</param>
-        public void RenamePlaylist(int id, string newName) => _playlistManager.RenamePlaylist(id, newName);
+        public void RenamePlaylist(int id, string newName) =>
+            _playlistManager.RenamePlaylist(id, newName);
 
         /// <summary>
         /// Добавление трека в плейлист.
         /// </summary>
         /// <param name="playlistId">Номер плейлиста.</param>
         /// <param name="trackPath">Путь трека.</param>
-        public void AddTrackToPlaylist(int playlistId, string trackPath) => _playlistManager.AddTrackToPlaylist(playlistId, trackPath);
+        public void AddTrackToPlaylist(int playlistId, string trackPath) =>
+            _playlistManager.AddTrackToPlaylist(playlistId, trackPath);
 
         /// <summary>
         /// Удаление трека из плейлиста.
         /// </summary>
         /// <param name="playlistId">Номер плейлиста.</param>
         /// <param name="trackPath">Путь трека.</param>
-        public void RemoveTrackFromPlaylist(int playlistId, string trackPath) => _playlistManager.RemoveTrackFromPlaylist(playlistId, trackPath);
+        public void RemoveTrackFromPlaylist(int playlistId, string trackPath) =>
+            _playlistManager.RemoveTrackFromPlaylist(playlistId, trackPath);
 
         /// <summary>
         /// Проверяет, добавлен ли трек в указанный плейлист.
@@ -412,19 +417,22 @@ namespace SPleer
         /// <param name="playlistId">ID плейлиста.</param>
         /// <param name="trackPath">Путь к файлу трека.</param>
         /// <returns>true, если трек уже в плейлисте.</returns>
-        public bool IsTrackInPlaylist(int playlistId, string trackPath) => _playlistManager.IsTrackInPlaylist(playlistId, trackPath);
+        public bool IsTrackInPlaylist(int playlistId, string trackPath) =>
+            _playlistManager.IsTrackInPlaylist(playlistId, trackPath);
 
         /// <summary>
         /// Возвращает путь к обложке первого трека в плейлисте.
         /// </summary>
         /// <param name="playlistId">ID плейлиста.</param>
         /// <returns>Путь к обложке или null, если треков нет.</returns>
-        public string? GetFirstTrackCoverPath(int playlistId) => _playlistManager.GetFirstTrackCoverPath(playlistId);
+        public string? GetFirstTrackCoverPath(int playlistId) =>
+            _playlistManager.GetFirstTrackCoverPath(playlistId);
 
         /// <summary>
         /// Открывает системный диалог выбора файла для обложки плейлиста.
         /// </summary>
-        /// <returns>Полный путь к выбранному файлу изображения или null, если пользователь отменил выбор.</returns>
+        /// <returns>Полный путь к выбранному файлу изображения или null,
+        /// если пользователь отменил выбор.</returns>
         public string? PickCoverImage()
         {
             string? result = null;
@@ -448,7 +456,8 @@ namespace SPleer
         /// </summary>
         /// <param name="id">ID плейлиста.</param>
         /// <param name="sourcePath">Путь к исходному файлу изображения на диске пользователя.</param>
-        public void SetPlaylistCover(int id, string sourcePath) => _playlistManager.SetPlaylistCover(id, sourcePath);
+        public void SetPlaylistCover(int id, string sourcePath) =>
+            _playlistManager.SetPlaylistCover(id, sourcePath);
 
         /// <summary>
         /// Удаление обложки плейлиста.
@@ -461,7 +470,8 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Удаляет неиспользуемые файлы обложек. Вызывается при закрытии приложения.
+        /// Удаляет неиспользуемые файлы обложек.
+        /// Вызывается при закрытии приложения.
         /// </summary>
         public void CleanupOrphanedCovers()
         {
@@ -513,7 +523,8 @@ namespace SPleer
         /// Возвращает все сохранённые настройки приложения в виде JSON.
         /// </summary>
         /// <returns>JSON-объект вида "ключ": "значение" со всеми настройками.</returns>
-        public string GetSettingsJson() => System.Text.Json.JsonSerializer.Serialize(_settingsManager.GetAll());
+        public string GetSettingsJson() =>
+            JsonSerializer.Serialize(_settingsManager.GetAll());
 
         /// <summary>
         /// Сохраняет значение настройки.
@@ -551,7 +562,8 @@ namespace SPleer
             try
             {
                 _settingsManager.Set("musicFolder", path);
-                _library.SetMusicFolder(path); // возвращается сразу
+                // возвращается сразу
+                _library.SetMusicFolder(path);
 
                 return true;
             }

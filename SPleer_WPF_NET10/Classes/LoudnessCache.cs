@@ -39,9 +39,12 @@ namespace SPleer
         /// <summary>
         /// Возвращает громкость из кэша, если файл не менялся.
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="rmsDb"></param>
-        /// <returns></returns>
+        /// <param name="path">Полный путь к файлу трека.</param>
+        /// <param name="rmsDb">
+        /// Громкость трека (RMS) в дБ относительно максимума.
+        /// Равна 0, если записи нет.
+        /// </param>
+        /// <returns>true, если актуальная запись найдена; иначе false.</returns>
         public bool TryGet(string path, out double rmsDb)
         {
             rmsDb = 0;
@@ -64,10 +67,14 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Берёт громкость из кэша или считает сразу (редкий случай — трек ещё не успели проанализировать).
+        /// Возвращает громкость трека из кэша, а если её там нет, считает сразу и сохраняет в кэш.
+        /// Синхронный анализ может занять время, поэтому обычно сюда попадают только
+        /// треки, которые не успели проанализироваться в фоне.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">Полный путь к файлу трека.</param>
+        /// <returns>
+        /// Громкость (RMS) в дБ или null, если проанализировать файл не удалось или он беззвучный.
+        /// </returns>
         public double? GetOrAnalyze(string path)
         {
             if (TryGet(path, out var cached)) return cached;
@@ -81,8 +88,8 @@ namespace SPleer
         /// <summary>
         /// Анализирует все треки в фоне. Новый вызов отменяет предыдущий.
         /// </summary>
-        /// <param name="paths"></param>
-        /// <returns></returns>
+        /// <param name="paths">Список путей к файлам треков.</param>
+        /// <returns>Задача, завершающаяся по окончании анализа (или его отмены новым вызовом).</returns>
         public Task AnalyzeLibraryAsync(IReadOnlyList<string> paths)
         {
             int version = Interlocked.Increment(ref _analysisVersion);
@@ -103,10 +110,11 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Считает среднюю громкость (RMS) трека по всему файлу, игнорируя тишину,
+        /// и записывает результат в кэш в памяти. На диск не сохраняет.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">Полный путь к файлу трека.</param>
+        /// <returns>Громкость в дБ или null, если файл не удалось прочитать или он беззвучный.</returns>
         private double? Analyze(string path)
         {
             try
@@ -126,7 +134,8 @@ namespace SPleer
                         for (int i = 0; i < read; i++)
                         {
                             float sq = buf[i] * buf[i];
-                            if (sq > 1e-7f) { sum += sq; count++; } // игнорируем тишину
+                            // игнорирование тишини
+                            if (sq > 1e-7f) { sum += sq; count++; }
                         }
                     }
                 }
@@ -151,7 +160,7 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Сохраняет кэш громкости в файл Loudness.json. Потокобезопасно.
         /// </summary>
         private void Save()
         {

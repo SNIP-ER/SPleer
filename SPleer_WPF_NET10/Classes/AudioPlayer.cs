@@ -1,5 +1,4 @@
-﻿using NAudio.CoreAudioApi;
-using NAudio.SoundFile;
+﻿using NAudio.SoundFile;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using System.IO;
@@ -9,28 +8,43 @@ namespace SPleer
 {
     public class AudioPlayer
     {
-        private IWavePlayer? outputDevice; // Устройство вывода
-        private WaveStream? audioFile; // Читатель аудиофайла
+        // Устройство вывода
+        private IWavePlayer? outputDevice;
+        // Читатель аудиофайла
+        private WaveStream? audioFile;
         private VolumeSampleProvider? volumeProvider;
-        private VolumeSampleProvider? gainProvider;   // нормализация
+        // Нормализация
+        private VolumeSampleProvider? gainProvider;
         private LoudnessCache? _loudness;
-        private double _targetRmsDb = -16.0;          // режим «Нормально»
+        // Режим «Нормально»
+        private double _targetRmsDb = -16.0;
         private double? _currentRmsDb;
-        private MusicLibrary? _musicLibrary;    // Ссылка на библиотеку треков (НЕ копия списка)
-        private Stack<int> _history = new Stack<int>(); // История треков
-        private List<string>? _activeOrder = null; // явный порядок путей
-        private PlaybackMode _currentMode = PlaybackMode.Sequential;    // Текущий режим воспроизведения
-        private string? currentFilePath;    // Путь к текущему файлу
+        // Ссылка на библиотеку треков
+        private MusicLibrary? _musicLibrary;
+        // История треков
+        private Stack<int> _history = new Stack<int>();
+        // Явный порядок путей
+        private List<string>? _activeOrder = null;
+        // Текущий режим воспроизведения
+        private PlaybackMode _currentMode = PlaybackMode.Sequential;
+        // Путь к текущему файлу
+        private string? currentFilePath;
         private string? _currentTrackPath = null;
-        private float _userVolume = 0.6f;   // Громкость, установленная пользователем
+        // Громкость, установленная пользователем
+        private float _userVolume = 0.6f;
         private float _normalizedVolume = 1.0f;
-        private int _currentTrackIndex = -1;    // Индекс текущего трека
-        private bool _isRepeatOne = false;  // Флаг для кнопки repeat
-        private bool _normalizationEnabled = true;  // Флаг для включения/выключения нормализации громкости
+        // Индекс текущего трека
+        private int _currentTrackIndex = -1;
+        // Флаг для кнопки repeat
+        private bool _isRepeatOne = false;
+        // Флаг для включения/выключения нормализации громкости
+        private bool _normalizationEnabled = true;
 
         public bool IsPlaying => outputDevice?.PlaybackState == PlaybackState.Playing;
-        public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0; // Текущая позиция в секундах
-        public double TotalDuration => audioFile?.TotalTime.TotalSeconds ?? 0; // Длительность трека в секундах
+        // Текущая позиция в секундах
+        public double CurrentPosition => audioFile?.CurrentTime.TotalSeconds ?? 0;
+        // Длительность трека в секундах
+        public double TotalDuration => audioFile?.TotalTime.TotalSeconds ?? 0;
         public WaveStream? AudioFile => audioFile;
 
         private static readonly string[] SoundFileExtensions = { ".ogg", ".flac", ".aiff", ".aif", ".opus" };
@@ -74,7 +88,6 @@ namespace SPleer
 
             currentFilePath = null;
 
-            // Проверка на существование файла
             if (!File.Exists(filePath))
             {
                 Debug.WriteLine($"Файл не найден! Путь: {filePath}");
@@ -84,7 +97,7 @@ namespace SPleer
             try
             {
                 audioFile = CreateReader(filePath);
-                _currentRmsDb = _loudness?.GetOrAnalyze(filePath);   // из кэша, обычно мгновенно
+                _currentRmsDb = _loudness?.GetOrAnalyze(filePath);
                 _normalizedVolume = CalcGain();
 
                 // Цепочка: файл → под формат устройства → нормализация → лимитер → громкость пользователя
@@ -200,15 +213,20 @@ namespace SPleer
         // --- Нормализация, режимы громкости, вывод ---
 
         /// <summary>
-        /// 
+        /// Передаёт плееру кэш громкости треков, из которого берутся данные для нормализации.
         /// </summary>
-        /// <param name="cache"></param>
+        /// <param name="cache">Кэш с заранее посчитанной громкостью треков.</param>
         public void SetLoudnessCache(LoudnessCache cache) => _loudness = cache;
 
         /// <summary>
-        /// 
+        /// Вычисляет множитель усиления для текущего трека, чтобы его громкость
+        /// приблизилась к целевой (зависит от выбранного режима громкости).
+        /// Усиление ограничено диапазоном от -12 до +9 дБ.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// Линейный множитель громкости. Равен 1, если нормализация выключена
+        /// или громкость текущего трека неизвестна.
+        /// </returns>
         private float CalcGain()
         {
             if (!_normalizationEnabled || _currentRmsDb == null) return 1f;
@@ -218,7 +236,8 @@ namespace SPleer
         }
 
         /// <summary>
-        /// 
+        /// Пересчитывает усиление нормализации и сразу применяет его к играющему треку.
+        /// Вызывается при смене режима громкости или включении/выключении нормализации.
         /// </summary>
         private void RecalcGain()
         {
@@ -227,9 +246,13 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Режим громкости: "loud", "normal" или "quiet". Применяется сразу к играющему треку.
+        /// Устанавливает режим громкости, то есть целевой уровень, к которому подтягиваются все треки.
+        /// Изменение применяется сразу, в том числе к играющему треку.
         /// </summary>
-        /// <param name="mode"></param>
+        /// <param name="mode">
+        /// Режим: "loud" (громко), "normal" (нормально) или "quiet" (тихо). Регистр не учитывается.
+        /// Любое другое значение трактуется как "normal".
+        /// </param>
         public void SetLoudnessMode(string mode)
         {
             _targetRmsDb = mode.ToLowerInvariant() switch
@@ -243,10 +266,11 @@ namespace SPleer
         }
 
         /// <summary>
-        /// Создаёт WASAPI-вывод, при ошибке откатывается на WaveOut.
+        /// Создаёт и инициализирует устройство вывода звука (WASAPI, при ошибке — запасной WaveOut).
+        /// Воспроизведение не запускается, для этого нужно вызвать Play у результата.
         /// </summary>
-        /// <param name="provider"></param>
-        /// <returns></returns>
+        /// <param name="provider">Цепочка обработки звука, которую нужно воспроизвести.</param>
+        /// <returns>Инициализированное устройство вывода, готовое к воспроизведению.</returns>
         private static IWavePlayer CreateOutputDevice(ISampleProvider provider)
         {
             try
@@ -294,7 +318,7 @@ namespace SPleer
             }
 
             _currentTrackIndex = index;
-            _currentTrackPath = tracks[index].FilePath; // запоминаем путь, а не только индекс
+            _currentTrackPath = tracks[index].FilePath;
             PlayWithNormalization(tracks[index].FilePath);
         }
 
@@ -368,7 +392,8 @@ namespace SPleer
             if (_history.Count > 0)
             {
                 int prevIndex = _history.Pop();
-                _currentTrackIndex = prevIndex;     // Текущий не сохраняется в истории при возврате
+                // Текущий не сохраняется в истории при возврате
+                _currentTrackIndex = prevIndex;
                 PlayWithNormalization(allTracks[prevIndex].FilePath);
                 return;
             }
@@ -485,7 +510,8 @@ namespace SPleer
 
             var tracks = _musicLibrary.GetAllTracks().ToList();
             var newIndex = tracks.FindIndex(t => t.FilePath == _currentTrackPath);
-            _currentTrackIndex = newIndex; // будет -1, если трек реально удалён
+            // будет -1, если трек реально удалён
+            _currentTrackIndex = newIndex;
         }
 
         /// <summary>

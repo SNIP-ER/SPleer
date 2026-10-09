@@ -12,10 +12,10 @@ namespace SPleer
         public WaveFormat WaveFormat => _source.WaveFormat;
 
         /// <summary>
-        /// 
+        /// Читает звук из источника и мягко ограничивает пики выше порога, чтобы избежать клиппинга.
         /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
+        /// <param name="buffer">Буфер, который заполняется обработанными семплами.</param>
+        /// <returns>Количество семплов, записанных в буфер. 0 означает конец потока.</returns>
         public int Read(Span<float> buffer)
         {
             int read = _source.Read(buffer);

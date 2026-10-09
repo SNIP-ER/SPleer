@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Text.Json;
+using System.Diagnostics;
 
 public class PlaylistManager
 {
@@ -37,7 +39,7 @@ public class PlaylistManager
 
             try
             {
-                _playlists = System.Text.Json.JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
+                _playlists = JsonSerializer.Deserialize<List<Playlist>>(json) ?? new List<Playlist>();
 
                 foreach (var playlist in _playlists)
                 {
@@ -60,7 +62,7 @@ public class PlaylistManager
     /// </summary>
     private void Save()
     {
-        var json = System.Text.Json.JsonSerializer.Serialize(_playlists);
+        var json = JsonSerializer.Serialize(_playlists);
         File.WriteAllText(_filePath, json);
     }
 
@@ -185,17 +187,6 @@ public class PlaylistManager
     public IReadOnlyList<Playlist> GetAllPlaylists() => _playlists;
 
     /// <summary>
-    /// Возвращает количество треков плейлиста, которые реально существуют в текущей библиотеке.
-    /// </summary>
-    /// <param name="playlist">Плейлист.</param>
-    /// <returns>Количество существующих треков.</returns>
-    private int GetActiveTrackCount(Playlist playlist)
-    {
-        var existingPaths = _musicLibrary.GetAllTracks().Select(t => t.FilePath).ToHashSet();
-        return playlist.TrackPaths.Count(p => existingPaths.Contains(p));
-    }
-
-    /// <summary>
     /// Возвращает список плейлистов вместе с актуальным количеством существующих треков в каждом.
     /// </summary>
     /// <returns>Список объектов для сериализации в JSON.</returns>
@@ -227,7 +218,7 @@ public class PlaylistManager
         foreach (var file in Directory.GetFiles(coversFolder, $"playlist_{id}.*"))
         {
             try { File.Delete(file); }
-            catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+            catch (Exception ex) { Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
         }
     }
 
@@ -247,7 +238,8 @@ public class PlaylistManager
             if (!Directory.Exists(coversFolder))
                 Directory.CreateDirectory(coversFolder);
 
-            DeleteCoverFiles(id); // убираем старую обложку перед сохранением новой
+            // убрать старую обложку перед сохранением новой
+            DeleteCoverFiles(id);
 
             string fileName = "playlist_" + id + Path.GetExtension(sourcePath);
             string destPath = Path.Combine(coversFolder, fileName);
@@ -258,7 +250,7 @@ public class PlaylistManager
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
+            Debug.WriteLine($"Ошибка SetPlaylistCover: {ex.Message}");
         }
     }
 
@@ -297,7 +289,7 @@ public class PlaylistManager
     /// </summary>
     public void CleanupOrphanedCovers()
     {
-        if (_musicLibrary.IsScanning) return; // список треков ещё неполный
+        if (_musicLibrary.IsScanning) return;
 
         try
         {
@@ -322,13 +314,13 @@ public class PlaylistManager
                 if (!usedCoverPaths.Contains(relativePath))
                 {
                     try { File.Delete(file); }
-                    catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
+                    catch (Exception ex) { Debug.WriteLine($"Не удалось удалить {file}: {ex.Message}"); }
                 }
             }
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
+            Debug.WriteLine($"Ошибка CleanupOrphanedCovers: {ex.Message}");
         }
     }
 }
