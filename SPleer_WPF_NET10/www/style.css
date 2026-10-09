@@ -2006,13 +2006,33 @@ button:hover {
 
 #time-progress {
     --volume: 0%;
+    --hover: 0%;
+    position: relative;
     width: 432px;
     height: 6px;
-    background: linear-gradient(to right, var(--accent), var(--accent-light) var(--volume), var(--border-default) var(--volume));
+    background: linear-gradient(
+        to right, var(--accent), 
+        var(--accent-light) var(--volume), 
+        var(--border-default) var(--volume)
+        );
     border-radius: 12px;
     outline: none;
     cursor: pointer;
     appearance: none;
+}
+
+#time-progress::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: var(--volume);
+    width: max(0%, calc(var(--hover) - var(--volume)));
+    background: var(--text-muted);
+    border-radius: 0 12px 12px 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 #time-progress::-webkit-slider-thumb {
@@ -2025,9 +2045,13 @@ button:hover {
 }
 
 #time-progress:hover::-webkit-slider-thumb {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     background: var(--text-white);
+}
+
+#time-progress:hover::after {
+    opacity: 1;
 }
 
 
@@ -2045,12 +2069,20 @@ button:hover {
 
 #player__volume-slider {
     --volume: 40%;
-    position: relative;
+    --hover: 0%;
     display: flex;
-    align-items: center;
+    position: relative;
+    box-sizing: content-box;
     width: 102px;
     height: 4px;
-    background: linear-gradient(to right, var(--text-primary) var(--volume), var(--border-default) var(--volume));
+    padding: 8px 0;
+    margin: calc(8px * -1) 0;
+    background: linear-gradient(
+        to right, 
+        var(--text-primary) var(--volume), 
+        var(--border-default) var(--volume)
+        );
+    background-clip: content-box;
     border-radius: 12px;
     outline: none;
     cursor: pointer;
@@ -2060,18 +2092,38 @@ button:hover {
 #player__volume-slider::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(to right, var(--accent), var(--accent-light) var(--volume), var(--border-default) var(--volume));
+    inset: 8px 0;
     border-radius: 12px;
+    pointer-events: none;
     opacity: 0;
     transition: opacity 0.2s;
+    background: linear-gradient(
+        to right, 
+        var(--accent), 
+        var(--accent-light) var(--volume),
+        var(--border-default) var(--volume)
+        );
+}
+
+#player__volume-slider::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    left: var(--volume);
+    width: max(0%, calc(var(--hover) - var(--volume)));
+    background: var(--text-muted);
+    border-radius: 0 12px 12px 0;
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
 }
 
 #player__volume-slider:hover::before {
+    opacity: 1;
+}
+
+#player__volume-slider:hover::after {
     opacity: 1;
 }
 
@@ -2087,8 +2139,8 @@ button:hover {
 }
 
 #player__volume-slider:hover::-webkit-slider-thumb {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
     background: var(--text-white);
 }
 

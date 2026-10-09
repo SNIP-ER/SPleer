@@ -287,6 +287,33 @@ async function initVolume(savedSettings) {
 }
 
 /**
+ * Передаёт в CSS позицию мыши над ползунком (переменная --hover, в %).
+ * Полоса между --volume и --hover подсвечивается в ::before.
+ * @param {string[]} sliderIds - id ползунков.
+ */
+function initSliderHover(sliderIds) {
+    sliderIds.forEach(id => {
+        const slider = document.getElementById(id);
+        if (!slider) return;
+
+        slider.style.setProperty('--hover', '0%');
+
+        slider.addEventListener('mousemove', e => {
+            const rect = slider.getBoundingClientRect();
+            const p = ((e.clientX - rect.left) / rect.width) * 100;
+            
+            slider.style.setProperty('--hover', `${Math.max(0, Math.min(100, p))}%`);
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            slider.style.setProperty('--hover', '0%');
+        });
+    });
+}
+
+initSliderHover(['player__volume-slider', 'time-progress']);
+
+/**
  * Показывает кнопку Play, скрывает Pause.
  */
 function showPlayButton() {
