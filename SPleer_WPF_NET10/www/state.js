@@ -35,6 +35,16 @@ const settingsSchema = [
         { value: 'Light', labelKey: 'settings.theme.light' }
     ], default: 'Dark' },
 
+    { key: 'scale', labelKey: 'settings.scale', type: 'select', options: [
+        { value: '70', labelKey: '70%' },
+        { value: '80', labelKey: '80%' },
+        { value: '90', labelKey: '90%' },
+        { value: '100', labelKey: '100%' },
+        { value: '110', labelKey: '110%' },
+        { value: '120', labelKey: '120%' },
+        { value: '130', labelKey: '130%' },
+    ], default: '100' },
+
     { key: 'close_btn', labelKey: 'settings.closeButton', type: 'select', options: [
         { value: 'Close', labelKey: 'settings.closeButton.close' }
     ], default: 'Close' },

@@ -24,6 +24,7 @@
   "settings.theme": "Тема",
   "settings.theme.dark": "Темная",
   "settings.theme.light": "Светлая",
+  "settings.scale": "Масштаб интерфейса",
   "settings.closeButton": "Кнопка закрыть",
   "settings.closeButton.close": "Закрыть",
   "settings.folderMusics": "Папка с музыкой",

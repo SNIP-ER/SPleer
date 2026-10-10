@@ -58,6 +58,7 @@
     --black: black;
 
     --card-width: 220px;
+    --resize: calc(6px / var(--ui-zoom, 1));
 }
 
 [data-theme="light"] {
@@ -421,14 +422,14 @@ button:hover {
 }
 
 .resize-handle--left, .resize-handle--right {
-    top: 6px; bottom: 6px; width: 6px;
+    top: var(--resize); bottom: var(--resize); width: var(--resize);
     cursor: ew-resize;
 }
 .resize-handle--left { left: 0; }
 .resize-handle--right { right: 0; }
 
 .resize-handle--top, .resize-handle--bottom {
-    left: 6px; right: 6px; height: 6px;
+    left: var(--resize); right: var(--resize); height: var(--resize);
     cursor: ns-resize;
 }
 .resize-handle--top { top: 0; }
@@ -436,7 +437,7 @@ button:hover {
 
 .resize-handle--topleft, .resize-handle--topright,
 .resize-handle--bottomleft, .resize-handle--bottomright {
-    width: 6px; height: 6px;
+    width: var(--resize); height: var(--resize);
 }
 .resize-handle--topleft { top: 0; left: 0; cursor: nwse-resize; }
 .resize-handle--bottomright { bottom: 0; right: 0; cursor: nwse-resize; }
@@ -2262,7 +2263,7 @@ button:hover {
         overflow: hidden;
     }
     #player__settings {
-        width: 300px;
+        width: 310px;
     }
     #now-playing__info {
         width: 326px;

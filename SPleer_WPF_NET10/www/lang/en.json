@@ -24,6 +24,7 @@
   "settings.theme": "Theme",
   "settings.theme.dark": "Dark",
   "settings.theme.light": "Light",
+  "settings.scale": "Interface scale",
   "settings.closeButton": "Close button",
   "settings.closeButton.close": "Close",
   "settings.folderMusics": "Folder musics",

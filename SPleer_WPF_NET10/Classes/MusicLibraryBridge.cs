@@ -520,6 +520,20 @@ namespace SPleer
         }
 
         /// <summary>
+        /// Устанавливает масштаб интерфейса.
+        /// </summary>
+        /// <param name="factor">Коэффициент масштаба: 0.7 - 1.3 (1.0 = 100%).</param>
+        public void SetZoom(double factor)
+        {
+            factor = Math.Clamp(factor, 0.7, 1.3);
+
+            _window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_window is MainWindow main) main.ApplyZoom(factor);
+            }));
+        }
+
+        /// <summary>
         /// Возвращает все сохранённые настройки приложения в виде JSON.
         /// </summary>
         /// <returns>JSON-объект вида "ключ": "значение" со всеми настройками.</returns>

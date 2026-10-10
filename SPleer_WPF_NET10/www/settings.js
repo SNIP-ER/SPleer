@@ -22,6 +22,9 @@ async function applySettingsOnStartup(savedSettings) {
     const theme = savedSettings.theme || 'Dark';
     document.documentElement.setAttribute('data-theme', theme.toLowerCase());
 
+    const scale = Number(savedSettings.scale) || 100;
+    document.documentElement.style.setProperty('--ui-zoom', scale / 100);
+
     const lang = languageCodes[savedSettings.language] || window.__cachedLang || 'en';
     await loadLanguage(lang);
 }
@@ -169,6 +172,11 @@ async function updateSetting(key, value) {
     }
     if (key === 'playbackMode') {
         await window.chrome.webview.hostObjects.musicLibrary.SetLoudnessMode(String(value));
+    }
+    if (key === 'scale') {
+        const factor = Number(value) / 100;
+        await window.chrome.webview.hostObjects.musicLibrary.SetZoom(factor);
+        document.documentElement.style.setProperty('--ui-zoom', factor);
     }
     if (key === 'normalization') {
         await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value === true || value === 'true');

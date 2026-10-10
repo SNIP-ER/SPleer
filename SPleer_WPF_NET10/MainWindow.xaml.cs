@@ -1,10 +1,24 @@
 ﻿using Microsoft.Web.WebView2.Core;
+using System.Globalization;
 using System.Windows;
 
 namespace SPleer
 {
     public partial class MainWindow : Window
     {
+        // Масштаб (%) -> минимальный размер окна (ширина, высота) в единицах WPF.
+        // Значения подобраны вручную.
+        private static readonly Dictionary<int, (double W, double H)> MinSizes = new()
+        {
+            [70] = (415, 326),
+            [80] = (475, 372),
+            [90] = (535, 418),
+            [100] = (595, 482),
+            [110] = (655, 506),
+            [120] = (715, 552),
+            [130] = (775, 596),
+        };
+
         public static Microsoft.Web.WebView2.Wpf.WebView2? WebView;
         private MusicLibraryBridge? _bridge;
 
@@ -42,6 +56,10 @@ namespace SPleer
                 await webView21.EnsureCoreWebView2Async(environment);
                 WebView = webView21;
 
+                // Отключение встроенного зума
+                webView21.CoreWebView2.Settings.IsZoomControlEnabled = false;
+                webView21.CoreWebView2.Settings.IsPinchZoomEnabled = false;
+
 #if !DEBUG
                 webView21.CoreWebView2.Settings.AreDevToolsEnabled = false;
 #endif
@@ -55,6 +73,11 @@ namespace SPleer
                     "appfiles.local", appRootFolder, CoreWebView2HostResourceAccessKind.Allow);
 
                 var startupSettings = new SettingsManager();
+                if (double.TryParse(startupSettings.Get("scale"), NumberStyles.Float,
+                    CultureInfo.InvariantCulture, out var scalePercent))
+                {
+                    ApplyZoom(Math.Clamp(scalePercent, 70, 130) / 100);
+                }
                 string? savedMusicFolder = startupSettings.Get("musicFolder");
 
                 var musicLibrary = new MusicLibrary(savedMusicFolder);
@@ -74,6 +97,22 @@ namespace SPleer
         {
             _bridge?.CleanupOrphanedCovers();
             base.OnClosing(e);
+        }
+
+        /// <summary>
+        /// Применяет масштаб интерфейса и пропорционально меняет минимальный размер окна.
+        /// </summary>
+        /// <param name="factor">Коэффициент масштаба (1.0 = 100%).</param>
+        public void ApplyZoom(double factor)
+        {
+            webView21.ZoomFactor = factor;
+
+            int percent = (int)Math.Round(factor * 100);
+            if (MinSizes.TryGetValue(percent, out var size))
+            {
+                MinWidth = size.W;
+                MinHeight = size.H;
+            }
         }
     }
 }
