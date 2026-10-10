@@ -34,5 +34,17 @@
   "settings.playbackMode": "Playback mode",
   "settings.playbackMode.loud": "Loud",
   "settings.playbackMode.normal": "Normal",
-  "settings.playbackMode.quiet": "Quiet"
+  "settings.playbackMode.quiet": "Quiet",
+  "tooltip.settings": "Settings",
+  "tooltip.addToPlaylist": "Add to playlists",
+  "tooltip.shuffle": "Random play order: On",
+  "tooltip.shuffle.active": "Random play order: Off",
+  "tooltip.prev": "Previous track",
+  "tooltip.next": "Next track",
+  "tooltip.play": "Listen",
+  "tooltip.pause": "Stop",
+  "tooltip.repeat": "Clocking: On",
+  "tooltip.repeat.active": "Clocking: Off",
+  "tooltip.mute": "Sound: Off",
+  "tooltip.unmute": "Sound: On"
 }

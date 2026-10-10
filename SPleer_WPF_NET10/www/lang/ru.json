@@ -34,5 +34,17 @@
   "settings.playbackMode": "Режим громкости",
   "settings.playbackMode.loud": "Громкий",
   "settings.playbackMode.normal": "Нормальный",
-  "settings.playbackMode.quiet": "Тихий"
+  "settings.playbackMode.quiet": "Тихий",
+  "tooltip.settings": "Настройки",
+  "tooltip.addToPlaylist": "Добавить в плейлисты",
+  "tooltip.shuffle": "Случайный порядок воспроизведения: Включить",
+  "tooltip.shuffle.active": "Случайный порядок воспроизведения: Отключить",
+  "tooltip.prev": "Предыдущий трек",
+  "tooltip.next": "Следующий трек",
+  "tooltip.play": "Слушать",
+  "tooltip.pause": "Пауза",
+  "tooltip.repeat": "Зацикливание: Включить",
+  "tooltip.repeat.active": "Зацикливание: Отключить",
+  "tooltip.mute": "Отключить звук",
+  "tooltip.unmute": "Включить звук"
 }

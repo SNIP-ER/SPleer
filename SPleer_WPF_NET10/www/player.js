@@ -1,3 +1,7 @@
+const tooltipEl = document.getElementById('tooltip');
+
+let tooltipTarget = null;
+let tooltipTimer = null;
 let volumeSaveDebounceTimer = null;
 
 /**
@@ -393,3 +397,69 @@ function addTrackHighlight(index) {
     const el = document.getElementById(`track-number-${index}`);
     if (el) el.classList.add('library__number--active');
 }
+
+/**
+ * Показывает подсказку у элемента:
+ * над ним, если он в нижней половине окна, иначе под ним.
+ * @param {string} text - Текст подсказки.
+ * @param {DOMRect} rect - Прямоугольник элемента, к которому привязана подсказка.
+ * @param {number} [x] - Центр подсказки по X (по умолчанию центр элемента).
+ */
+function showTooltip(text, rect, x = rect.left + rect.width / 2) {
+    tooltipEl.textContent = text;
+    tooltipEl.classList.add('visible');
+
+    const tip = tooltipEl.getBoundingClientRect();
+    const above = rect.top + rect.height / 2 > window.innerHeight / 2;
+    const top = above ? rect.top - tip.height - 12 : rect.bottom + 12;
+    const left = Math.max(
+        6, 
+        Math.min(x - tip.width / 2, 
+        window.innerWidth - tip.width - 6)
+    );
+
+    tooltipEl.style.left = `${left}px`;
+    tooltipEl.style.top = `${top}px`;
+}
+
+/**
+ * Скрывает подсказку и отменяет отложенный показ.
+ */
+function hideTooltip() {
+    clearTimeout(tooltipTimer);
+    tooltipTarget = null;
+    tooltipEl.classList.remove('visible');
+}
+
+document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-i18n-tooltip]');
+    if (!el || el === tooltipTarget) return;
+
+    hideTooltip();
+    tooltipTarget = el;
+    tooltipTimer = setTimeout(() => {
+        const key = (el.classList.contains('active') && el.dataset.i18nTooltipActive) 
+            || el.dataset.i18nTooltip;
+        showTooltip(t(key), el.getBoundingClientRect());
+    }, 450);
+});
+
+document.addEventListener('mouseout', e => {
+    if (tooltipTarget && !tooltipTarget.contains(e.relatedTarget)) hideTooltip();
+});
+
+document.addEventListener('mousedown', hideTooltip, true);
+
+const timeSlider = document.getElementById('time-progress');
+
+timeSlider.addEventListener('mousemove', e => {
+    if (document.getElementById('player__time--total').textContent === '00:00') 
+        return hideTooltip();
+
+    const rect = timeSlider.getBoundingClientRect();
+    const ratio = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+
+    showTooltip(formatTime(ratio * parseFloat(timeSlider.max)), rect, e.clientX);
+});
+
+timeSlider.addEventListener('mouseleave', hideTooltip);

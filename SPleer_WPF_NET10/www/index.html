@@ -4,8 +4,10 @@
 <head>
     <meta charset="utf-8" />
     <link rel="icon" href="Image/logo.ico">
-    <link rel="preload" href="fonts/HankenGrotesk-Bold.ttf" as="font" type="font/ttf" crossorigin>
-    <link rel="preload" href="fonts/HankenGrotesk-ExtraBold.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="fonts/HankenGrotesk-Bold.ttf" 
+        as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="fonts/HankenGrotesk-ExtraBold.ttf" 
+        as="font" type="font/ttf" crossorigin>
     <script>
         (function() {
             var theme = localStorage.getItem('theme') || 'dark';
@@ -44,7 +46,7 @@
             </div>
 
             <div id='top-bar__actions'>
-                <div class='icon-btn cursor-pointer' id='top-bar__settings' role="button" tabindex="0" onclick="settings(0)"><img src="Image/settings.svg"></div>
+                <div class='icon-btn cursor-pointer' id='top-bar__settings' data-i18n-tooltip="tooltip.settings" role="button" tabindex="0" onclick="settings(0)"><img src="Image/settings.svg"></div>
 
                 <div id='top-bar__buttons'>
                     <button class='window-btn window-btn--minimize' id="minimize-btn"></button>
@@ -107,7 +109,7 @@
                 <div class='text-secondary marquee' id='player__artist'></div>
             </div>
 
-            <div class='icon-btn cursor-pointer' id='player__playlist' role="button" tabindex="0" onclick="openPlaylistsList()"><img src="Image/add.svg"></div>
+            <div class='icon-btn cursor-pointer' id='player__playlist' data-i18n-tooltip="tooltip.addToPlaylist" role="button" tabindex="0" onclick="openPlaylistsList()"><img src="Image/add.svg"></div>
 
             <div class='u-hidden' id='player__add-popup'>
                 <div id='player__add-popup-title'>
@@ -140,12 +142,12 @@
 
         <div id='player__controls'>
             <div id='player__buttons'>
-                <div class='icon-btn cursor-pointer' id='btn-shuffle' role="button" tabindex="0" onclick="toggleMode()"><img src="Image/toggle.svg"/></div>
-                <div class='icon-btn cursor-pointer' id='btn-prev' role="button" tabindex="0" onclick="flipTrack(1)"><img src="Image/back.svg"/></div>
-                <div class='cursor-pointer play player-btn' id='btn-play' role="button" tabindex="0" onclick='playOrResume()'><img class='icon-white' src="Image/play.svg"/></div>
-                <div class='cursor-pointer pause player-btn' id='btn-pause' role="button" tabindex="0" onclick='pause()'><img class='icon-white' src="Image/pause.svg"/></div>
-                <div class='icon-btn cursor-pointer' id='btn-next' role="button" tabindex="0" onclick="flipTrack(0)"><img src="Image/next.svg"/></div>
-                <div class='icon-btn cursor-pointer' id='btn-repeat' role="button" tabindex="0" onclick="toggleRepeat()"><img src="Image/repeat.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-shuffle' data-i18n-tooltip="tooltip.shuffle" data-i18n-tooltip-active="tooltip.shuffle.active" role="button" tabindex="0" onclick="toggleMode()"><img src="Image/toggle.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-prev' data-i18n-tooltip="tooltip.prev" role="button" tabindex="0" onclick="flipTrack(1)"><img src="Image/back.svg"/></div>
+                <div class='cursor-pointer play player-btn' id='btn-play' data-i18n-tooltip="tooltip.play" role="button" tabindex="0" onclick='playOrResume()'><img class='icon-white' src="Image/play.svg"/></div>
+                <div class='cursor-pointer pause player-btn' id='btn-pause' data-i18n-tooltip="tooltip.pause" role="button" tabindex="0" onclick='pause()'><img class='icon-white' src="Image/pause.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-next' data-i18n-tooltip="tooltip.next" role="button" tabindex="0" onclick="flipTrack(0)"><img src="Image/next.svg"/></div>
+                <div class='icon-btn cursor-pointer' id='btn-repeat' data-i18n-tooltip="tooltip.repeat" data-i18n-tooltip-active="tooltip.repeat.active" role="button" tabindex="0" onclick="toggleRepeat()"><img src="Image/repeat.svg"/></div>
             </div>
 
             <div id='player__progress'>
@@ -156,8 +158,8 @@
         </div>
 
         <div id='player__volume'>
-            <div class='volume-icon icon-btn cursor-pointer' id='player__volume-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volume.svg"/></div>
-            <div class='volume-icon icon-btn cursor-pointer u-hidden' id='player__volumeNot-icon' role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volumeNot.svg"/></div>
+            <div class='volume-icon icon-btn cursor-pointer' id='player__volume-icon' data-i18n-tooltip="tooltip.mute" role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volume.svg"/></div>
+            <div class='volume-icon icon-btn cursor-pointer u-hidden' id='player__volumeNot-icon' data-i18n-tooltip="tooltip.unmute" role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volumeNot.svg"/></div>
             <div id='player__volume-wrapper'><input id='player__volume-slider' type="range" min="0" max="100" value="40" oninput="changeVolume(this.value)"></div>
         </div>
     </div>
@@ -170,6 +172,8 @@
     <div class='resize-handle resize-handle--topright' onmousedown="startResize('topright')"></div>
     <div class='resize-handle resize-handle--bottomleft' onmousedown="startResize('bottomleft')"></div>
     <div class='resize-handle resize-handle--bottomright' onmousedown="startResize('bottomright')"></div>
+
+    <div id='tooltip'></div>
 
     <script src="i18n.js"></script>
     <script src="state.js"></script>

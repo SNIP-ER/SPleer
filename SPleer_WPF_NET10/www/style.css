@@ -392,6 +392,27 @@ button:hover {
     90%, 100% { transform: translateX(0); }
 }
 
+#tooltip {
+    position: fixed;
+    z-index: 10000;
+    padding: 4px 8px;
+    background-color: var(--bg-window);
+    border: 1px solid var(--border-window);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    line-height: 16px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+#tooltip.visible {
+    opacity: 1;
+}
+
 
 /* ИЗМЕНЕНИЯ РАЗМЕРОВ ОКНА */
 .resize-handle {
