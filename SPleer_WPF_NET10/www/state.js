@@ -45,6 +45,15 @@ const settingsSchema = [
         { value: '130', labelKey: '130%' },
     ], default: '100' },
 
+    { key: 'scaleMaximized', labelKey: 'settings.scaleMaximized', type: 'select', options: [
+        { value: 'none', labelKey: 'settings.none' },
+        { value: '90', labelKey: '90%' },
+        { value: '100', labelKey: '100%' },
+        { value: '110', labelKey: '110%' },
+        { value: '120', labelKey: '120%' },
+        { value: '130', labelKey: '130%' },
+    ], default: 'none' },
+
     { key: 'close_btn', labelKey: 'settings.closeButton', type: 'select', options: [
         { value: 'Close', labelKey: 'settings.closeButton.close' }
     ], default: 'Close' },

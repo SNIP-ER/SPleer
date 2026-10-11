@@ -1,4 +1,6 @@
 let settingsOpen = false;
+let windowedScale = 100;
+let maximizedScale = 'none';
 
 /**
  * Загружает все сохранённые настройки приложения из C#.
@@ -22,8 +24,9 @@ async function applySettingsOnStartup(savedSettings) {
     const theme = savedSettings.theme || 'Dark';
     document.documentElement.setAttribute('data-theme', theme.toLowerCase());
 
-    const scale = Number(savedSettings.scale) || 100;
-    document.documentElement.style.setProperty('--ui-zoom', scale / 100);
+    windowedScale = Number(savedSettings.scale) || 100;
+    maximizedScale = savedSettings.scaleMaximized || 'none';
+    applyScale();
 
     const lang = languageCodes[savedSettings.language] || window.__cachedLang || 'en';
     await loadLanguage(lang);
@@ -173,10 +176,10 @@ async function updateSetting(key, value) {
     if (key === 'playbackMode') {
         await window.chrome.webview.hostObjects.musicLibrary.SetLoudnessMode(String(value));
     }
-    if (key === 'scale') {
-        const factor = Number(value) / 100;
-        await window.chrome.webview.hostObjects.musicLibrary.SetZoom(factor);
-        document.documentElement.style.setProperty('--ui-zoom', factor);
+    if (key === 'scale' || key === 'scaleMaximized') {
+        if (key === 'scale') windowedScale = Number(value) || 100;
+        else maximizedScale = value;
+        applyScale();
     }
     if (key === 'normalization') {
         await window.chrome.webview.hostObjects.musicLibrary.SetNormalizationEnabled(value === true || value === 'true');
@@ -226,4 +229,17 @@ async function clearCoverCache(btn) {
             btn.disabled = false;
         }, 1500);
     }
+}
+
+/**
+ * Применяет масштаб интерфейса с учётом состояния окна:
+ * в развёрнутом окне берётся scaleMaximized (если выбрано не "Нет"), иначе обычный scale.
+ */
+function applyScale() {
+    const useMaximized = isMaximized && maximizedScale !== 'none';
+    const percent = Number(useMaximized ? maximizedScale : windowedScale) || 100;
+    const factor = percent / 100;
+
+    window.chrome.webview.hostObjects.musicLibrary.SetZoom(factor);
+    document.documentElement.style.setProperty('--ui-zoom', factor);
 }

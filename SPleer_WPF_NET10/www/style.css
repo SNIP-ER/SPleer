@@ -1663,7 +1663,7 @@ button:hover {
 
 .settings-row {
     display: grid;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     grid-template-columns: 210px auto;
     grid-template-rows: 22px;
     align-items: center;

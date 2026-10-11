@@ -107,6 +107,8 @@ namespace SPleer
         {
             webView21.ZoomFactor = factor;
 
+            if (WindowState == WindowState.Maximized) return;
+
             int percent = (int)Math.Round(factor * 100);
             if (MinSizes.TryGetValue(percent, out var size))
             {

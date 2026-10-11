@@ -124,6 +124,7 @@ function updateMaximizeIcon(maximized) {
     const btn = document.getElementById('maximize-btn');
     btn.classList.toggle('window-btn--maximize', !maximized);
     btn.classList.toggle('window-btn--restore', maximized);
+    applyScale();
 }
 
 /**
