@@ -545,7 +545,29 @@ namespace SPleer
         /// </summary>
         /// <param name="key">Ключ настройки.</param>
         /// <param name="value">Новое значение настройки.</param>
-        public void SetSetting(string key, string value) => _settingsManager.Set(key, value);
+        public void SetSetting(string key, string value)
+        {
+            _settingsManager.Set(key, value);
+
+            if (key == "close_btn")
+            {
+                _window.Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (_window is MainWindow main) main.SetCloseAction(value);
+                }));
+            }
+        }
+
+        /// <summary>
+        /// Принимает из JS переведённые подписи пунктов меню трея.
+        /// </summary>
+        public void SetTrayStrings(string open, string exit)
+        {
+            _window.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (_window is MainWindow main) main.SetTrayStrings(open, exit);
+            }));
+        }
 
         /// <summary>
         /// Открывает системный диалог выбора папки.

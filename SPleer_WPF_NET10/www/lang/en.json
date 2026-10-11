@@ -28,7 +28,8 @@
   "settings.scaleMaximized": "Expanded window scale",
   "settings.none": "None",
   "settings.closeButton": "Close button",
-  "settings.closeButton.close": "Close",
+  "settings.closeButton.close": "Exit",
+  "settings.closeButton.tray": "Minimize to tray",
   "settings.folderMusics": "Folder musics",
   "settings.folderMusics.text": "Select",
   "settings.volumeNormalization": "Volume normalization",
@@ -49,5 +50,7 @@
   "tooltip.repeat": "Clocking: On",
   "tooltip.repeat.active": "Clocking: Off",
   "tooltip.mute": "Sound: Off",
-  "tooltip.unmute": "Sound: On"
+  "tooltip.unmute": "Sound: On",
+  "tray.open": "Open",
+  "tray.exit": "Exit"
 }

@@ -55,7 +55,8 @@ const settingsSchema = [
     ], default: 'none' },
 
     { key: 'close_btn', labelKey: 'settings.closeButton', type: 'select', options: [
-        { value: 'Close', labelKey: 'settings.closeButton.close' }
+        { value: 'Close', labelKey: 'settings.closeButton.close' },
+        { value: 'Tray', labelKey: 'settings.closeButton.tray' }
     ], default: 'Close' },
 
     { key: 'musicFolder', labelKey: 'settings.folderMusics', type: 'folder', buttonLabelKey: 'settings.folderMusics.text', default: null },

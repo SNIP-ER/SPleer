@@ -28,7 +28,8 @@
   "settings.scaleMaximized": "Масштаб в развернутом окне",
   "settings.none": "Нет",
   "settings.closeButton": "Кнопка закрыть",
-  "settings.closeButton.close": "Закрыть",
+  "settings.closeButton.close": "Завершить работу",
+  "settings.closeButton.tray": "Свернуть в трей",
   "settings.folderMusics": "Папка с музыкой",
   "settings.folderMusics.text": "Выбрать",
   "settings.volumeNormalization": "Нормализация звука",
@@ -49,5 +50,7 @@
   "tooltip.repeat": "Зацикливание: Включить",
   "tooltip.repeat.active": "Зацикливание: Отключить",
   "tooltip.mute": "Отключить звук",
-  "tooltip.unmute": "Включить звук"
+  "tooltip.unmute": "Включить звук",
+  "tray.open": "Открыть",
+  "tray.exit": "Закрыть"
 }

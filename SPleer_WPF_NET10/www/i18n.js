@@ -9,6 +9,7 @@ async function loadLanguage(lang) {
     const response = await fetch(`https://splayer.web/lang/${lang}.json`);
     translations = await response.json();
     applyTranslations();
+    sendTrayStrings();
 }
 
 /**
@@ -44,4 +45,18 @@ function applyTranslations() {
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
     });
+}
+
+/**
+ * Передаёт в C# подписи пунктов меню трея.
+ * Если перевода нет (t вернул сам ключ), отправляется пустая строка,
+ * и C# оставляет запасной английский вариант.
+ */
+function sendTrayStrings() {
+    const open = t('tray.open');
+    const exit = t('tray.exit');
+    window.chrome.webview.hostObjects.musicLibrary.SetTrayStrings(
+        open === 'tray.open' ? '' : open,
+        exit === 'tray.exit' ? '' : exit
+    );
 }
