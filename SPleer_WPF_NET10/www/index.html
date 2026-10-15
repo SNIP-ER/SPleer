@@ -158,6 +158,7 @@
         </div>
 
         <div id='player__volume'>
+            <div class='volume-icon icon-btn cursor-pointer' id='player__history-icon' data-i18n-tooltip="tooltip.history" role="button" tabindex="0" onclick="toggleHistory()"><img src="Image/history.svg"/></div>
             <div class='volume-icon icon-btn cursor-pointer' id='player__volume-icon' data-i18n-tooltip="tooltip.mute" role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volume.svg"/></div>
             <div class='volume-icon icon-btn cursor-pointer u-hidden' id='player__volumeNot-icon' data-i18n-tooltip="tooltip.unmute" role="button" tabindex="0" onclick="toggleVolume()"><img src="Image/volumeNot.svg"/></div>
             <div id='player__volume-wrapper'><input id='player__volume-slider' type="range" min="0" max="100" value="40" oninput="changeVolume(this.value)"></div>

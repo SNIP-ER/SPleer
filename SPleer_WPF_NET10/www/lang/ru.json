@@ -53,6 +53,7 @@
   "tooltip.repeat.active": "Зацикливание: Отключить",
   "tooltip.mute": "Отключить звук",
   "tooltip.unmute": "Включить звук",
+  "tooltip.history": "Очередь и история",
   "tray.open": "Открыть",
   "tray.exit": "Закрыть"
 }

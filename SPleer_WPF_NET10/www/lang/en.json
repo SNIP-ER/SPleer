@@ -53,6 +53,7 @@
   "tooltip.repeat.active": "Clocking: Off",
   "tooltip.mute": "Sound: Off",
   "tooltip.unmute": "Sound: On",
+  "tooltip.history": "Turn and history",
   "tray.open": "Open",
   "tray.exit": "Exit"
 }

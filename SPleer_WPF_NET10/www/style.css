@@ -1466,7 +1466,7 @@ button:hover {
 /* НИЖНИЙ ПЛЕЕР (PLAYER) */
 #player {
     display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     position: fixed;
     bottom: 0;
@@ -1486,10 +1486,11 @@ button:hover {
     display: flex;
     align-items: center;
     justify-self: start;
-    min-width: 0;
+    width: calc(100% - 24px);
     max-width: 280px;
+    min-width: 0;
     gap: 16px;
-    margin: auto auto auto 24px;
+    margin: auto 0 auto 24px;
     background: transparent;
     border-radius: 50%;
 }
@@ -1554,11 +1555,18 @@ button:hover {
     opacity: 1;
 }
 
+#player__cover,
+#player__playlist {
+    flex-shrink: 0;
+}
+
 #player__info {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    flex: 0 1 auto;
     min-width: 0;
+    overflow: hidden;
     font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 400;
 }
@@ -1576,7 +1584,7 @@ button:hover {
     position: relative;
     display: flex;
     align-items: center;
-    margin-left: 24px;
+    margin-left: 16px;
     transform-origin: center;
     transition: scale 0.2s;
 }
@@ -2016,6 +2024,7 @@ button:hover {
 #player__progress {
     display: flex;
     justify-content: center;
+    width: clamp(120px, 40vw, 566px);
     height: 16px;
     gap: 12px;
     padding: 5px 0;
@@ -2024,13 +2033,15 @@ button:hover {
 #player__progress-bar {
     display: flex;
     align-items: center;
+    flex: 1;
+    min-width: 0;
 }
 
 #time-progress {
     --volume: 0%;
     --hover: 0%;
     position: relative;
-    width: 432px;
+    width: 100%;
     height: 6px;
     background: linear-gradient(
         to right, var(--accent), 
@@ -2082,11 +2093,8 @@ button:hover {
     display: flex;
     justify-self: end;
     align-items: center;
+    gap: 16px;
     margin: auto 24px auto auto;
-}
-
-#player__volume-wrapper {
-    padding-left: 8px;
 }
 
 #player__volume-slider {
@@ -2234,6 +2242,13 @@ button:hover {
 }
 
 
+@media (min-width: 1241px) {
+    #player {
+        grid-template-columns: minmax(0, 300px) auto minmax(0, 300px);
+        justify-content: space-between;
+    }
+}
+
 @media (max-width: 1240px) {
     #now-playing__info {
         transform: translateX(20px);
@@ -2255,13 +2270,6 @@ button:hover {
 }
 
 @media (max-width: 1025px) {
-    #player__progress {
-        opacity: 0;
-        max-width: 0;
-        min-width: 0;
-        padding: 0;
-        overflow: hidden;
-    }
     #player__settings {
         width: 310px;
     }
@@ -2303,9 +2311,15 @@ button:hover {
         max-width: 0;
         opacity: 0;
     }
+    #player__playlist {
+        margin-left: 8px;
+    }
 }
 
 @media (max-width: 745px) {
+    #player {
+        grid-template-columns: minmax(0, 0.7fr) auto minmax(0, 1fr);
+    }
     #player__track {
         gap: 0;
     }
