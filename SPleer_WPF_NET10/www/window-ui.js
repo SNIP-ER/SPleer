@@ -119,6 +119,10 @@ function initWindowControls() {
     });
 }
 
+/**
+ * Обновляет иконку растянуть окно при изменении окна перетягиванием.
+ * @param {bool} maximized - true - Развернутое окно, false - Окно.
+ */
 function updateMaximizeIcon(maximized) {
     isMaximized = maximized;
     const btn = document.getElementById('maximize-btn');

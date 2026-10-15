@@ -35,6 +35,8 @@
   "settings.volumeNormalization": "Volume normalization",
   "settings.clearCover": "Clear cover cache",
   "settings.clearCover.text": "Clear",
+  "settings.clearCover.done": "Done",
+  "settings.clearCover.error": "Error",
   "settings.playbackMode": "Playback mode",
   "settings.playbackMode.loud": "Loud",
   "settings.playbackMode.normal": "Normal",

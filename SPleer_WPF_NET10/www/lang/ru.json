@@ -35,6 +35,8 @@
   "settings.volumeNormalization": "Нормализация звука",
   "settings.clearCover": "Очистить кэш обложек",
   "settings.clearCover.text": "Очистить",
+  "settings.clearCover.done": "Готово",
+  "settings.clearCover.error": "Ошибка",
   "settings.playbackMode": "Режим громкости",
   "settings.playbackMode.loud": "Громкий",
   "settings.playbackMode.normal": "Нормальный",

@@ -46,6 +46,7 @@ async function settings(value) {
     else if (value === 0) {
         await renderSettings();
         settingsPanel .classList.remove('u-hidden');
+        document.getElementById('player__settings--list').scrollTop = 0;
         settingsOpen = true;
     }
     else if (value === 1) {
@@ -60,10 +61,11 @@ async function settings(value) {
  */
 async function renderSettings() {
     const container = document.getElementById('player__settings--list');
-    container.innerHTML = '';
 
     const savedJson = await window.chrome.webview.hostObjects.musicLibrary.GetSettingsJson();
     const saved = JSON.parse(savedJson);
+
+    const fragment = document.createDocumentFragment();
 
     settingsSchema.forEach(setting => {
         let currentValue = saved[setting.key] ?? setting.default;
@@ -78,8 +80,14 @@ async function renderSettings() {
             <div class='settings-row__label'>${t(setting.labelKey)}</div>
             <div class='settings-row__control'>${renderControl(setting, currentValue)}</div>
         `;
-        container.appendChild(row);
+        fragment.appendChild(row);
     });
+
+    // Сохранение прокрутки
+    const scrollTop = container.scrollTop;
+
+    container.replaceChildren(fragment);
+    container.scrollTop = scrollTop;
 }
 
 /**
@@ -103,7 +111,7 @@ function toggleCustomSelect(key) {
  */
 async function selectCustomOption(key, value) {
     await updateSetting(key, value);
-    if (settingsOpen) await renderSettings();
+    if (settingsOpen && key !== 'language') await renderSettings();
 }
 
 /**
@@ -219,10 +227,9 @@ async function clearCoverCache(btn) {
 
     try {
         await window.chrome.webview.hostObjects.musicLibrary.CleanupOrphanedCovers();
-        btn.textContent = 'Done';
+        btn.textContent = t('settings.clearCover.done');
     } catch (e) {
-        btn.textContent = 'Error';
-        console.error('Ошибка очистки кэша обложек:', e);
+        btn.textContent = t('settings.clearCover.error');
     } finally {
         setTimeout(() => {
             btn.textContent = originalText;
